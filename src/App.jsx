@@ -988,51 +988,113 @@ function SettingsView({ data, onUpdate, saving }) {
 // ─────────────────────────────────────────────────────────────────
 // APP
 // ─────────────────────────────────────────────────────────────────
+function Spinner() {
+  return <div className="inline-block w-4 h-4 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />;
+}
+
 export default function App() {
-  const [data,       setData]       = useState(null);
-  const [tab,        setTab]        = useState("dashboard");
-  const [editSes,    setEditSes]    = useState(null);
-  const [loading,    setLoading]    = useState(true);
+  const [data,    setData]    = useState(null);
+  const [tab,     setTab]     = useState("dashboard");
+  const [editSes, setEditSes] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [saving,  setSaving]  = useState(false);
+  const [error,   setError]   = useState(null);
+
+  async function refresh() {
+    try {
+      const d = await apiGet();
+      setData(d);
+      setError(null);
+    } catch(e) {
+      setError("โหลดข้อมูลไม่ได้: " + e.message);
+    }
+  }
 
   useEffect(() => { refresh().finally(() => setLoading(false)); }, []);
-  async function save(nd) { setData(nd); }
 
   async function saveSes(ses) {
-    const isEdit = data.sessions.some(s=>s.internalId===ses.internalId);
-    const sessions = isEdit ? data.sessions.map(s=>s.internalId===ses.internalId?ses:s) : [...data.sessions,ses];
-    let pot = data.pot || {balance:0,transactions:[]};
-    if (!isEdit) {
-      const ft = ses.entries.length*ses.fee;
-      if (ft>0) {
-        const tx = {id:Date.now(),type:"income",amount:ft,date:ses.date,
-          note:"ค่าส่วนกลาง ปี"+ses.year+" S"+ses.season+" เซส"+ses.sessionNo+" ("+ses.entries.length+" คน × "+fmt(ses.fee)+" ฿)"};
-        pot = {balance:pot.balance+ft, transactions:[tx,...pot.transactions]};
+    setSaving(true);
+    try {
+      const isEdit = data.sessions.some(s => s.internalId === ses.internalId);
+      await apiPost({ action: "saveSession", session: ses });
+      if (!isEdit) {
+        await apiPost({ action: "saveSettings", settings: {
+          players: data.players, chipRate: data.chipRate,
+          defaultFee: data.defaultFee, nextInternalId: data.nextInternalId + 1
+        }});
+        const ft = ses.entries.length * ses.fee;
+        if (ft > 0) {
+          const tx = { id: Date.now(), type: "income", amount: ft, date: ses.date,
+            note: "ค่าส่วนกลาง ปี"+ses.year+" S"+ses.season+" เซส"+ses.sessionNo+" ("+ses.entries.length+" คน × "+fmt(ses.fee)+" ฿)" };
+          await apiPost({ action: "savePotTransaction", transaction: tx });
+        }
       }
-    }
-    await save({...data, sessions, pot, nextInternalId: isEdit?data.nextInternalId:data.nextInternalId+1});
-    setEditSes(null); setTab("sessions");
+      await refresh();
+      setEditSes(null);
+      setTab("sessions");
+    } catch(e) { alert("บันทึกไม่สำเร็จ: " + e.message); }
+    finally { setSaving(false); }
   }
 
   async function delSes(id) {
     if (!window.confirm("ลบเซสชั่นนี้?")) return;
-    await save({...data, sessions:data.sessions.filter(s=>s.internalId!==id)});
+    try {
+      await apiPost({ action: "deleteSession", internalId: id });
+      await refresh();
+    } catch(e) { alert("ลบไม่สำเร็จ: " + e.message); }
+  }
+
+  async function saveSettings(cfg) {
+    setSaving(true);
+    try {
+      await apiPost({ action: "saveSettings", settings: { ...cfg, nextInternalId: data.nextInternalId } });
+      await refresh();
+    } catch(e) { alert("บันทึกไม่สำเร็จ: " + e.message); }
+    finally { setSaving(false); }
+  }
+
+  async function addPotTx(tx) {
+    setSaving(true);
+    try {
+      await apiPost({ action: "savePotTransaction", transaction: tx });
+      await refresh();
+    } catch(e) { alert("บันทึกไม่สำเร็จ: " + e.message); }
+    finally { setSaving(false); }
+  }
+
+  async function delPotTx(id) {
+    try {
+      await apiPost({ action: "deletePotTransaction", id });
+      await refresh();
+    } catch(e) { alert("ลบไม่สำเร็จ: " + e.message); }
   }
 
   if (loading) return (
-    <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
-      <div className="text-amber-400 text-xl animate-pulse">กำลังโหลด...</div>
+    <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center gap-3">
+      <Spinner/>
+      <div className="text-amber-400 text-sm">กำลังโหลดข้อมูลจาก Google Sheets...</div>
+    </div>
+  );
+
+  if (error) return (
+    <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center gap-4 px-6">
+      <div className="text-4xl">⚠️</div>
+      <div className="text-red-400 text-center text-sm">{error}</div>
+      <div className="text-zinc-600 text-xs text-center">ตรวจสอบว่า Apps Script Deploy ถูกต้องแล้วหรือยัง</div>
+      <button onClick={() => { setLoading(true); refresh().finally(() => setLoading(false)); }}
+        className="px-6 py-2 rounded-xl bg-amber-500 text-black font-bold text-sm">ลองใหม่</button>
     </div>
   );
 
   const potBal = data.pot?.balance ?? 0;
   const TABS = [
-    {id:"dashboard", icon:"📊", label:"ภาพรวม"},
-    {id:"leaderboard",icon:"🏆",label:"Rank"},
-    {id:"profiles",  icon:"👤", label:"Players"},
-    {id:"sessions",  icon:"📋", label:"เซสชั่น"},
-    {id:"add",       icon:"➕", label:"บันทึก"},
-    {id:"pot",       icon:"💰", label:"กองกลาง"},
-    {id:"settings",  icon:"⚙️", label:"ตั้งค่า"},
+    { id:"dashboard",   icon:"📊", label:"ภาพรวม"  },
+    { id:"leaderboard", icon:"🏆", label:"Rank"     },
+    { id:"profiles",    icon:"👤", label:"Players"  },
+    { id:"sessions",    icon:"📋", label:"เซสชั่น"  },
+    { id:"add",         icon:"➕", label:"บันทึก"   },
+    { id:"pot",         icon:"💰", label:"กองกลาง"  },
+    { id:"settings",    icon:"⚙️", label:"ตั้งค่า"  },
   ];
 
   return (
@@ -1043,27 +1105,27 @@ export default function App() {
           <div className="flex flex-1 items-center justify-between overflow-x-auto">
             <div className="flex">
               {TABS.map(t => (
-                <button key={t.id} onClick={()=>{setTab(t.id);if(t.id!=="add")setEditSes(null);}}
-                  className={"flex items-center gap-1 px-2 sm:px-2.5 py-4 text-xs font-medium border-b-2 transition-colors whitespace-nowrap "+(tab===t.id?"border-amber-400 text-amber-400":"border-transparent text-zinc-500 hover:text-zinc-300")}>
+                <button key={t.id} onClick={() => { setTab(t.id); if (t.id !== "add") setEditSes(null); }}
+                  className={"flex items-center gap-1 px-2 sm:px-2.5 py-4 text-xs font-medium border-b-2 transition-colors whitespace-nowrap " + (tab === t.id ? "border-amber-400 text-amber-400" : "border-transparent text-zinc-500 hover:text-zinc-300")}>
                   <span>{t.icon}</span>
                   <span className="hidden sm:inline">{t.label}</span>
                 </button>
               ))}
             </div>
-            <span className={"text-xs font-mono flex-shrink-0 pl-2 "+(potBal>=0?"text-purple-400":"text-red-400")}>
+            <span className={"text-xs font-mono flex-shrink-0 pl-2 " + (potBal >= 0 ? "text-purple-400" : "text-red-400")}>
               💰 {fmt(potBal)} ฿
             </span>
           </div>
         </div>
       </header>
       <main className="max-w-3xl mx-auto px-4 py-6">
-        {tab==="dashboard"   && <DashboardView data={data}/>}
-        {tab==="leaderboard" && <LeaderboardView data={data}/>}
-        {tab==="profiles"    && <PlayerProfilesView data={data}/>}
-        {tab==="sessions"    && !editSes && <SessionsView data={data} onEdit={s=>{setEditSes(s);setTab("add");}} onDelete={delSes}/>}
-        {tab==="add"         && <SessionForm data={data} editSession={editSes} onSave={saveSes} saving={saving} onCancel={editSes?()=>{setEditSes(null);setTab("sessions");}:null}/>}
-        {tab==="pot"         && <PotView data={data} onAddTx={addPotTx} onDeleteTx={delPotTx} saving={saving}/>}
-        {tab==="settings"    && <SettingsView data={data} onUpdate={saveSettings} saving={saving}/>}
+        {tab === "dashboard"   && <DashboardView data={data}/>}
+        {tab === "leaderboard" && <LeaderboardView data={data}/>}
+        {tab === "profiles"    && <PlayerProfilesView data={data}/>}
+        {tab === "sessions"    && !editSes && <SessionsView data={data} onEdit={s => { setEditSes(s); setTab("add"); }} onDelete={delSes}/>}
+        {tab === "add"         && <SessionForm data={data} editSession={editSes} onSave={saveSes} saving={saving} onCancel={editSes ? () => { setEditSes(null); setTab("sessions"); } : null}/>}
+        {tab === "pot"         && <PotView data={data} onAddTx={addPotTx} onDeleteTx={delPotTx} saving={saving}/>}
+        {tab === "settings"    && <SettingsView data={data} onUpdate={saveSettings} saving={saving}/>}
       </main>
     </div>
   );
