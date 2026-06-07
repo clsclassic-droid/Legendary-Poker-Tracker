@@ -298,8 +298,15 @@ function PlayerProfilesView({ data }) {
     const stats = summary.find(p=>p.name===sel) ?? { name:sel, total:0, n:0, gold:0, silver:0, bronze:0, last:0, best:null, worst:null, rank:"-" };
     const winRate = stats.n > 0 ? Math.round((stats.gold/stats.n)*100) : 0;
     const history = data.sessions
-      .map(s => ({ s, e: s.entries.find(e=>e.player===sel) }))
-      .filter(x => x.e);
+      .map(s => {
+        const e = s.entries.find(e => e.player === sel);
+        if (!e) return null;
+        // คำนวณ rank จาก profitBaht เพราะ Sheets อาจไม่มี rank field
+        const r = ranked(s.entries);
+        const myRank = r.find(x => x.player === sel)?.rank ?? e.rank ?? 0;
+        return { s, e: { ...e, rank: myRank } };
+      })
+      .filter(x => x);
 
     return (
       <div className="space-y-4">
@@ -358,14 +365,15 @@ function PlayerProfilesView({ data }) {
           <div className="space-y-1.5">
             {history.map((x,i) => {
               const lastRank = ranked(x.s.entries).length;
-              const em = x.e.rank===1?"🥇":x.e.rank===2?"🥈":x.e.rank===3?"🥉":x.e.rank===lastRank?"🪣":"#"+x.e.rank;
+              const myRank  = ranked(x.s.entries).find(r => r.player === sel)?.rank ?? 0;
+              const em = myRank===1?"🥇":myRank===2?"🥈":myRank===3?"🥉":myRank===lastRank?"🪣":"#"+myRank;
               return (
                 <div key={i} className="flex items-center justify-between bg-zinc-900/50 border border-zinc-800 rounded-xl px-3 py-2">
                   <div className="flex items-center gap-2">
                     <span className="text-base">{em}</span>
                     <div>
                       <div className="text-xs font-mono text-zinc-400">S{x.s.season} เซส{x.s.sessionNo}</div>
-                      <div className="text-zinc-600 text-[10px]">{x.s.date}</div>
+                      <div className="text-zinc-600 text-[10px]">{x.s.date?.slice(0,10) ?? x.s.date}</div>
                     </div>
                   </div>
                   <Profit v={x.e.profitBaht} sx=" ฿"/>
