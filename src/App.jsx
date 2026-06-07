@@ -13,7 +13,31 @@ async function apiGet() {
   const res = await fetch(API_URL + "?action=getData");
   const json = await res.json();
   if (!json.ok) throw new Error(json.error);
-  return json.data;
+  const d = json.data;
+  // Normalize sessions from Sheets
+  if (d.sessions) {
+    d.sessions = d.sessions.map(s => ({
+      ...s,
+      year:      Number(s.year)      || 0,
+      season:    Number(s.season)    || 0,
+      sessionNo: Number(s.sessionNo) || 0,
+      fee:       Number(s.fee)       || 0,
+      date:      String(s.date || "").slice(0, 10), // strip T17:00:00.000Z
+      rate: {
+        chips: Number(s.rate?.chips) || 1000,
+        baht:  Number(s.rate?.baht)  || 200,
+      },
+      entries: (s.entries || []).map(e => ({
+        ...e,
+        buyInChips:   Number(e.buyInChips)   || 0,
+        cashOutChips: Number(e.cashOutChips) || 0,
+        buyInBaht:    Number(e.buyInBaht)    || 0,
+        cashOutBaht:  Number(e.cashOutBaht)  || 0,
+        profitBaht:   Number(e.profitBaht)   || 0,
+      })),
+    }));
+  }
+  return d;
 }
 async function apiPost(body) {
   const res = await fetch(API_URL, { method:"POST", body:JSON.stringify(body) });
@@ -570,7 +594,7 @@ function SessionsView({ data, onEdit, onDelete }) {
                   <div className="text-zinc-600 text-[10px] font-mono">S{s.season}/{s.year}</div>
                 </div>
                 <div>
-                  <div className="text-white font-semibold text-sm">{s.date}</div>
+                  <div className="text-white font-semibold text-sm">{String(s.date || "").slice(0,10)}</div>
                   <div className="text-zinc-500 text-xs">{s.entries.length} ผู้เล่น · {fmt(pot)} ฿ · <span className="text-purple-400">ส่วนกลาง {fmt(fee)} ฿</span></div>
                 </div>
               </div>
