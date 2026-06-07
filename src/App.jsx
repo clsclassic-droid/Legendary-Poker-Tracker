@@ -994,8 +994,8 @@ export default function App() {
   const [editSes,    setEditSes]    = useState(null);
   const [loading,    setLoading]    = useState(true);
 
-  useEffect(() => { loadData().then(d => { setData(d); setLoading(false); }); }, []);
-  async function save(nd) { setData(nd); await saveData(nd); }
+  useEffect(() => { refresh().finally(() => setLoading(false)); }, []);
+  async function save(nd) { setData(nd); }
 
   async function saveSes(ses) {
     const isEdit = data.sessions.some(s=>s.internalId===ses.internalId);
