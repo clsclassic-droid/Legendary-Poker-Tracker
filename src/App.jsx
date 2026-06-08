@@ -88,8 +88,16 @@ const fmt = n => Number(n).toLocaleString();
 function getNick(player, nicknames) {
   return (nicknames || {})[player] || null;
 }
-function PlayerName({ player, nicknames, className="" }) {
+function PlayerName({ player, nicknames, className="", block=false }) {
   const nick = getNick(player, nicknames);
+  if (block && nick) {
+    return (
+      <span className={className}>
+        <span className="block font-semibold">{player}</span>
+        <span className="block text-zinc-500 font-normal text-xs">"{nick}"</span>
+      </span>
+    );
+  }
   return (
     <span className={className}>
       {player}
@@ -603,24 +611,24 @@ function LeaderboardView({ data }) {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead><tr className="border-b border-zinc-800 text-zinc-400 bg-zinc-900/80">
-                  <th className="px-4 py-3 text-left">#</th>
-                  <th className="px-4 py-3 text-left">ผู้เล่น</th>
-                  <th className="px-4 py-3 text-right">กำไร/ขาดทุน</th>
-                  <th className="px-4 py-3 text-center">🥇</th><th className="px-4 py-3 text-center">🥈</th>
-                  <th className="px-4 py-3 text-center">🥉</th><th className="px-4 py-3 text-center">💀</th>
-                  <th className="px-4 py-3 text-right hidden sm:table-cell">เซส</th>
+                  <th className="px-2 py-2 text-left">#</th>
+                  <th className="px-2 py-2 text-left">ผู้เล่น</th>
+                  <th className="px-2 py-2 text-right">กำไร</th>
+                  <th className="px-2 py-2 text-center">🥇</th><th className="px-2 py-2 text-center">🥈</th>
+                  <th className="px-2 py-2 text-center">🥉</th><th className="px-2 py-2 text-center">💀</th>
+                  <th className="px-2 py-2 text-right hidden sm:table-cell">เซส</th>
                 </tr></thead>
                 <tbody>
                   {summary.map(p => (
                     <tr key={p.name} className="border-b border-zinc-800/50 hover:bg-zinc-800/30 transition-colors">
-                      <td className="px-4 py-3 text-zinc-500 font-mono">{p.rank}</td>
-                      <td className="px-4 py-3 font-semibold text-white"><PlayerName player={p.name} nicknames={data.nicknames}/></td>
-                      <td className="px-4 py-3 text-right"><Profit v={p.total} sx=" ฿"/></td>
-                      <td className="px-4 py-3 text-center font-mono text-amber-400 font-semibold">{p.gold>0?p.gold:<span className="text-zinc-700">-</span>}</td>
-                      <td className="px-4 py-3 text-center font-mono text-zinc-300 font-semibold">{p.silver>0?p.silver:<span className="text-zinc-700">-</span>}</td>
-                      <td className="px-4 py-3 text-center font-mono text-orange-400 font-semibold">{p.bronze>0?p.bronze:<span className="text-zinc-700">-</span>}</td>
-                      <td className="px-4 py-3 text-center font-mono text-red-400 font-semibold">{p.last>0?p.last:<span className="text-zinc-700">-</span>}</td>
-                      <td className="px-4 py-3 text-right text-zinc-400 hidden sm:table-cell font-mono">{p.n}</td>
+                      <td className="px-2 py-2.5 text-zinc-500 font-mono text-xs">{p.rank}</td>
+                      <td className="px-3 py-2.5 font-semibold text-white"><PlayerName player={p.name} nicknames={data.nicknames} block={true}/></td>
+                      <td className="px-2 py-2.5 text-right"><Profit v={p.total} sx=" ฿"/></td>
+                      <td className="px-2 py-2.5 text-center font-mono text-amber-400 font-semibold">{p.gold>0?p.gold:<span className="text-zinc-700">-</span>}</td>
+                      <td className="px-2 py-2.5 text-center font-mono text-zinc-300 font-semibold">{p.silver>0?p.silver:<span className="text-zinc-700">-</span>}</td>
+                      <td className="px-2 py-2.5 text-center font-mono text-orange-400 font-semibold">{p.bronze>0?p.bronze:<span className="text-zinc-700">-</span>}</td>
+                      <td className="px-2 py-2.5 text-center font-mono text-red-400 font-semibold">{p.last>0?p.last:<span className="text-zinc-700">-</span>}</td>
+                      <td className="px-2 py-2.5 text-right text-zinc-400 hidden sm:table-cell font-mono">{p.n}</td>
                     </tr>
                   ))}
                 </tbody>
