@@ -14,28 +14,41 @@ async function apiGet() {
   const json = await res.json();
   if (!json.ok) throw new Error(json.error);
   const d = json.data;
-  // Normalize sessions from Sheets
   if (d.sessions) {
-    d.sessions = d.sessions.map(s => ({
-      ...s,
-      year:      Number(s.year)      || 0,
-      season:    Number(s.season)    || 0,
-      sessionNo: Number(s.sessionNo) || 0,
-      fee:       Number(s.fee)       || 0,
-      date:      String(s.date || "").slice(0, 10), // strip T17:00:00.000Z
-      rate: {
-        chips: Number(s.rate?.chips) || 1000,
-        baht:  Number(s.rate?.baht)  || 200,
-      },
-      entries: (s.entries || []).map(e => ({
-        ...e,
-        buyInChips:   Number(e.buyInChips)   || 0,
-        cashOutChips: Number(e.cashOutChips) || 0,
-        buyInBaht:    Number(e.buyInBaht)    || 0,
-        cashOutBaht:  Number(e.cashOutBaht)  || 0,
-        profitBaht:   Number(e.profitBaht)   || 0,
-      })),
-    }));
+    d.sessions = d.sessions.map(s => {
+      // date: strip time component
+      const dateStr = String(s.date || "").slice(0, 10);
+      // year/season: use stored values, fallback to computing from date
+      let year   = Number(s.year)      || 0;
+      let season = Number(s.season)    || 0;
+      if ((!year || !season) && dateStr.length === 10) {
+        const computed = (() => {
+          const dt = new Date(dateStr + "T00:00:00");
+          return { year: dt.getFullYear(), season: Math.ceil((dt.getMonth()+1)/3) };
+        })();
+        if (!year)   year   = computed.year;
+        if (!season) season = computed.season;
+      }
+      return {
+        ...s,
+        year, season,
+        sessionNo: Number(s.sessionNo) || 0,
+        fee:       Number(s.fee)       || 0,
+        date:      dateStr,
+        rate: {
+          chips: Number(s.rate?.chips) || 1000,
+          baht:  Number(s.rate?.baht)  || 200,
+        },
+        entries: (s.entries || []).map(e => ({
+          ...e,
+          buyInChips:   Number(e.buyInChips)   || 0,
+          cashOutChips: Number(e.cashOutChips) || 0,
+          buyInBaht:    Number(e.buyInBaht)    || 0,
+          cashOutBaht:  Number(e.cashOutBaht)  || 0,
+          profitBaht:   Number(e.profitBaht)   || 0,
+        })),
+      };
+    });
   }
   return d;
 }
@@ -294,7 +307,7 @@ function DashboardView({ data }) {
           <div className="space-y-2">
             {summary.filter(p=>p.n>0).slice(0,3).map((p,i) => (
               <div key={p.name} className="flex items-center gap-3">
-                <span className="text-lg">{"🥇🥈🥉"[i]}</span>
+                <span className="text-lg">{["🥇","🥈","🥉"][i]}</span>
                 <span className="text-white font-semibold flex-1">{p.name}</span>
                 <div className="flex gap-1 text-xs">
                   {p.gold>0   && <span className="text-amber-300">🥇{p.gold}</span>}
@@ -420,7 +433,7 @@ function PlayerProfilesView({ data }) {
           <button key={p.name} onClick={()=>setSel(p.name)}
             className="w-full flex items-center gap-3 bg-zinc-900/60 border border-zinc-800 hover:bg-zinc-800/40 hover:border-zinc-700 rounded-2xl px-4 py-3 text-left transition-colors">
             <div className="w-9 h-9 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center text-lg flex-shrink-0">
-              {p.rank===1?"🥇":p.rank===2?"🥈":p.rank===3?"🥉":"🃏"}
+              {p.rank===1 ? "🥇" : p.rank===2 ? "🥈" : p.rank===3 ? "🥉" : "🃏"}
             </div>
             <div className="flex-1">
               <div className="text-white font-bold">{p.name}</div>
@@ -463,7 +476,8 @@ function LeaderboardView({ data }) {
 
   const summary = useMemo(() => buildSummary(data.players, filtered), [data.players, filtered]);
   const top3 = summary.filter(p=>p.n>0).slice(0,3);
-  const GRAD = ["bg-gradient-to-br from-amber-900/40 to-amber-700/10 border-amber-500/40","bg-gradient-to-br from-zinc-700/40 to-zinc-600/10 border-zinc-500/40","bg-gradient-to-br from-orange-900/30 to-orange-800/10 border-orange-700/40"];
+  const MEDAL = ["🥇","🥈","🥉"];
+  const GRAD  = ["bg-gradient-to-br from-amber-900/40 to-amber-700/10 border-amber-500/40","bg-gradient-to-br from-zinc-700/40 to-zinc-600/10 border-zinc-500/40","bg-gradient-to-br from-orange-900/30 to-orange-800/10 border-orange-700/40"];
 
   const filterLabel = filter==="all" ? "ทั้งหมด ("+data.sessions.length+" เซส)"
     : filter==="latest" && latest ? "เซสล่าสุด — "+sesLabel(latest)
@@ -523,7 +537,7 @@ function LeaderboardView({ data }) {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {top3.map((p,i) => (
                 <div key={p.name} className={"rounded-2xl border p-4 "+GRAD[i]}>
-                  <div className="text-2xl mb-1">{"🥇🥈🥉"[i]}</div>
+                  <div className="text-2xl mb-1">{MEDAL[i]}</div>
                   <div className="text-white font-bold text-lg">{p.name}</div>
                   <div className={"font-mono text-2xl font-black mt-1 "+(p.total>=0?"text-emerald-400":"text-red-400")}>{p.total>=0?"+":""}{fmt(p.total)} ฿</div>
                   <div className="mt-2 flex flex-wrap gap-1 text-xs">
