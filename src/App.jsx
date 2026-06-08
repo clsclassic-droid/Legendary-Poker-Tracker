@@ -502,7 +502,7 @@ function LeaderboardView({ data }) {
             ["latest", "ล่าสุด"],
             ...yearKeys.map(y => ["yr:"+y, "ปี "+y]),
           ].map(([key, label]) => (
-            <button key={key} onClick={()=>setFilter(key)}
+            <button key={key} onClick={()=>{setFilter(key);}}
               className={"px-3 py-1.5 rounded-full text-xs font-medium border transition-colors flex-shrink-0 "+(
                 filter===key
                   ? "bg-amber-500/15 text-amber-400 border-amber-500/40"
@@ -512,17 +512,44 @@ function LeaderboardView({ data }) {
             </button>
           ))}
         </div>
-        {/* 2 dropdowns */}
+        {/* 2 dropdowns — filtered by selected year/season */}
         <div className="flex gap-2">
-          <select value={filter.startsWith("sea:")?filter:""} onChange={e=>e.target.value&&setFilter(e.target.value)}
+          {/* Season dropdown: show only seasons of selected year */}
+          <select
+            value={filter.startsWith("sea:")?filter:""}
+            onChange={e=>e.target.value&&setFilter(e.target.value)}
             className={"flex-1 border rounded-lg px-3 py-1.5 text-xs focus:outline-none transition-colors "+(filter.startsWith("sea:")?"bg-amber-500/10 border-amber-500/40 text-amber-400":"bg-zinc-900 border-zinc-700 text-zinc-500 focus:border-zinc-500")}>
             <option value="">ซีซั่น</option>
-            {seasonKeys.map(k=>{const[y,s]=k.split("-");return<option key={k} value={"sea:"+k}>ปี {y} S{s} ({S_SHORT[Number(s)]})</option>;})}
+            {seasonKeys
+              .filter(k => {
+                if (!filter.startsWith("yr:")) return true;
+                const selYear = filter.slice(3);
+                return k.startsWith(selYear+"-");
+              })
+              .map(k=>{
+                const[y,s]=k.split("-");
+                return <option key={k} value={"sea:"+k}>ปี {y} S{s} ({S_SHORT[Number(s)]})</option>;
+              })}
           </select>
-          <select value={filter.startsWith("sid:")?filter:""} onChange={e=>e.target.value&&setFilter(e.target.value)}
+          {/* Session dropdown: filtered by year and/or season */}
+          <select
+            value={filter.startsWith("sid:")?filter:""}
+            onChange={e=>e.target.value&&setFilter(e.target.value)}
             className={"flex-1 border rounded-lg px-3 py-1.5 text-xs focus:outline-none transition-colors "+(filter.startsWith("sid:")?"bg-amber-500/10 border-amber-500/40 text-amber-400":"bg-zinc-900 border-zinc-700 text-zinc-500 focus:border-zinc-500")}>
             <option value="">เซสชั่น</option>
-            {[...data.sessions].reverse().map(s=><option key={s.internalId} value={"sid:"+s.internalId}>{sesLabel(s)}</option>)}
+            {[...data.sessions]
+              .reverse()
+              .filter(s => {
+                if (filter.startsWith("yr:")) {
+                  return String(s.year) === filter.slice(3);
+                }
+                if (filter.startsWith("sea:")) {
+                  const [y,se] = filter.slice(4).split("-").map(Number);
+                  return s.year===y && s.season===se;
+                }
+                return true;
+              })
+              .map(s=><option key={s.internalId} value={"sid:"+s.internalId}>{sesLabel(s)}</option>)}
           </select>
         </div>
       </div>
