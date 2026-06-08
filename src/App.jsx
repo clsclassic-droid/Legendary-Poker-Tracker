@@ -14,6 +14,14 @@ async function apiGet() {
   const json = await res.json();
   if (!json.ok) throw new Error(json.error);
   const d = json.data;
+  if (!d.nicknames) d.nicknames = {};
+  if (d.settings) {
+    // parse nicknames from settings if stored as key=value string
+    const nk = d.settings?.nicknames;
+    if (nk && typeof nk === 'string') {
+      d.nicknames = Object.fromEntries(nk.split(',').map(p => p.split(':').map(s=>s.trim())).filter(p=>p.length===2));
+    }
+  }
   if (d.sessions) {
     d.sessions = d.sessions.map(s => {
       // date: strip time component
@@ -75,6 +83,20 @@ const c2b = (chips, r) => Math.round((chips / r.chips) * r.baht);
 const b2c = (baht,  r) => Math.round((baht  / r.baht)  * r.chips);
 const profit = (buy, sell, r) => c2b(sell - buy, r);
 const fmt = n => Number(n).toLocaleString();
+
+// ── Nickname helpers ──────────────────────────────────────────────
+function getNick(player, nicknames) {
+  return (nicknames || {})[player] || null;
+}
+function PlayerName({ player, nicknames, className="" }) {
+  const nick = getNick(player, nicknames);
+  return (
+    <span className={className}>
+      {player}
+      {nick && <span className="text-zinc-500 font-normal text-xs ml-1.5">"{nick}"</span>}
+    </span>
+  );
+}
 
 function ranked(entries) {
   return [...entries].sort((a,b) => b.profitBaht - a.profitBaht).map((e,i) => ({...e, rank: i+1}));
@@ -308,7 +330,7 @@ function DashboardView({ data }) {
             {summary.filter(p=>p.n>0).slice(0,3).map((p,i) => (
               <div key={p.name} className="flex items-center gap-3">
                 <span className="text-lg">{["🥇","🥈","🥉"][i]}</span>
-                <span className="text-white font-semibold flex-1">{p.name}</span>
+                <span className="text-white font-semibold flex-1"><PlayerName player={p.name} nicknames={data.nicknames}/></span>
                 <div className="flex gap-1 text-xs">
                   {p.gold>0   && <span className="text-amber-300">🥇{p.gold}</span>}
                   {p.silver>0 && <span className="text-zinc-300">🥈{p.silver}</span>}
@@ -436,7 +458,7 @@ function PlayerProfilesView({ data }) {
               {p.rank===1 ? "🥇" : p.rank===2 ? "🥈" : p.rank===3 ? "🥉" : "🃏"}
             </div>
             <div className="flex-1">
-              <div className="text-white font-bold">{p.name}</div>
+              <div className="text-white font-bold"><PlayerName player={p.name} nicknames={data.nicknames}/></div>
               <div className="text-zinc-500 text-xs">{p.n} เซส · Win rate {p.n>0?Math.round((p.gold/p.n)*100):0}%</div>
             </div>
             <div className="flex gap-1 text-xs mr-2">
@@ -564,7 +586,7 @@ function LeaderboardView({ data }) {
               {top3.map((p,i) => (
                 <div key={p.name} className={"rounded-2xl border p-4 "+GRAD[i]}>
                   <div className="text-2xl mb-1">{MEDAL[i]}</div>
-                  <div className="text-white font-bold text-lg">{p.name}</div>
+                  <div className="text-white font-bold text-lg"><PlayerName player={p.name} nicknames={data.nicknames}/></div>
                   <div className={"font-mono text-2xl font-black mt-1 "+(p.total>=0?"text-emerald-400":"text-red-400")}>{p.total>=0?"+":""}{fmt(p.total)} ฿</div>
                   <div className="mt-2 flex flex-wrap gap-1 text-xs">
                     {p.gold>0   && <span className="bg-amber-500/20 border border-amber-500/30 text-amber-300 px-1.5 py-0.5 rounded-full">🥇×{p.gold}</span>}
@@ -592,7 +614,7 @@ function LeaderboardView({ data }) {
                   {summary.map(p => (
                     <tr key={p.name} className="border-b border-zinc-800/50 hover:bg-zinc-800/30 transition-colors">
                       <td className="px-4 py-3 text-zinc-500 font-mono">{p.rank}</td>
-                      <td className="px-4 py-3 font-semibold text-white">{p.name}</td>
+                      <td className="px-4 py-3 font-semibold text-white"><PlayerName player={p.name} nicknames={data.nicknames}/></td>
                       <td className="px-4 py-3 text-right"><Profit v={p.total} sx=" ฿"/></td>
                       <td className="px-4 py-3 text-center font-mono text-amber-400 font-semibold">{p.gold>0?p.gold:<span className="text-zinc-700">-</span>}</td>
                       <td className="px-4 py-3 text-center font-mono text-zinc-300 font-semibold">{p.silver>0?p.silver:<span className="text-zinc-700">-</span>}</td>
@@ -640,7 +662,7 @@ function SessionsView({ data, onEdit, onDelete }) {
               </div>
               <div className="flex items-center gap-2">
                 <div className="text-right hidden sm:block">
-                  <div className="text-emerald-400 text-sm font-semibold">🥇 {r[0]?.player}</div>
+                  <div className="text-emerald-400 text-sm font-semibold">🥇 <PlayerName player={r[0]?.player||''} nicknames={data.nicknames}/></div>
                   <div className="text-emerald-300 text-xs font-mono">+{fmt(r[0]?.profitBaht)} ฿</div>
                 </div>
                 <span className="text-zinc-500">{isOpen?"▲":"▼"}</span>
@@ -663,7 +685,7 @@ function SessionsView({ data, onEdit, onDelete }) {
                     <tbody>{r.map(e => (
                       <tr key={e.player} className="border-b border-zinc-800/30">
                         <td className="py-2 text-zinc-500">{e.rank}</td>
-                        <td className="py-2 font-medium text-white">{e.player}</td>
+                        <td className="py-2 font-medium text-white"><PlayerName player={e.player} nicknames={data.nicknames}/></td>
                         <td className="py-2 text-right font-mono text-zinc-400">{fmt(e.buyInChips)}</td>
                         <td className="py-2 text-right font-mono text-zinc-400">{fmt(e.cashOutChips)}</td>
                         <td className="py-2 text-right font-mono text-zinc-500 hidden sm:table-cell">{fmt(e.buyInBaht)}</td>
@@ -885,7 +907,7 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
               <div key={r.player} className={"px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 "+(act?"":"opacity-50")}>
                 <div className="flex items-center gap-2 min-w-[80px]">
                   <span className={"w-2 h-2 rounded-full flex-shrink-0 "+(pb>0?"bg-emerald-400":pb<0?"bg-red-400":"bg-zinc-600")}/>
-                  <span className="text-white font-medium">{r.player}</span>
+                  <span className="text-white font-medium"><PlayerName player={r.player} nicknames={data.nicknames}/></span>
                 </div>
                 <div className="flex gap-2 flex-1">
                   <div className="flex-1">
@@ -995,16 +1017,18 @@ function PotView({ data, onAddTx, onDeleteTx, saving }) {
 // SETTINGS
 // ─────────────────────────────────────────────────────────────────
 function SettingsView({ data, onUpdate, saving }) {
-  const [players, setPlayers]   = useState(data.players);
-  const [newName, setNewName]   = useState("");
-  const [rate,    setRate]      = useState({...data.chipRate});
-  const [fee,     setFee]       = useState(data.defaultFee);
-  const [saved,   setSaved]     = useState(false);
+  const [players,   setPlayers]   = useState(data.players);
+  const [newName,   setNewName]   = useState("");
+  const [rate,      setRate]      = useState({...data.chipRate});
+  const [fee,       setFee]       = useState(data.defaultFee);
+  const [nicknames, setNicknames] = useState({...( data.nicknames||{} )});
+  const [saved,     setSaved]     = useState(false);
 
   function addPlayer() { const n=newName.trim(); if(!n||players.includes(n)) return; setPlayers([...players,n]); setNewName(""); }
-  function rmPlayer(n) { setPlayers(players.filter(p=>p!==n)); }
+  function rmPlayer(n) { setPlayers(players.filter(p=>p!==n)); const nn={...nicknames}; delete nn[n]; setNicknames(nn); }
+  function setNick(player, val) { setNicknames(prev=>({...prev, [player]: val})); }
   async function save() {
-    await onUpdate({players,chipRate:rate,defaultFee:fee});
+    await onUpdate({players, chipRate:rate, defaultFee:fee, nicknames});
     setSaved(true); setTimeout(()=>setSaved(false),2000);
   }
 
@@ -1032,11 +1056,17 @@ function SettingsView({ data, onUpdate, saving }) {
             className="flex-1 bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2.5 text-white placeholder-zinc-600 focus:border-amber-500 focus:outline-none"/>
           <button onClick={addPlayer} className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold">เพิ่ม</button>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        <div className="space-y-2">
           {players.map(p => (
-            <div key={p} className="flex items-center justify-between bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2">
-              <span className="text-white font-medium text-sm">{p}</span>
-              <button onClick={()=>rmPlayer(p)} className="text-zinc-600 hover:text-red-400 ml-2 text-xs">✕</button>
+            <div key={p} className="flex items-center gap-2 bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2">
+              <span className="text-white font-medium text-sm w-16 flex-shrink-0">{p}</span>
+              <input
+                value={nicknames[p] || ""}
+                onChange={e => setNick(p, e.target.value)}
+                placeholder="Nickname..."
+                className="flex-1 bg-zinc-900 border border-zinc-600 rounded-lg px-3 py-1.5 text-zinc-300 text-xs placeholder-zinc-600 focus:border-amber-500 focus:outline-none"
+              />
+              <button onClick={()=>rmPlayer(p)} className="text-zinc-600 hover:text-red-400 text-xs flex-shrink-0">✕</button>
             </div>
           ))}
         </div>
@@ -1119,7 +1149,7 @@ export default function App() {
   async function saveSettings(cfg) {
     setSaving(true);
     try {
-      await apiPost({ action: "saveSettings", settings: { ...cfg, nextInternalId: data.nextInternalId } });
+      await apiPost({ action: "saveSettings", settings: { ...cfg, nextInternalId: data.nextInternalId, nicknames: cfg.nicknames||{} } });
       await refresh();
     } catch(e) { alert("บันทึกไม่สำเร็จ: " + e.message); }
     finally { setSaving(false); }
