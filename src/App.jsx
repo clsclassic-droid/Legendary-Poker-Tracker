@@ -312,7 +312,7 @@ function DashboardView({ data }) {
                 <div className="flex gap-1 text-xs">
                   {p.gold>0   && <span className="text-amber-300">🥇{p.gold}</span>}
                   {p.silver>0 && <span className="text-zinc-300">🥈{p.silver}</span>}
-                  {p.last>0   && <span className="text-red-400">🪣{p.last}</span>}
+                  {p.last>0   && <span className="text-red-400">💀{p.last}</span>}
                 </div>
                 <Profit v={p.total} sx=" ฿"/>
               </div>
@@ -386,7 +386,7 @@ function PlayerProfilesView({ data }) {
           <div className="text-zinc-400 text-xs font-semibold mb-3">🏅 เหรียญรางวัล</div>
           <div className="grid grid-cols-4 gap-2 text-center">
             {[["🥇",stats.gold,"ทอง","text-amber-300"],["🥈",stats.silver,"เงิน","text-zinc-300"],
-              ["🥉",stats.bronze,"ทองแดง","text-orange-300"],["🪣",stats.last,"โหล่","text-red-400"]].map(([emoji,count,label,color]) => (
+              ["🥉",stats.bronze,"ทองแดง","text-orange-300"],["💀",stats.last,"โหล่","text-red-400"]].map(([emoji,count,label,color]) => (
               <div key={label} className="bg-zinc-800/50 rounded-xl p-2">
                 <div className="text-xl">{emoji}</div>
                 <div className={"font-mono font-black text-xl "+color}>{count}</div>
@@ -403,7 +403,7 @@ function PlayerProfilesView({ data }) {
             {history.map((x,i) => {
               const lastRank = ranked(x.s.entries).length;
               const myRank  = ranked(x.s.entries).find(r => r.player === sel)?.rank ?? 0;
-              const em = myRank===1?"🥇":myRank===2?"🥈":myRank===3?"🥉":myRank===lastRank?"🪣":"#"+myRank;
+              const em = myRank===1?"🥇":myRank===2?"🥈":myRank===3?"🥉":myRank===lastRank?"💀":"#"+myRank;
               return (
                 <div key={i} className="flex items-center justify-between bg-zinc-900/50 border border-zinc-800 rounded-xl px-3 py-2">
                   <div className="flex items-center gap-2">
@@ -442,7 +442,7 @@ function PlayerProfilesView({ data }) {
             <div className="flex gap-1 text-xs mr-2">
               {p.gold>0   && <span className="bg-amber-500/20 border border-amber-500/30 text-amber-300 px-1.5 py-0.5 rounded-full">🥇{p.gold}</span>}
               {p.silver>0 && <span className="bg-zinc-600/30 border border-zinc-600 text-zinc-300 px-1.5 py-0.5 rounded-full">🥈{p.silver}</span>}
-              {p.last>0   && <span className="bg-red-900/30 border border-red-700/30 text-red-400 px-1.5 py-0.5 rounded-full">🪣{p.last}</span>}
+              {p.last>0   && <span className="bg-red-900/30 border border-red-700/30 text-red-400 px-1.5 py-0.5 rounded-full">💀{p.last}</span>}
             </div>
             <div className="text-right flex-shrink-0">
               <Profit v={p.total} sx=" ฿"/>
@@ -544,7 +544,7 @@ function LeaderboardView({ data }) {
                     {p.gold>0   && <span className="bg-amber-500/20 border border-amber-500/30 text-amber-300 px-1.5 py-0.5 rounded-full">🥇×{p.gold}</span>}
                     {p.silver>0 && <span className="bg-zinc-400/20 border border-zinc-400/30 text-zinc-300 px-1.5 py-0.5 rounded-full">🥈×{p.silver}</span>}
                     {p.bronze>0 && <span className="bg-orange-700/20 border border-orange-700/30 text-orange-300 px-1.5 py-0.5 rounded-full">🥉×{p.bronze}</span>}
-                    {p.last>0   && <span className="bg-red-900/30 border border-red-700/30 text-red-400 px-1.5 py-0.5 rounded-full">🪣×{p.last}</span>}
+                    {p.last>0   && <span className="bg-red-900/30 border border-red-700/30 text-red-400 px-1.5 py-0.5 rounded-full">💀×{p.last}</span>}
                     <span className="bg-zinc-700/40 border border-zinc-600/40 text-zinc-500 px-1.5 py-0.5 rounded-full">{p.n} เซส</span>
                   </div>
                 </div>
@@ -559,7 +559,7 @@ function LeaderboardView({ data }) {
                   <th className="px-4 py-3 text-left">ผู้เล่น</th>
                   <th className="px-4 py-3 text-right">กำไร/ขาดทุน</th>
                   <th className="px-4 py-3 text-center">🥇</th><th className="px-4 py-3 text-center">🥈</th>
-                  <th className="px-4 py-3 text-center">🥉</th><th className="px-4 py-3 text-center">🪣</th>
+                  <th className="px-4 py-3 text-center">🥉</th><th className="px-4 py-3 text-center">💀</th>
                   <th className="px-4 py-3 text-right hidden sm:table-cell">เซส</th>
                 </tr></thead>
                 <tbody>
