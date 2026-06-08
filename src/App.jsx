@@ -273,7 +273,7 @@ function DashboardView({ data }) {
             ? <>
                 <div className="text-white font-black text-sm">ปี {latest.year}</div>
                 <div className="text-amber-300 text-sm font-bold">S{latest.season} เซส {latest.sessionNo}</div>
-                <div className="text-zinc-500 text-[10px] mt-1">{latest.date}</div>
+                <div className="text-zinc-500 text-[10px] mt-1">{String(latest.date||"").slice(0,10)}</div>
               </>
             : <div className="text-zinc-600 text-xs">ยังไม่มีเซส</div>}
         </div>
@@ -523,7 +523,7 @@ function LeaderboardView({ data }) {
             <select value={filter.startsWith("sid:")?filter:""} onChange={e=>e.target.value&&setFilter(e.target.value)}
               className="flex-1 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-white text-xs focus:border-amber-500 focus:outline-none">
               <option value="">-- เลือกเซสชั่น --</option>
-              {[...data.sessions].reverse().map(s=><option key={s.internalId} value={"sid:"+s.internalId}>{sesLabel(s)} — {s.date}</option>)}
+              {[...data.sessions].reverse().map(s=><option key={s.internalId} value={"sid:"+s.internalId}>{sesLabel(s)} — {String(s.date||"").slice(0,10)}</option>)}
             </select>
           </div>
         )}
@@ -952,7 +952,7 @@ function PotView({ data, onAddTx, onDeleteTx, saving }) {
           <div key={tx.id} className="flex items-center justify-between bg-zinc-900/60 border border-zinc-800 rounded-xl px-4 py-3">
             <div className="flex items-center gap-3">
               <span className={"text-lg "+(tx.type==="income"?"text-emerald-400":"text-red-400")}>{tx.type==="income"?"➕":"➖"}</span>
-              <div><div className="text-white text-sm font-medium">{tx.note}</div><div className="text-zinc-600 text-xs">{tx.date}</div></div>
+              <div><div className="text-white text-sm font-medium">{tx.note}</div><div className="text-zinc-600 text-xs">{String(tx.date||"").slice(0,10)}</div></div>
             </div>
             <div className="flex items-center gap-3">
               <span className={"font-mono font-semibold text-sm "+(tx.type==="income"?"text-emerald-400":"text-red-400")}>{tx.type==="income"?"+":"-"}{fmt(tx.amount)} ฿</span>
