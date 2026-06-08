@@ -493,41 +493,40 @@ function LeaderboardView({ data }) {
         <p className="text-zinc-500 text-sm mt-0.5">แสดงผล: <span className="text-amber-300">{filterLabel}</span></p>
       </div>
 
-      {/* Filter */}
-      <Box className="space-y-3">
-        <div className="text-zinc-500 text-xs font-semibold">🔍 กรองช่วงเวลา</div>
-        <div className="flex flex-wrap gap-2">
-          {[["all","ทั้งหมด","bg-amber-500 text-black border-amber-500","bg-zinc-800 text-zinc-400 border-zinc-700"],
-            ["latest","เซสล่าสุด","bg-emerald-500 text-black border-emerald-500","bg-zinc-800 text-zinc-400 border-zinc-700"],
-            ...yearKeys.map(y=>["yr:"+y,"ปี "+y,"bg-sky-500 text-black border-sky-500","bg-zinc-800 text-zinc-400 border-zinc-700"])
-          ].map(([key,label,on,off]) => latest || key==="all" ? (
+      {/* Filter — minimal */}
+      <div className="space-y-2">
+        {/* Chips row */}
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          {[
+            ["all",    "ทั้งหมด"],
+            ["latest", "ล่าสุด"],
+            ...yearKeys.map(y => ["yr:"+y, "ปี "+y]),
+          ].map(([key, label]) => (
             <button key={key} onClick={()=>setFilter(key)}
-              className={"px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors "+(filter===key?on:off)}>
+              className={"px-3 py-1.5 rounded-full text-xs font-medium border transition-colors flex-shrink-0 "+(
+                filter===key
+                  ? "bg-amber-500/15 text-amber-400 border-amber-500/40"
+                  : "bg-transparent text-zinc-500 border-zinc-700 hover:text-zinc-300 hover:border-zinc-600"
+              )}>
               {label}
             </button>
-          ) : null)}
+          ))}
         </div>
-        {seasonKeys.length>0 && (
-          <div className="flex items-center gap-2">
-            <span className="text-zinc-600 text-xs">ซีซั่น:</span>
-            <select value={filter.startsWith("sea:")?filter:""} onChange={e=>e.target.value&&setFilter(e.target.value)}
-              className="flex-1 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-white text-xs focus:border-amber-500 focus:outline-none">
-              <option value="">-- เลือกซีซั่น --</option>
-              {seasonKeys.map(k=>{const[y,s]=k.split("-");return<option key={k} value={"sea:"+k}>ปี {y} ซีซั่น {s} ({S_SHORT[Number(s)]})</option>;})}
-            </select>
-          </div>
-        )}
-        {data.sessions.length>0 && (
-          <div className="flex items-center gap-2">
-            <span className="text-zinc-600 text-xs">เฉพาะเซส:</span>
-            <select value={filter.startsWith("sid:")?filter:""} onChange={e=>e.target.value&&setFilter(e.target.value)}
-              className="flex-1 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-white text-xs focus:border-amber-500 focus:outline-none">
-              <option value="">-- เลือกเซสชั่น --</option>
-              {[...data.sessions].reverse().map(s=><option key={s.internalId} value={"sid:"+s.internalId}>{sesLabel(s)} — {String(s.date||"").slice(0,10)}</option>)}
-            </select>
-          </div>
-        )}
-      </Box>
+        {/* 2 dropdowns */}
+        <div className="flex gap-2">
+          <select value={filter.startsWith("sea:")?filter:""} onChange={e=>e.target.value&&setFilter(e.target.value)}
+            className={"flex-1 border rounded-lg px-3 py-1.5 text-xs focus:outline-none transition-colors "+(filter.startsWith("sea:")?"bg-amber-500/10 border-amber-500/40 text-amber-400":"bg-zinc-900 border-zinc-700 text-zinc-500 focus:border-zinc-500")}>
+            <option value="">ซีซั่น</option>
+            {seasonKeys.map(k=>{const[y,s]=k.split("-");return<option key={k} value={"sea:"+k}>ปี {y} S{s} ({S_SHORT[Number(s)]})</option>;})}
+          </select>
+          <select value={filter.startsWith("sid:")?filter:""} onChange={e=>e.target.value&&setFilter(e.target.value)}
+            className={"flex-1 border rounded-lg px-3 py-1.5 text-xs focus:outline-none transition-colors "+(filter.startsWith("sid:")?"bg-amber-500/10 border-amber-500/40 text-amber-400":"bg-zinc-900 border-zinc-700 text-zinc-500 focus:border-zinc-500")}>
+            <option value="">เซสชั่น</option>
+            {[...data.sessions].reverse().map(s=><option key={s.internalId} value={"sid:"+s.internalId}>{sesLabel(s)}</option>)}
+          </select>
+        </div>
+      </div>
+
 
       {filtered.length===0 ? (
         <Box><div className="text-center py-8 text-zinc-600"><div className="text-3xl mb-2">🃏</div>ไม่มีข้อมูลในช่วงที่เลือก</div></Box>
