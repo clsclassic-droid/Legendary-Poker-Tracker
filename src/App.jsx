@@ -488,6 +488,160 @@ function PlayerProfilesView({ data }) {
 // ─────────────────────────────────────────────────────────────────
 // LEADERBOARD
 // ─────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────
+// RACING BAR CHART
+// ─────────────────────────────────────────────────────────────────
+function RacingBarChart({ sessions, players, nicknames }) {
+  const [curSes, setCurSes] = useState(0);
+  const [playing, setPlaying] = useState(false);
+  const [speed, setSpeed] = useState(1);
+  const timerRef = useState(null);
+
+  const TOP_N = 8;
+  const COLORS = ['#f0b429','#34d399','#60a5fa','#f87171','#a78bfa','#fb923c','#4ade80','#f472b6','#94a3b8','#fbbf24','#e2e8f0','#c084fc'];
+
+  const colorMap = useMemo(() => {
+    const m = {};
+    players.forEach((p,i) => { m[p] = COLORS[i % COLORS.length]; });
+    return m;
+  }, [players]);
+
+  // Build cumulative profit per session per player
+  const cumulData = useMemo(() => {
+    const cum = {};
+    players.forEach(p => { cum[p] = []; });
+    let running = {};
+    players.forEach(p => { running[p] = 0; });
+    sessions.forEach(s => {
+      s.entries.forEach(e => {
+        if (running[e.player] !== undefined) running[e.player] += e.profitBaht;
+      });
+      players.forEach(p => { cum[p].push(running[p] || 0); });
+    });
+    return cum;
+  }, [sessions, players]);
+
+  const total = sessions.length;
+
+  function getScores(si) {
+    return players
+      .map(p => ({ name: p, profit: (cumulData[p]?.[si] ?? 0), color: colorMap[p], nick: (nicknames||{})[p]||'' }))
+      .sort((a,b) => b.profit - a.profit);
+  }
+
+  useEffect(() => {
+    if (!playing) return;
+    if (curSes >= total - 1) { setPlaying(false); return; }
+    const t = setTimeout(() => setCurSes(s => s + 1), 600 / speed);
+    return () => clearTimeout(t);
+  }, [playing, curSes, speed, total]);
+
+  function togglePlay() {
+    if (curSes >= total - 1) setCurSes(0);
+    setPlaying(p => !p);
+  }
+
+  const scores = getScores(curSes);
+  const maxAbs = Math.max(...scores.map(s => Math.abs(s.profit)), 1);
+  const top = scores.slice(0, TOP_N);
+  const ses = sessions[curSes];
+
+  if (total === 0) return null;
+
+  return (
+    <div className="bg-zinc-900/60 border border-zinc-800 rounded-2xl p-4 space-y-3">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="text-white font-bold text-sm">🏆 Ranking Race</div>
+          <div className="text-zinc-500 text-xs">กำไรสะสมแต่ละเซส</div>
+        </div>
+        <div className="bg-amber-500/15 border border-amber-500/30 rounded-full px-3 py-1 text-amber-400 font-mono font-bold text-xs">
+          เซส {curSes + 1} / {total}
+        </div>
+      </div>
+
+      {/* Controls */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <button onClick={togglePlay}
+          className={"px-3 py-1.5 rounded-lg text-xs font-bold transition-colors " + (playing ? "bg-zinc-700 text-white" : "bg-amber-500 text-black")}>
+          {playing ? "⏸ หยุด" : "▶ Play"}
+        </button>
+        <button onClick={() => { setPlaying(false); setCurSes(0); }}
+          className="px-3 py-1.5 rounded-lg text-xs font-medium bg-zinc-800 text-zinc-400 hover:text-white border border-zinc-700 transition-colors">
+          ↺ Reset
+        </button>
+        <div className="flex items-center gap-1 ml-auto">
+          <span className="text-zinc-600 text-xs">ความเร็ว:</span>
+          {[1,2,4].map(s => (
+            <button key={s} onClick={() => setSpeed(s)}
+              className={"px-2 py-1 rounded-md text-xs border transition-colors " + (speed===s ? "bg-amber-500/15 text-amber-400 border-amber-500/30" : "bg-zinc-800 text-zinc-500 border-zinc-700")}>
+              {s}×
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Slider */}
+      <div className="flex items-center gap-2">
+        <span className="text-zinc-600 text-[10px] font-mono flex-shrink-0">เซส 1</span>
+        <input type="range" min={0} max={total-1} value={curSes}
+          onChange={e => { setPlaying(false); setCurSes(Number(e.target.value)); }}
+          className="flex-1 h-1 rounded-full appearance-none bg-zinc-700 accent-amber-400 cursor-pointer"/>
+        <span className="text-zinc-600 text-[10px] font-mono flex-shrink-0">เซส {total}</span>
+      </div>
+
+      {/* Bars */}
+      <div className="space-y-1.5">
+        {top.map((s, rank) => {
+          const pct = Math.max(2, (Math.abs(s.profit) / maxAbs) * 94);
+          const isPos = s.profit >= 0;
+          return (
+            <div key={s.name} className="flex items-center gap-2" style={{height:'34px'}}>
+              {/* Name left */}
+              <div className="flex-shrink-0 text-right" style={{width:'72px'}}>
+                <div className="text-xs font-bold leading-tight truncate" style={{color: s.color}}>{s.name}</div>
+                {s.nick && <div className="text-[9px] text-zinc-600 truncate">"{s.nick}"</div>}
+              </div>
+              {/* Bar */}
+              <div className="flex-1 h-full bg-zinc-800/60 rounded-lg overflow-hidden relative">
+                <div
+                  className="h-full rounded-lg flex items-center justify-end pr-2 transition-all"
+                  style={{
+                    width: pct + '%',
+                    background: isPos ? s.color : 'rgba(248,113,113,0.4)',
+                    transition: 'width 0.4s ease',
+                    minWidth: '2px',
+                  }}>
+                  <span className="text-[10px] font-bold font-mono whitespace-nowrap"
+                    style={{color: isPos ? 'rgba(0,0,0,0.7)' : 'rgba(255,255,255,0.8)'}}>
+                    {isPos ? '+' : ''}{fmt(s.profit)} ฿
+                  </span>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Session dots */}
+      <div className="flex gap-1 flex-wrap pt-1">
+        {sessions.map((_, i) => (
+          <div key={i} onClick={() => { setPlaying(false); setCurSes(i); }}
+            className="cursor-pointer rounded-full transition-all"
+            style={{
+              width: i === curSes ? '8px' : '5px',
+              height: i === curSes ? '8px' : '5px',
+              background: i < curSes ? 'rgba(240,180,41,0.4)' : i === curSes ? '#f0b429' : '#333',
+              marginTop: i === curSes ? '0px' : '1.5px',
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function LeaderboardView({ data }) {
   const [filter, setFilter] = useState("all");
 
@@ -636,6 +790,10 @@ function LeaderboardView({ data }) {
             </div>
           </Box>
         </>
+      )}
+      {/* Racing Bar Chart */}
+      {data.sessions.length > 1 && (
+        <RacingBarChart sessions={data.sessions} players={data.players} nicknames={data.nicknames}/>
       )}
     </div>
   );
