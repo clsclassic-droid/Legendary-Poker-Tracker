@@ -182,30 +182,49 @@ function MiniChart({ player, sessions }) {
     </div>
   );
 
-  const W=300, H=140, PL=42, PR=12, PT=14, PB=26;
+  // ── ขยายกราฟ ──────────────────────────────────────────────
+  const W=400, H=200, PL=44, PR=12, PT=16, PB=28;
   const cW=W-PL-PR, cH=H-PT-PB;
+
   const vals = mode==="profit" ? pts.map(x=>x.cum) : pts.map(x=>x.rank);
-  const mn=Math.min(...vals), mx=Math.max(...vals), rng=mx-mn||1;
-  // ทั้ง profit และ rank: ค่าดี=บน → toY กลับด้านเหมือนกัน
-  // rank: #1=ดีสุด → mn คือ #1 อยู่บน (Y น้อย) ✓
+
+  // rank mode: ใช้ขอบ 1..tot แทน min/max จริง → จุดอยู่บรรทัดตรงเสมอ
+  const maxTot = mode==="rank" ? Math.max(...pts.map(p=>p.tot)) : 0;
+  const mn  = mode==="profit" ? Math.min(...vals) : 1;
+  const mx  = mode==="profit" ? Math.max(...vals) : maxTot;
+  const rng = mx - mn || 1;
+
+  // ค่าดี=บน ทั้ง profit (#สูง=ดี) และ rank (#1=ดี=น้อย)
+  // rank: v=1 → Y บนสุด, v=maxTot → Y ล่างสุด ✓
   const toY = v => PT + cH - ((v - mn) / rng) * cH;
-  const toX = i => PL + (i/(pts.length-1))*cW;
+  const toX = i => PL + (i / (pts.length - 1)) * cW;
+
   const path = pts.map((p,i) => (i===0?"M":"L")+" "+toX(i).toFixed(1)+" "+toY(vals[i]).toFixed(1)).join(" ");
-  // fill: profit→ ล่าง (PT+cH), rank→ บน (PT) เพราะ #1 อยู่บน
-  const fillBase = mode==="profit" ? PT+cH : PT;
+
+  // rank mode → ไม่มี fill (เส้นล้วน), profit → fill ตามปกติ
+  const fillBase = PT + cH;
   const fill = path+" L "+toX(pts.length-1).toFixed(1)+" "+fillBase+" L "+PL+" "+fillBase+" Z";
-  const up   = mode==="profit" ? vals[vals.length-1] >= vals[0] : vals[vals.length-1] <= vals[0];
-  const lc   = mode==="profit" ? (up?"#34d399":"#f87171") : "#f0b429";
-  const fc   = mode==="profit" ? (up?"rgba(52,211,153,.07)":"rgba(248,113,113,.07)") : "rgba(240,180,41,.07)";
-  const h    = hov!==null ? pts[hov] : null;
+
+  const up = mode==="profit" ? vals[vals.length-1] >= vals[0] : vals[vals.length-1] <= vals[0];
+  const lc = mode==="profit" ? (up?"#34d399":"#f87171") : "#f0b429";
+  const fc = mode==="profit" ? (up?"rgba(52,211,153,.07)":"rgba(248,113,113,.07)") : "none";
+
+  const h = hov!==null ? pts[hov] : null;
+  // ซ่อน dots เมื่อเซสเยอะ — hover ยังแสดงเสมอ
   const showDots = pts.length <= 40;
-  // Y-axis labels: ด้านบน=ค่าดี
-  // profit: บน=mx, ล่าง=mn | rank: บน=mn (#1), ล่าง=mx
-  const gridTicks = [0, 0.5, 1].map(t => {
-    const y = PT + cH * t;
-    const v = mode==="profit" ? Math.round(mx - rng*t) : Math.round(mn + rng*t);
-    return { y, v };
-  });
+  // strokeWidth บางลงเมื่อเซสเยอะ
+  const sw = pts.length > 50 ? "1" : "1.5";
+
+  // Y-axis grid: rank→ แสดงทุก rank (1..maxTot), profit→ 3 จุด
+  const gridTicks = mode==="rank"
+    ? Array.from({length: maxTot}, (_,i) => {
+        const v = i + 1;
+        return { y: toY(v), v };
+      })
+    : [0, 0.5, 1].map(t => ({
+        y: PT + cH * t,
+        v: Math.round(mx - rng * t),
+      }));
 
   return (
     <Box>
@@ -222,7 +241,7 @@ function MiniChart({ player, sessions }) {
       </div>
 
       <div className="relative" onMouseLeave={()=>setHov(null)}>
-        <svg viewBox={"0 0 "+W+" "+H} className="w-full" style={{height:130}}>
+        <svg viewBox={"0 0 "+W+" "+H} className="w-full" style={{height:190}}>
           {gridTicks.map(({y,v},i) => (
             <g key={i}>
               <line x1={PL} y1={y} x2={W-PR} y2={y} stroke="#3f3f46" strokeWidth=".5" strokeDasharray="3,3"/>
@@ -234,8 +253,8 @@ function MiniChart({ player, sessions }) {
           {mode==="profit" && mn<0 && mx>0 && (
             <line x1={PL} y1={toY(0)} x2={W-PR} y2={toY(0)} stroke="#52525b" strokeWidth="1" strokeDasharray="4,2"/>
           )}
-          <path d={fill} fill={fc}/>
-          <path d={path} fill="none" stroke={lc} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          {mode==="profit" && <path d={fill} fill={fc}/>}
+          <path d={path} fill="none" stroke={lc} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round"/>
           {pts.map((p,i) => (
             <g key={i}>
               <rect
@@ -253,9 +272,7 @@ function MiniChart({ player, sessions }) {
             </g>
           ))}
           {hov!==null && <line x1={toX(hov)} y1={PT} x2={toX(hov)} y2={PT+cH} stroke={lc} strokeWidth="1" strokeDasharray="3,2" opacity=".5"/>}
-          {pts.map((p,i) => (i===0||i===pts.length-1) && (
-            <text key={i} x={i===0?PL:W-PR} y={H-4} textAnchor={i===0?"start":"end"} fontSize="8" fill={hov===i?"#f0b429":"#52525b"} fontFamily="monospace">{p.label}</text>
-          ))}
+
         </svg>
 
         {h && (
