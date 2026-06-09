@@ -186,14 +186,26 @@ function MiniChart({ player, sessions }) {
   const cW=W-PL-PR, cH=H-PT-PB;
   const vals = mode==="profit" ? pts.map(x=>x.cum) : pts.map(x=>x.rank);
   const mn=Math.min(...vals), mx=Math.max(...vals), rng=mx-mn||1;
-  const toY = v => mode==="profit" ? PT+cH-((v-mn)/rng)*cH : PT+((v-mn)/rng)*cH;
+  // ทั้ง profit และ rank: ค่าดี=บน → toY กลับด้านเหมือนกัน
+  // rank: #1=ดีสุด → mn คือ #1 อยู่บน (Y น้อย) ✓
+  const toY = v => PT + cH - ((v - mn) / rng) * cH;
   const toX = i => PL + (i/(pts.length-1))*cW;
   const path = pts.map((p,i) => (i===0?"M":"L")+" "+toX(i).toFixed(1)+" "+toY(vals[i]).toFixed(1)).join(" ");
-  const fill = path+" L "+toX(pts.length-1).toFixed(1)+" "+(PT+cH)+" L "+PL+" "+(PT+cH)+" Z";
-  const up   = vals[vals.length-1] >= vals[0];
+  // fill: profit→ ล่าง (PT+cH), rank→ บน (PT) เพราะ #1 อยู่บน
+  const fillBase = mode==="profit" ? PT+cH : PT;
+  const fill = path+" L "+toX(pts.length-1).toFixed(1)+" "+fillBase+" L "+PL+" "+fillBase+" Z";
+  const up   = mode==="profit" ? vals[vals.length-1] >= vals[0] : vals[vals.length-1] <= vals[0];
   const lc   = mode==="profit" ? (up?"#34d399":"#f87171") : "#f0b429";
   const fc   = mode==="profit" ? (up?"rgba(52,211,153,.07)":"rgba(248,113,113,.07)") : "rgba(240,180,41,.07)";
   const h    = hov!==null ? pts[hov] : null;
+  const showDots = pts.length <= 40;
+  // Y-axis labels: ด้านบน=ค่าดี
+  // profit: บน=mx, ล่าง=mn | rank: บน=mn (#1), ล่าง=mx
+  const gridTicks = [0, 0.5, 1].map(t => {
+    const y = PT + cH * t;
+    const v = mode==="profit" ? Math.round(mx - rng*t) : Math.round(mn + rng*t);
+    return { y, v };
+  });
 
   return (
     <Box>
@@ -211,18 +223,14 @@ function MiniChart({ player, sessions }) {
 
       <div className="relative" onMouseLeave={()=>setHov(null)}>
         <svg viewBox={"0 0 "+W+" "+H} className="w-full" style={{height:130}}>
-          {[0,.5,1].map((t,i) => {
-            const y = PT+cH*(1-t);
-            const v = Math.round(mn+rng*t);
-            return (
-              <g key={i}>
-                <line x1={PL} y1={y} x2={W-PR} y2={y} stroke="#3f3f46" strokeWidth=".5" strokeDasharray="3,3"/>
-                <text x={PL-4} y={y+4} textAnchor="end" fontSize="9" fill="#71717a" fontFamily="monospace">
-                  {mode==="profit" ? (v>=0?"+":"")+(v/1000).toFixed(1)+"k" : "#"+v}
-                </text>
-              </g>
-            );
-          })}
+          {gridTicks.map(({y,v},i) => (
+            <g key={i}>
+              <line x1={PL} y1={y} x2={W-PR} y2={y} stroke="#3f3f46" strokeWidth=".5" strokeDasharray="3,3"/>
+              <text x={PL-4} y={y+4} textAnchor="end" fontSize="9" fill="#71717a" fontFamily="monospace">
+                {mode==="profit" ? (v>=0?"+":"")+(v/1000).toFixed(1)+"k" : "#"+v}
+              </text>
+            </g>
+          ))}
           {mode==="profit" && mn<0 && mx>0 && (
             <line x1={PL} y1={toY(0)} x2={W-PR} y2={toY(0)} stroke="#52525b" strokeWidth="1" strokeDasharray="4,2"/>
           )}
@@ -238,13 +246,15 @@ function MiniChart({ player, sessions }) {
                 onMouseEnter={()=>setHov(i)}
                 onTouchStart={()=>setHov(hov===i?null:i)}
               />
-              <circle cx={toX(i)} cy={toY(vals[i])} r={hov===i?5:3}
-                fill={hov===i?lc:"#18181b"} stroke={lc} strokeWidth={hov===i?2:1.5}/>
+              {(showDots || hov===i) && (
+                <circle cx={toX(i)} cy={toY(vals[i])} r={hov===i?5:2.5}
+                  fill={hov===i?lc:"#18181b"} stroke={lc} strokeWidth={hov===i?2:1.5}/>
+              )}
             </g>
           ))}
           {hov!==null && <line x1={toX(hov)} y1={PT} x2={toX(hov)} y2={PT+cH} stroke={lc} strokeWidth="1" strokeDasharray="3,2" opacity=".5"/>}
-          {pts.map((p,i) => (i===0||i===pts.length-1||pts.length<=5) && (
-            <text key={i} x={toX(i)} y={H-4} textAnchor="middle" fontSize="8" fill={hov===i?"#f0b429":"#52525b"} fontFamily="monospace">{p.label}</text>
+          {pts.map((p,i) => (i===0||i===pts.length-1) && (
+            <text key={i} x={i===0?PL:W-PR} y={H-4} textAnchor={i===0?"start":"end"} fontSize="8" fill={hov===i?"#f0b429":"#52525b"} fontFamily="monospace">{p.label}</text>
           ))}
         </svg>
 
@@ -264,7 +274,7 @@ function MiniChart({ player, sessions }) {
 
       <div className="flex justify-between mt-1 text-xs font-mono text-zinc-600">
         <span>{pts[0].label}</span>
-        <span className={up?(mode==="profit"?"text-emerald-400":"text-amber-400"):(mode==="profit"?"text-red-400":"text-emerald-400")}>
+        <span className={up?(mode==="profit"?"text-emerald-400":"text-amber-400"):(mode==="profit"?"text-red-400":"text-red-400")}>
           {mode==="profit" ? ((pts[pts.length-1].cum>=0?"+":"")+fmt(pts[pts.length-1].cum)+" ฿")
                            : ("เฉลี่ย #"+(pts.reduce((s,p)=>s+p.rank,0)/pts.length).toFixed(1))}
         </span>
