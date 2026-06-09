@@ -194,9 +194,13 @@ function MiniChart({ player, sessions }) {
   const mx  = mode==="profit" ? Math.max(...vals) : maxTot;
   const rng = mx - mn || 1;
 
-  // ค่าดี=บน ทั้ง profit (#สูง=ดี) และ rank (#1=ดี=น้อย)
-  // rank: v=1 → Y บนสุด, v=maxTot → Y ล่างสุด ✓
-  const toY = v => PT + cH - ((v - mn) / rng) * cH;
+  // rank: #1=ดีสุด → Y บนสุด (PT), #maxTot → Y ล่างสุด (PT+cH)
+  //   formula: toY(1)=PT, toY(maxTot)=PT+cH  →  PT + (v-1)/(maxTot-1)*cH
+  // profit: สูง=ดี → Y บนสุด
+  //   formula: toY(mx)=PT, toY(mn)=PT+cH  →  PT + cH - (v-mn)/rng*cH
+  const toY = v => mode==="rank"
+    ? PT + ((v - 1) / (maxTot - 1 || 1)) * cH
+    : PT + cH - ((v - mn) / rng) * cH;
   const toX = i => PL + (i / (pts.length - 1)) * cW;
 
   const path = pts.map((p,i) => (i===0?"M":"L")+" "+toX(i).toFixed(1)+" "+toY(vals[i]).toFixed(1)).join(" ");
