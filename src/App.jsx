@@ -166,8 +166,11 @@ function MiniChart({ player, sessions }) {
       .filter(x => x.e)
       .map((x, i) => {
         cum += x.e.profitBaht;
+        // คำนวณ rank จาก profitBaht เสมอ (Sheets อาจไม่มี rank field)
+        const r = ranked(x.s.entries);
+        const myRank = r.find(e => e.player === player)?.rank ?? 0;
         return { i, label:"S"+x.s.season+"#"+x.s.sessionNo, date:x.s.date,
-          p: x.e.profitBaht, cum, rank: x.e.rank, tot: x.s.entries.length };
+          p: x.e.profitBaht, cum, rank: myRank, tot: x.s.entries.length };
       });
   }, [player, sessions]);
 
@@ -368,9 +371,9 @@ function PlayerProfilesView({ data }) {
       .map(s => {
         const e = s.entries.find(e => e.player === sel);
         if (!e) return null;
-        // คำนวณ rank จาก profitBaht เพราะ Sheets อาจไม่มี rank field
+        // คำนวณ rank จาก profitBaht เสมอ (Sheets อาจไม่มี rank field)
         const r = ranked(s.entries);
-        const myRank = r.find(x => x.player === sel)?.rank ?? e.rank ?? 0;
+        const myRank = r.find(x => x.player === sel)?.rank ?? 0;
         return { s, e: { ...e, rank: myRank } };
       })
       .filter(x => x);
