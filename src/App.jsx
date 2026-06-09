@@ -3,7 +3,7 @@ import { useState, useEffect, useMemo } from "react";
 // ─────────────────────────────────────────────────────────────────
 // CONFIG
 // ─────────────────────────────────────────────────────────────────
-const API_URL = "https://script.google.com/macros/s/AKfycbxv4l08NIwUpZMVmGsokQ99rFIG2uA7EU7gKeTVwc1nxp4ZlPF8pwck3xY7Gt19b-YLMA/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycby0iLHWFMv2sk9cTXx5OryBWT-eBryiDkRFFJP_Czy_R5ZAhQhDTGZOGy1NW6SFRRql/exec";
 const LOGO_SRC = "https://raw.githubusercontent.com/clsclassic-droid/Legendary-Poker-Tracker/main/src/f512d9a54b54e5e327ac49c65c60695a.jpeg";
 
 // ─────────────────────────────────────────────────────────────────
