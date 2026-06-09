@@ -402,20 +402,50 @@ function PlayerProfilesView({ data }) {
       .map(s => {
         const e = s.entries.find(e => e.player === sel);
         if (!e) return null;
-        // คำนวณ rank จาก profitBaht เสมอ (Sheets อาจไม่มี rank field)
         const r = ranked(s.entries);
         const myRank = r.find(x => x.player === sel)?.rank ?? 0;
         return { s, e: { ...e, rank: myRank } };
       })
       .filter(x => x);
 
+    // nav: เรียงตาม summary (leaderboard order)
+    const ranked_players = summary.filter(p => p.n > 0);
+    const curIdx = ranked_players.findIndex(p => p.name === sel);
+    const prevPlayer = curIdx > 0 ? ranked_players[curIdx - 1] : null;
+    const nextPlayer = curIdx < ranked_players.length - 1 ? ranked_players[curIdx + 1] : null;
+
     return (
       <div className="space-y-4">
         <div className="flex items-center gap-3">
-          <button onClick={()=>setSel(null)} className="w-8 h-8 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white flex items-center justify-center transition-colors">←</button>
-          <div>
+          {/* ปุ่ม back: วงกลมสีทอง */}
+          <button onClick={()=>setSel(null)}
+            className="w-9 h-9 rounded-full bg-amber-400 hover:bg-amber-300 flex items-center justify-center flex-shrink-0 transition-colors">
+            <span className="text-black font-bold text-base">‹</span>
+          </button>
+          <div className="flex-1">
             <h2 className="text-xl font-bold text-white">{sel}</h2>
             <div className="text-zinc-500 text-xs">อันดับ <span className="text-amber-300 font-bold">{stats.rank}</span> · {stats.n} เซสชั่น</div>
+          </div>
+          {/* ปุ่ม nav ← → แบบ B: สี่เหลี่ยมมน border ทอง */}
+          <div className="flex gap-2 flex-shrink-0">
+            {prevPlayer ? (
+              <div className="flex flex-col items-center gap-0.5">
+                <button onClick={()=>setSel(prevPlayer.name)}
+                  className="w-10 h-10 rounded-xl border-2 border-amber-400 hover:bg-amber-400/10 flex items-center justify-center transition-colors">
+                  <span className="text-amber-400 font-bold text-lg">‹</span>
+                </button>
+                <span className="text-zinc-600 text-[10px]">ก่อนหน้า</span>
+              </div>
+            ) : <div className="w-10"/>}
+            {nextPlayer ? (
+              <div className="flex flex-col items-center gap-0.5">
+                <button onClick={()=>setSel(nextPlayer.name)}
+                  className="w-10 h-10 rounded-xl border-2 border-amber-400 hover:bg-amber-400/10 flex items-center justify-center transition-colors">
+                  <span className="text-amber-400 font-bold text-lg">›</span>
+                </button>
+                <span className="text-zinc-600 text-[10px]">ถัดไป</span>
+              </div>
+            ) : <div className="w-10"/>}
           </div>
         </div>
 
@@ -781,15 +811,22 @@ function LeaderboardView({ data }) {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {top3.map((p,i) => (
                 <div key={p.name} className={"rounded-2xl border p-4 "+GRAD[i]}>
-                  <div className="text-2xl mb-1">{MEDAL[i]}</div>
-                  <div className="text-white font-bold text-lg"><PlayerName player={p.name} nicknames={data.nicknames}/></div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-2xl">{MEDAL[i]}</span>
+                    <div>
+                      <div className="text-white font-bold text-lg leading-tight">{p.name}</div>
+                      <div className="text-xs font-normal" style={{color:"rgba(255,255,255,0.4)"}}>
+                        {(data.nicknames||{})[p.name] ? `"${(data.nicknames||{})[p.name]}"` : "—"}
+                      </div>
+                    </div>
+                  </div>
                   <div className={"font-mono text-2xl font-black mt-1 "+(p.total>=0?"text-emerald-400":"text-red-400")}>{p.total>=0?"+":""}{fmt(p.total)} ฿</div>
                   <div className="mt-2 flex flex-wrap gap-1 text-xs">
                     {p.gold>0   && <span className="bg-amber-500/20 border border-amber-500/30 text-amber-300 px-1.5 py-0.5 rounded-full">🥇×{p.gold}</span>}
                     {p.silver>0 && <span className="bg-zinc-400/20 border border-zinc-400/30 text-zinc-300 px-1.5 py-0.5 rounded-full">🥈×{p.silver}</span>}
                     {p.bronze>0 && <span className="bg-orange-700/20 border border-orange-700/30 text-orange-300 px-1.5 py-0.5 rounded-full">🥉×{p.bronze}</span>}
                     {p.last>0   && <span className="bg-red-900/30 border border-red-700/30 text-red-400 px-1.5 py-0.5 rounded-full">💀×{p.last}</span>}
-                    <span className="bg-zinc-700/40 border border-zinc-600/40 text-zinc-500 px-1.5 py-0.5 rounded-full">{p.n} เซส</span>
+                    <span className="bg-zinc-700/40 border border-zinc-600/40 text-zinc-500 px-1.5 py-0.5 rounded-full">{p.n} เซสชั่น</span>
                   </div>
                 </div>
               ))}
@@ -801,22 +838,27 @@ function LeaderboardView({ data }) {
                 <thead><tr className="border-b border-zinc-800 text-zinc-400 bg-zinc-900/80">
                   <th className="px-2 py-2 text-left">#</th>
                   <th className="px-2 py-2 text-left">ผู้เล่น</th>
-                  <th className="px-2 py-2 text-right">กำไร</th>
+                  <th className="px-2 py-2 text-right">กำไร/ขาดทุน (฿)</th>
                   <th className="px-2 py-2 text-center">🥇</th><th className="px-2 py-2 text-center">🥈</th>
                   <th className="px-2 py-2 text-center">🥉</th><th className="px-2 py-2 text-center">💀</th>
-                  <th className="px-2 py-2 text-right hidden sm:table-cell">เซส</th>
+                  <th className="px-1 py-2 text-right hidden sm:table-cell w-16">เซสชั่น</th>
                 </tr></thead>
                 <tbody>
                   {summary.map(p => (
                     <tr key={p.name} className="border-b border-zinc-800/50 hover:bg-zinc-800/30 transition-colors">
                       <td className="px-2 py-2.5 text-zinc-500 font-mono text-xs">{p.rank}</td>
-                      <td className="px-3 py-2.5 font-semibold text-white"><PlayerName player={p.name} nicknames={data.nicknames} block={true}/></td>
-                      <td className="px-2 py-2.5 text-right"><Profit v={p.total} sx=" ฿"/></td>
-                      <td className="px-2 py-2.5 text-center font-mono text-amber-400 font-semibold">{p.gold>0?p.gold:<span className="text-zinc-700">-</span>}</td>
-                      <td className="px-2 py-2.5 text-center font-mono text-zinc-300 font-semibold">{p.silver>0?p.silver:<span className="text-zinc-700">-</span>}</td>
-                      <td className="px-2 py-2.5 text-center font-mono text-orange-400 font-semibold">{p.bronze>0?p.bronze:<span className="text-zinc-700">-</span>}</td>
-                      <td className="px-2 py-2.5 text-center font-mono text-red-400 font-semibold">{p.last>0?p.last:<span className="text-zinc-700">-</span>}</td>
-                      <td className="px-2 py-2.5 text-right text-zinc-400 hidden sm:table-cell font-mono">{p.n}</td>
+                      <td className="px-3 py-2 font-semibold text-white">
+                        <div className="font-semibold text-white text-sm">{p.name}</div>
+                        {(data.nicknames||{})[p.name]
+                          ? <div className="text-zinc-500 text-xs font-normal">"{(data.nicknames||{})[p.name]}"</div>
+                          : null}
+                      </td>
+                      <td className="px-2 py-2 text-right"><Profit v={p.total} sx=" ฿"/></td>
+                      <td className="px-2 py-2 text-center font-mono text-amber-400 font-semibold">{p.gold>0?p.gold:<span className="text-zinc-700">-</span>}</td>
+                      <td className="px-2 py-2 text-center font-mono text-zinc-300 font-semibold">{p.silver>0?p.silver:<span className="text-zinc-700">-</span>}</td>
+                      <td className="px-2 py-2 text-center font-mono text-orange-400 font-semibold">{p.bronze>0?p.bronze:<span className="text-zinc-700">-</span>}</td>
+                      <td className="px-2 py-2 text-center font-mono text-red-400 font-semibold">{p.last>0?p.last:<span className="text-zinc-700">-</span>}</td>
+                      <td className="px-1 py-2 text-right text-zinc-400 hidden sm:table-cell font-mono w-16">{p.n}</td>
                     </tr>
                   ))}
                 </tbody>
