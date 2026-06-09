@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 // CONFIG
 // ─────────────────────────────────────────────────────────────────
 const API_URL = "https://script.google.com/macros/s/AKfycbxv4l08NIwUpZMVmGsokQ99rFIG2uA7EU7gKeTVwc1nxp4ZlPF8pwck3xY7Gt19b-YLMA/exec";
-const LOGO_SRC = "https://clsclassic-droid.github.io/Legendary-Poker-Tracker/src/f512d9a54b54e5e327ac49c65c60695a.jpeg";
+const LOGO_SRC = "https://github.com/clsclassic-droid/Legendary-Poker-Tracker/blob/main/src/f512d9a54b54e5e327ac49c65c60695a.jpeg";
 
 // ─────────────────────────────────────────────────────────────────
 // GOOGLE SHEETS API LAYER
