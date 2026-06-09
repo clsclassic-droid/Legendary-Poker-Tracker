@@ -941,10 +941,12 @@ function SessionsView({ data, onEdit, onDelete, initialOpen=null }) {
                   </table>
                 </div>
                 {s.note && <p className="mt-3 text-zinc-500 text-sm bg-zinc-800/40 rounded-lg px-3 py-2">📝 {s.note}</p>}
-                <div className="flex gap-2 mt-4 justify-end">
-                  <button onClick={()=>onEdit(s)} className="px-4 py-1.5 rounded-lg bg-zinc-700 hover:bg-zinc-600 text-white text-sm">✏️ แก้ไข</button>
-                  <button onClick={()=>onDelete(s.internalId)} className="px-4 py-1.5 rounded-lg bg-red-900/40 hover:bg-red-800/50 text-red-400 text-sm">🗑️ ลบ</button>
-                </div>
+                {(onEdit || onDelete) && (
+                  <div className="flex gap-2 mt-4 justify-end">
+                    {onEdit   && <button onClick={()=>onEdit(s)} className="px-4 py-1.5 rounded-lg bg-zinc-700 hover:bg-zinc-600 text-white text-sm">✏️ แก้ไข</button>}
+                    {onDelete && <button onClick={()=>onDelete(s.internalId)} className="px-4 py-1.5 rounded-lg bg-red-900/40 hover:bg-red-800/50 text-red-400 text-sm">🗑️ ลบ</button>}
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -1215,11 +1217,11 @@ function PotView({ data, onAddTx, onDeleteTx, saving }) {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div><h2 className="text-xl font-bold text-white">💰 กองกลาง</h2><p className="text-zinc-500 text-sm">รายรับ-รายจ่ายเงินส่วนกลาง</p></div>
-        <button onClick={()=>setAdd(!add)} className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold text-sm">{add?"ยกเลิก":"+ เพิ่มรายการ"}</button>
+        {onAddTx && <button onClick={()=>setAdd(!add)} className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold text-sm">{add?"ยกเลิก":"+ เพิ่มรายการ"}</button>}
       </div>
       <div className="grid grid-cols-3 gap-3">
         <div className="bg-emerald-900/20 border border-emerald-700/30 rounded-2xl p-3 text-center"><div className="text-emerald-400 text-xs font-semibold mb-1">รายรับรวม</div><div className="text-emerald-300 font-mono font-black text-lg">{inc>0?"+":""}{fmt(inc)}</div><div className="text-zinc-600 text-xs">฿</div></div>
-        <div className="bg-red-900/20 border border-red-700/30 rounded-2xl p-3 text-center"><div className="text-red-400 text-xs font-semibold mb-1">รายจ่ายรวม</div><div className="text-red-400 font-mono font-black text-lg">-{fmt(exp)}</div><div className="text-zinc-600 text-xs">฿</div></div>
+        <div className="bg-red-900/20 border border-red-700/30 rounded-2xl p-3 text-center"><div className="text-red-400 text-xs font-semibold mb-1">รายจ่ายรวม</div><div className="text-red-400 font-mono font-black text-lg">{exp > 0 ? "-" : ""}{fmt(exp)}</div><div className="text-zinc-600 text-xs">฿</div></div>
         <div className={"border rounded-2xl p-3 text-center "+(pot.balance>=0?"bg-amber-900/20 border-amber-700/30":"bg-red-900/30 border-red-700/40")}><div className="text-amber-400 text-xs font-semibold mb-1">คงเหลือ</div><div className={"font-mono font-black text-xl "+(pot.balance>=0?"text-amber-300":"text-red-400")}>{fmt(pot.balance)}</div><div className="text-zinc-600 text-xs">฿</div></div>
       </div>
       {add && (
@@ -1249,7 +1251,7 @@ function PotView({ data, onAddTx, onDeleteTx, saving }) {
             </div>
             <div className="flex items-center gap-3">
               <span className={"font-mono font-semibold text-sm "+(tx.type==="income"?"text-emerald-400":"text-red-400")}>{tx.type==="income"?"+":"-"}{fmt(tx.amount)} ฿</span>
-              <button onClick={()=>del(tx.id)} className="text-zinc-700 hover:text-red-400 text-xs">🗑</button>
+              {onDeleteTx && <button onClick={()=>del(tx.id)} className="text-zinc-700 hover:text-red-400 text-xs">🗑</button>}
             </div>
           </div>
         ))}
@@ -1262,18 +1264,20 @@ function PotView({ data, onAddTx, onDeleteTx, saving }) {
 // SETTINGS
 // ─────────────────────────────────────────────────────────────────
 function SettingsView({ data, onUpdate, saving }) {
-  const [players,   setPlayers]   = useState(data.players);
-  const [newName,   setNewName]   = useState("");
-  const [rate,      setRate]      = useState({...data.chipRate});
-  const [fee,       setFee]       = useState(data.defaultFee);
-  const [nicknames, setNicknames] = useState({...( data.nicknames||{} )});
-  const [saved,     setSaved]     = useState(false);
+  const [players,       setPlayers]       = useState(data.players);
+  const [newName,       setNewName]       = useState("");
+  const [rate,          setRate]          = useState({...data.chipRate});
+  const [fee,           setFee]           = useState(data.defaultFee);
+  const [nicknames,     setNicknames]     = useState({...( data.nicknames||{} )});
+  const [adminPassword, setAdminPassword] = useState(data.adminPassword || "");
+  const [showPw,        setShowPw]        = useState(false);
+  const [saved,         setSaved]         = useState(false);
 
   function addPlayer() { const n=newName.trim(); if(!n||players.includes(n)) return; setPlayers([...players,n]); setNewName(""); }
   function rmPlayer(n) { setPlayers(players.filter(p=>p!==n)); const nn={...nicknames}; delete nn[n]; setNicknames(nn); }
   function setNick(player, val) { setNicknames(prev=>({...prev, [player]: val})); }
   async function save() {
-    await onUpdate({players, chipRate:rate, defaultFee:fee, nicknames});
+    await onUpdate({players, chipRate:rate, defaultFee:fee, nicknames, adminPassword});
     setSaved(true); setTimeout(()=>setSaved(false),2000);
   }
 
@@ -1325,6 +1329,23 @@ function SettingsView({ data, onUpdate, saving }) {
           </div>
         ))}
       </Box>
+      <Box className="space-y-3">
+        <div className="text-red-400 font-semibold text-sm">🔐 Admin Password</div>
+        <div className="relative">
+          <input
+            type={showPw ? "text" : "password"}
+            value={adminPassword}
+            onChange={e => setAdminPassword(e.target.value)}
+            placeholder="ตั้ง password สำหรับ admin..."
+            className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2.5 text-white placeholder-zinc-600 focus:border-amber-500 focus:outline-none pr-16"
+          />
+          <button onClick={()=>setShowPw(p=>!p)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 text-xs">
+            {showPw ? "ซ่อน" : "แสดง"}
+          </button>
+        </div>
+        <div className="text-zinc-600 text-xs">ใช้ password นี้สำหรับกด Login ในแอป</div>
+      </Box>
       <button onClick={save} className={"w-full py-3 rounded-xl font-bold text-base transition-all "+(saved?"bg-emerald-500 text-white":"bg-amber-500 hover:bg-amber-400 text-black")}>
         {saved?"✅ บันทึกแล้ว!":"💾 บันทึกการตั้งค่า"}
       </button>
@@ -1339,6 +1360,61 @@ function Spinner() {
   return <div className="inline-block w-4 h-4 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />;
 }
 
+
+// ─────────────────────────────────────────────────────────────────
+// LOGIN VIEW
+// ─────────────────────────────────────────────────────────────────
+function LoginView({ data, onLogin, onCancel }) {
+  const [pw,  setPw]  = useState("");
+  const [err, setErr] = useState("");
+  const [checking, setChecking] = useState(false);
+
+  async function submit() {
+    if (!pw.trim()) { setErr("กรุณากรอก password"); return; }
+    setChecking(true);
+    setErr("");
+    try {
+      const stored = data?.settings?.adminPassword || data?.adminPassword || "";
+      if (pw === stored) {
+        localStorage.setItem("lspc_admin", "1");
+        onLogin();
+      } else {
+        setErr("Password ไม่ถูกต้อง");
+      }
+    } catch(e) {
+      setErr("เกิดข้อผิดพลาด");
+    } finally {
+      setChecking(false);
+    }
+  }
+
+  return (
+    <div className="space-y-5">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-bold text-white">🔐 Admin Login</h2>
+        <button onClick={onCancel} className="text-zinc-500 hover:text-white text-sm">ยกเลิก ✕</button>
+      </div>
+      <Box className="space-y-4">
+        <div>
+          <label className="block text-zinc-400 text-sm mb-1">Password</label>
+          <input
+            type="password" value={pw}
+            onChange={e => setPw(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && submit()}
+            placeholder="กรอก admin password..."
+            className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2.5 text-white placeholder-zinc-600 focus:border-amber-500 focus:outline-none"
+          />
+          {err && <p className="text-red-400 text-sm mt-1">{err}</p>}
+        </div>
+        <button onClick={submit} disabled={checking}
+          className="w-full py-3 rounded-xl font-bold text-base bg-amber-500 hover:bg-amber-400 text-black transition-colors">
+          {checking ? "กำลังตรวจสอบ..." : "เข้าสู่ระบบ"}
+        </button>
+      </Box>
+    </div>
+  );
+}
+
 export default function App() {
   const [data,    setData]    = useState(null);
   const [tab,       setTab]       = useState("dashboard");
@@ -1348,6 +1424,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [saving,  setSaving]  = useState(false);
   const [error,   setError]   = useState(null);
+  const [isAdmin, setIsAdmin] = useState(() => localStorage.getItem("lspc_admin") === "1");
 
   async function refresh() {
     try {
@@ -1413,7 +1490,12 @@ export default function App() {
   async function saveSettings(cfg) {
     setSaving(true);
     try {
-      await apiPost({ action: "saveSettings", settings: { ...cfg, nextInternalId: data.nextInternalId, nicknames: cfg.nicknames||{} } });
+      await apiPost({ action: "saveSettings", settings: {
+        ...cfg,
+        nextInternalId: data.nextInternalId,
+        nicknames: cfg.nicknames||{},
+        adminPassword: cfg.adminPassword !== undefined ? cfg.adminPassword : (data.adminPassword || ""),
+      }});
       await refresh();
     } catch(e) { alert("บันทึกไม่สำเร็จ: " + e.message); }
     finally { setSaving(false); }
@@ -1453,15 +1535,16 @@ export default function App() {
   );
 
   const potBal = data.pot?.balance ?? 0;
-  const TABS = [
-    { id:"dashboard",   icon:"📊", label:"ภาพรวม"  },
-    { id:"leaderboard", icon:"🏆", label:"Rank"     },
-    { id:"profiles",    icon:"👤", label:"Players"  },
-    { id:"sessions",    icon:"📋", label:"เซสชั่น"  },
-    { id:"add",         icon:"➕", label:"บันทึก"   },
-    { id:"pot",         icon:"💰", label:"กองกลาง"  },
-    { id:"settings",    icon:"⚙️", label:"ตั้งค่า"  },
+  const ALL_TABS = [
+    { id:"dashboard",   icon:"📊", label:"ภาพรวม",  adminOnly: false },
+    { id:"leaderboard", icon:"🏆", label:"Rank",     adminOnly: false },
+    { id:"profiles",    icon:"👤", label:"Players",  adminOnly: false },
+    { id:"sessions",    icon:"📋", label:"เซสชั่น",  adminOnly: false },
+    { id:"add",         icon:"➕", label:"บันทึก",   adminOnly: true  },
+    { id:"pot",         icon:"💰", label:"กองกลาง",  adminOnly: false },
+    { id:"settings",    icon:"⚙️", label:"ตั้งค่า",  adminOnly: true  },
   ];
+  const TABS = ALL_TABS.filter(t => !t.adminOnly || isAdmin);
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
@@ -1478,9 +1561,21 @@ export default function App() {
                 </button>
               ))}
             </div>
-            <span className={"text-xs font-mono flex-shrink-0 pl-2 " + (potBal >= 0 ? "text-purple-400" : "text-red-400")}>
-              💰 {fmt(potBal)} ฿
-            </span>
+            <div className="flex items-center gap-2 flex-shrink-0 pl-2">
+              <span className={"text-xs font-mono " + (potBal >= 0 ? "text-purple-400" : "text-red-400")}>
+                💰 {fmt(potBal)} ฿
+              </span>
+              {isAdmin
+                ? <button onClick={() => { localStorage.removeItem("lspc_admin"); setIsAdmin(false); setTab("dashboard"); }}
+                    className="text-xs px-2 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white border border-zinc-700 transition-colors">
+                    🔓 Logout
+                  </button>
+                : <button onClick={() => setTab("login")}
+                    className="text-xs px-2 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-amber-400 border border-zinc-700 transition-colors">
+                    🔐 Login
+                  </button>
+              }
+            </div>
           </div>
         </div>
       </header>
@@ -1492,10 +1587,14 @@ export default function App() {
         />}
         {tab === "leaderboard" && <LeaderboardView data={data}/>}
         {tab === "profiles"    && <PlayerProfilesView data={data} initialSel={profileSel} onClearSel={()=>setProfileSel(null)}/>}
-        {tab === "sessions"    && !editSes && <SessionsView data={data} onEdit={s => { setEditSes(s); setTab("add"); }} onDelete={delSes} initialOpen={openSesId}/>}
-        {tab === "add"         && <SessionForm data={data} editSession={editSes} onSave={saveSes} saving={saving} onCancel={editSes ? () => { setEditSes(null); setTab("sessions"); } : null}/>}
-        {tab === "pot"         && <PotView data={data} onAddTx={addPotTx} onDeleteTx={delPotTx} saving={saving}/>}
-        {tab === "settings"    && <SettingsView data={data} onUpdate={saveSettings} saving={saving}/>}
+        {tab === "sessions"    && !editSes && <SessionsView data={data}
+          onEdit={isAdmin ? (s => { setEditSes(s); setTab("add"); }) : null}
+          onDelete={isAdmin ? delSes : null}
+          initialOpen={openSesId}/>}
+        {tab === "add"         && isAdmin && <SessionForm data={data} editSession={editSes} onSave={saveSes} saving={saving} onCancel={editSes ? () => { setEditSes(null); setTab("sessions"); } : null}/>}
+        {tab === "pot"         && <PotView data={data} onAddTx={isAdmin ? addPotTx : null} onDeleteTx={isAdmin ? delPotTx : null} saving={saving}/>}
+        {tab === "settings"    && isAdmin && <SettingsView data={data} onUpdate={saveSettings} saving={saving}/>}
+        {tab === "login"       && <LoginView data={data} onLogin={() => { setIsAdmin(true); setTab("dashboard"); }} onCancel={() => setTab("dashboard")}/>}
       </main>
     </div>
   );
