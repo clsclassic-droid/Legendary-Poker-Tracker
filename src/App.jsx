@@ -1370,14 +1370,16 @@ function LoginView({ data, onLogin, onCancel }) {
   const [checking, setChecking] = useState(false);
 
   async function submit() {
-    if (!pw.trim()) { setErr("กรุณากรอก password"); return; }
     setChecking(true);
     setErr("");
     try {
       const stored = data?.settings?.adminPassword || data?.adminPassword || "";
-      if (pw === stored) {
+      // ถ้า password ใน Sheets ว่างเปล่า → login ได้เลย
+      if (stored === "" || pw === stored) {
         localStorage.setItem("lspc_admin", "1");
         onLogin();
+      } else if (!pw.trim()) {
+        setErr("กรุณากรอก password");
       } else {
         setErr("Password ไม่ถูกต้อง");
       }
