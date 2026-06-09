@@ -1362,6 +1362,7 @@ export default function App() {
       const isEdit = data.sessions.some(s => s.internalId === ses.internalId);
       await apiPost({ action: "saveSession", session: ses });
       if (!isEdit) {
+        // สร้างใหม่ → เพิ่ม nextInternalId + บันทึก pot เต็มจำนวน
         await apiPost({ action: "saveSettings", settings: {
           players: data.players, chipRate: data.chipRate,
           defaultFee: data.defaultFee, nextInternalId: data.nextInternalId + 1
@@ -1370,6 +1371,22 @@ export default function App() {
         if (ft > 0) {
           const tx = { id: Date.now(), type: "income", amount: ft, date: ses.date,
             note: "ค่าส่วนกลาง ปี"+ses.year+" S"+ses.season+" เซส"+ses.sessionNo+" ("+ses.entries.length+" คน × "+fmt(ses.fee)+" ฿)" };
+          await apiPost({ action: "savePotTransaction", transaction: tx });
+        }
+      } else {
+        // แก้ไข → เปรียบเทียบ fee เก่า vs ใหม่ แล้ว adjust กองกลางตามผลต่าง
+        const oldSes = data.sessions.find(s => s.internalId === ses.internalId);
+        const oldFt  = oldSes ? (oldSes.entries.length * (oldSes.fee || 0)) : 0;
+        const newFt  = ses.entries.length * ses.fee;
+        const diff   = newFt - oldFt;
+        if (diff !== 0) {
+          const tx = {
+            id: Date.now(),
+            type: diff > 0 ? "income" : "expense",
+            amount: Math.abs(diff),
+            date: ses.date,
+            note: "ปรับส่วนกลาง ปี"+ses.year+" S"+ses.season+" เซส"+ses.sessionNo+" (แก้ไข: "+(diff>0?"+":"")+fmt(diff)+" ฿)"
+          };
           await apiPost({ action: "savePotTransaction", transaction: tx });
         }
       }
