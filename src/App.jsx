@@ -609,6 +609,48 @@ function RacingBarChart({ sessions, players, nicknames }) {
   const scores = getScores(curSes);
   const maxAbs = Math.max(...scores.map(s => Math.abs(s.profit)), 1);
 
+  // ── Animated display values (วิ่งทีละ 10) ──
+  const [displayVals, setDisplayVals] = useState(() => {
+    const m = {};
+    players.forEach(p => { m[p] = 0; });
+    return m;
+  });
+  const animRef = useState({})[0]; // store per-player interval refs
+
+  useEffect(() => {
+    scores.forEach(s => {
+      const target = s.profit;
+      const current = displayVals[s.name] ?? 0;
+      if (current === target) return;
+
+      // clear existing
+      if (animRef[s.name]) clearInterval(animRef[s.name]);
+
+      const step = 10;
+      const diff = target - current;
+      const steps = Math.ceil(Math.abs(diff) / step);
+      const dur = speed === 4 ? 80 : speed === 2 ? 150 : 300; // ms total
+      const interval = Math.max(10, Math.floor(dur / steps));
+
+      animRef[s.name] = setInterval(() => {
+        setDisplayVals(prev => {
+          const cur = prev[s.name] ?? 0;
+          if (cur === target) {
+            clearInterval(animRef[s.name]);
+            return prev;
+          }
+          const remaining = target - cur;
+          const move = remaining > 0
+            ? Math.min(step, remaining)
+            : Math.max(-step, remaining);
+          const next = cur + move;
+          if (next === target) clearInterval(animRef[s.name]);
+          return { ...prev, [s.name]: next };
+        });
+      }, interval);
+    });
+  }, [curSes]);
+
   if (total === 0) return null;
 
   const containerHeight = players.length * ROW_H;
@@ -695,7 +737,7 @@ function RacingBarChart({ sessions, players, nicknames }) {
                   }}>
                   <span className="text-[10px] font-bold font-mono whitespace-nowrap"
                     style={{color: isPos ? 'rgba(0,0,0,0.75)' : 'rgba(255,255,255,0.9)'}}>
-                    {isPos ? '+' : ''}{fmt(s.profit)} ฿
+                    {(displayVals[s.name] ?? 0) >= 0 ? '+' : ''}{fmt(displayVals[s.name] ?? 0)} ฿
                   </span>
                 </div>
               </div>
