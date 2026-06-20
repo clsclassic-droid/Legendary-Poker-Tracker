@@ -1680,28 +1680,28 @@ export default function App() {
         </div>
         {/* Dropdown Menu */}
         {menuOpen && (
-          <div className="absolute top-full left-0 right-0 bg-zinc-950/98 border-b border-zinc-800 shadow-2xl z-50">
-            <div className="px-4 py-3 space-y-1">
+          <div className="absolute top-full right-4 mt-2 z-50 rounded-2xl overflow-hidden shadow-2xl border border-amber-900/40"
+            style={{background:'#1a1408', minWidth:'200px'}}>
+            <div className="py-2">
               {TABS.map(t => (
                 <button key={t.id} onClick={() => { setTab(t.id); setMenuOpen(false); if (t.id !== "add") setEditSes(null); }}
-                  className={"w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors " + (tab === t.id ? "bg-amber-500/15 text-amber-400 border border-amber-500/30" : "text-zinc-400 hover:bg-zinc-800 hover:text-white")}>
-                  <span className="text-lg">{t.icon}</span>
+                  className={"w-full flex items-center gap-3 px-5 py-3 text-sm font-medium transition-colors " + (tab === t.id ? "text-amber-400 bg-amber-500/10" : "text-zinc-300 hover:text-amber-300 hover:bg-white/5")}>
+                  <span className="text-base">{t.icon}</span>
                   <span>{t.label}</span>
-                  {tab === t.id && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-amber-400"/>}
+                  {tab === t.id && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-amber-400 flex-shrink-0"/>}
                 </button>
               ))}
-              <div className="border-t border-zinc-800 pt-2 mt-2">
-                {isAdmin
-                  ? <button onClick={() => { localStorage.removeItem("lspc_admin"); setIsAdmin(false); setTab("dashboard"); setMenuOpen(false); }}
-                      className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-zinc-500 hover:text-white hover:bg-zinc-800 transition-colors">
-                      <span className="text-lg">🔓</span><span>Logout</span>
-                    </button>
-                  : <button onClick={() => { setTab("login"); setMenuOpen(false); }}
-                      className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-zinc-500 hover:text-amber-400 hover:bg-zinc-800 transition-colors">
-                      <span className="text-lg">🔐</span><span>Admin Login</span>
-                    </button>
-                }
-              </div>
+              <div className="mx-4 my-1 border-t border-amber-900/30"/>
+              {isAdmin
+                ? <button onClick={() => { localStorage.removeItem("lspc_admin"); setIsAdmin(false); setTab("dashboard"); setMenuOpen(false); }}
+                    className="w-full flex items-center gap-3 px-5 py-3 text-sm text-zinc-500 hover:text-white hover:bg-white/5 transition-colors">
+                    <span className="text-base">🔓</span><span>Logout</span>
+                  </button>
+                : <button onClick={() => { setTab("login"); setMenuOpen(false); }}
+                    className="w-full flex items-center gap-3 px-5 py-3 text-sm text-zinc-500 hover:text-amber-400 hover:bg-white/5 transition-colors">
+                    <span className="text-base">🔐</span><span>Admin Login</span>
+                  </button>
+              }
             </div>
           </div>
         )}
