@@ -562,9 +562,9 @@ function RacingBarChart({ sessions, players, nicknames }) {
   const [curSes, setCurSes] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState(1);
-  const timerRef = useState(null);
 
   const COLORS = ['#f0b429','#34d399','#60a5fa','#f87171','#a78bfa','#fb923c','#4ade80','#f472b6','#94a3b8','#fbbf24','#e2e8f0','#c084fc'];
+  const ROW_H = 42; // height per row in px
 
   const colorMap = useMemo(() => {
     const m = {};
@@ -572,7 +572,6 @@ function RacingBarChart({ sessions, players, nicknames }) {
     return m;
   }, [players]);
 
-  // Build cumulative profit per session per player
   const cumulData = useMemo(() => {
     const cum = {};
     players.forEach(p => { cum[p] = []; });
@@ -609,11 +608,10 @@ function RacingBarChart({ sessions, players, nicknames }) {
 
   const scores = getScores(curSes);
   const maxAbs = Math.max(...scores.map(s => Math.abs(s.profit)), 1);
-  // ── แสดงทุกคนตามจำนวนผู้เล่นจริง ──
-  const top = scores;
-  const ses = sessions[curSes];
 
   if (total === 0) return null;
+
+  const containerHeight = players.length * ROW_H;
 
   return (
     <div className="bg-zinc-900/60 border border-zinc-800 rounded-2xl p-4 space-y-3">
@@ -658,30 +656,45 @@ function RacingBarChart({ sessions, players, nicknames }) {
         <span className="text-zinc-600 text-[10px] font-mono flex-shrink-0">เซสชั่น {total}</span>
       </div>
 
-      {/* Bars */}
-      <div className="space-y-1.5">
-        {top.map((s, rank) => {
+      {/* Animated Bars — absolute positioned so rows animate up/down */}
+      <div className="relative w-full" style={{ height: containerHeight + 'px' }}>
+        {scores.map((s, rankIdx) => {
           const pct = Math.max(2, (Math.abs(s.profit) / maxAbs) * 94);
           const isPos = s.profit >= 0;
+          const yPos = rankIdx * ROW_H;
+          const dur = speed === 4 ? '0.1s' : speed === 2 ? '0.2s' : '0.4s';
           return (
-            <div key={s.name} className="flex items-center gap-2" style={{height:'34px'}}>
-              {/* Name left */}
-              <div className="flex-shrink-0 text-right" style={{width:'72px'}}>
+            <div
+              key={s.name}
+              className="absolute w-full flex items-center gap-2"
+              style={{
+                top: 0,
+                transform: `translateY(${yPos}px)`,
+                transition: `transform ${dur} cubic-bezier(0.4,0,0.2,1)`,
+                height: ROW_H + 'px',
+              }}
+            >
+              {/* Rank badge */}
+              <div className="flex-shrink-0 text-center" style={{width:'22px'}}>
+                <span className="text-[10px] font-bold text-zinc-500">#{rankIdx+1}</span>
+              </div>
+              {/* Name */}
+              <div className="flex-shrink-0 text-right" style={{width:'60px'}}>
                 <div className="text-xs font-bold leading-tight truncate" style={{color: s.color}}>{s.name}</div>
                 {s.nick && <div className="text-[9px] text-zinc-600 truncate">"{s.nick}"</div>}
               </div>
               {/* Bar */}
-              <div className="flex-1 h-full bg-zinc-800/60 rounded-lg overflow-hidden relative">
+              <div className="flex-1 bg-zinc-800/60 rounded-lg overflow-hidden relative" style={{height:'30px'}}>
                 <div
-                  className="h-full rounded-lg flex items-center justify-end pr-2 transition-all"
+                  className="h-full rounded-lg flex items-center justify-end pr-2"
                   style={{
                     width: pct + '%',
-                    background: isPos ? s.color : 'rgba(248,113,113,0.4)',
-                    transition: 'width 0.4s ease',
-                    minWidth: '2px',
+                    background: isPos ? s.color : 'rgba(248,113,113,0.5)',
+                    transition: `width ${dur} ease`,
+                    minWidth: '4px',
                   }}>
                   <span className="text-[10px] font-bold font-mono whitespace-nowrap"
-                    style={{color: isPos ? 'rgba(0,0,0,0.7)' : 'rgba(255,255,255,0.8)'}}>
+                    style={{color: isPos ? 'rgba(0,0,0,0.75)' : 'rgba(255,255,255,0.9)'}}>
                     {isPos ? '+' : ''}{fmt(s.profit)} ฿
                   </span>
                 </div>
@@ -708,6 +721,7 @@ function RacingBarChart({ sessions, players, nicknames }) {
     </div>
   );
 }
+
 
 // ─────────────────────────────────────────────────────────────────
 // RACE VIEW (standalone page)
