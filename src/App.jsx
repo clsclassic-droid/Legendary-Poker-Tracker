@@ -1211,9 +1211,32 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
 
       {/* Entries */}
       <Box className="overflow-hidden p-0">
-        <div className="px-4 py-3 border-b border-zinc-800 text-zinc-400 text-sm flex justify-between">
+        <div className="px-4 py-3 border-b border-zinc-800 text-zinc-400 text-sm flex justify-between items-center">
           <span>บันทึกชิปแต่ละคน ({mode==="chips"?"ชิป":"บาท"})</span>
-          <span className="text-xs text-zinc-600">{active}/{rows.length} คน</span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-zinc-600">{active}/{rows.length} คน</span>
+            {/* ปุ่มเพิ่มผู้เล่น — แสดงเฉพาะตอนแก้ไข และมีคนที่ยังไม่ได้อยู่ในรายการ */}
+            {(() => {
+              const inRows = rows.map(r => r.player);
+              const available = data.players.filter(p => !inRows.includes(p));
+              if (available.length === 0) return null;
+              return (
+                <div className="relative group">
+                  <button className="text-xs px-2 py-1 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-400 hover:bg-amber-500/25 transition-colors">
+                    + เพิ่มผู้เล่น
+                  </button>
+                  <div className="absolute right-0 top-full mt-1 bg-zinc-900 border border-zinc-700 rounded-xl shadow-xl z-20 hidden group-hover:block group-focus-within:block min-w-[120px]">
+                    {available.map(p => (
+                      <button key={p} onClick={() => setRows(prev => [...prev, {player:p, buy:0, sell:0}])}
+                        className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white transition-colors first:rounded-t-xl last:rounded-b-xl">
+                        {p}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
         </div>
         <div className="divide-y divide-zinc-800">
           {rows.map((r,i) => {
@@ -1224,6 +1247,8 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
                 <div className="flex items-center gap-2 min-w-[80px]">
                   <span className={"w-2 h-2 rounded-full flex-shrink-0 "+(pb>0?"bg-emerald-400":pb<0?"bg-red-400":"bg-zinc-600")}/>
                   <span className="text-white font-medium"><PlayerName player={r.player} nicknames={data.nicknames}/></span>
+                  <button onClick={() => setRows(prev => prev.filter(x => x.player !== r.player))}
+                    className="ml-1 text-zinc-600 hover:text-red-400 text-xs transition-colors">✕</button>
                 </div>
                 <div className="flex gap-2 flex-1">
                   <div className="flex-1">
@@ -1658,7 +1683,14 @@ export default function App() {
       <div className="sm:hidden sticky top-0 z-40" style={{background:'#0d0d0d'}}>
         {/* Top bar */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800/60">
-          {/* Logo + ชื่อ */}
+          {/* Hamburger ซ้าย */}
+          <button onClick={() => setMenuOpen(o => !o)}
+            className="w-9 h-9 rounded-xl bg-zinc-800 border border-zinc-700 flex flex-col items-center justify-center gap-1.5 flex-shrink-0">
+            <span className={"block w-4 h-0.5 bg-zinc-300 transition-all duration-200 " + (menuOpen ? "rotate-45 translate-y-2" : "")}/>
+            <span className={"block w-4 h-0.5 bg-zinc-300 transition-all duration-200 " + (menuOpen ? "opacity-0" : "")}/>
+            <span className={"block w-4 h-0.5 bg-zinc-300 transition-all duration-200 " + (menuOpen ? "-rotate-45 -translate-y-2" : "")}/>
+          </button>
+          {/* Logo + ชื่อ กลาง */}
           <div className="flex items-center gap-2">
             <img src={LOGO_SRC} alt="logo" className="h-9 w-9 rounded-lg object-cover"/>
             <div className="leading-tight">
@@ -1666,17 +1698,10 @@ export default function App() {
               <div className="text-zinc-400 text-[10px] tracking-widest">SECRETS POKER</div>
             </div>
           </div>
-          {/* กองกลาง */}
+          {/* กองกลาง ขวา */}
           <button onClick={() => { setTab("pot"); setMenuOpen(false); }}
             className={"text-sm font-mono font-bold px-3 py-1.5 rounded-xl border transition-colors " + (potBal >= 0 ? "text-amber-400 border-amber-500/30 bg-amber-500/10" : "text-red-400 border-red-500/30 bg-red-500/10")}>
             💰 {fmt(potBal)} ฿
-          </button>
-          {/* Hamburger */}
-          <button onClick={() => setMenuOpen(o => !o)}
-            className="w-9 h-9 rounded-xl bg-zinc-800 border border-zinc-700 flex flex-col items-center justify-center gap-1.5 flex-shrink-0">
-            <span className={"block w-4 h-0.5 bg-zinc-300 transition-all duration-200 " + (menuOpen ? "rotate-45 translate-y-2" : "")}/>
-            <span className={"block w-4 h-0.5 bg-zinc-300 transition-all duration-200 " + (menuOpen ? "opacity-0" : "")}/>
-            <span className={"block w-4 h-0.5 bg-zinc-300 transition-all duration-200 " + (menuOpen ? "-rotate-45 -translate-y-2" : "")}/>
           </button>
         </div>
         {/* Dropdown — อยู่ใน flow ไม่ทับ content */}
