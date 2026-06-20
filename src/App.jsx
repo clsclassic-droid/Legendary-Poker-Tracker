@@ -1655,8 +1655,9 @@ export default function App() {
       </header>
 
       {/* ── MOBILE header (< sm) ── */}
-      <header className="sm:hidden sticky top-0 z-40 bg-zinc-950/95 backdrop-blur-md border-b border-zinc-800/60">
-        <div className="flex items-center justify-between px-4 py-3">
+      <div className="sm:hidden sticky top-0 z-40" style={{background:'#0d0d0d'}}>
+        {/* Top bar */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800/60">
           {/* Logo + ชื่อ */}
           <div className="flex items-center gap-2">
             <img src={LOGO_SRC} alt="logo" className="h-9 w-9 rounded-lg object-cover"/>
@@ -1673,16 +1674,15 @@ export default function App() {
           {/* Hamburger */}
           <button onClick={() => setMenuOpen(o => !o)}
             className="w-9 h-9 rounded-xl bg-zinc-800 border border-zinc-700 flex flex-col items-center justify-center gap-1.5 flex-shrink-0">
-            <span className={"block w-4 h-0.5 bg-zinc-300 transition-all " + (menuOpen ? "rotate-45 translate-y-2" : "")}/>
-            <span className={"block w-4 h-0.5 bg-zinc-300 transition-all " + (menuOpen ? "opacity-0" : "")}/>
-            <span className={"block w-4 h-0.5 bg-zinc-300 transition-all " + (menuOpen ? "-rotate-45 -translate-y-2" : "")}/>
+            <span className={"block w-4 h-0.5 bg-zinc-300 transition-all duration-200 " + (menuOpen ? "rotate-45 translate-y-2" : "")}/>
+            <span className={"block w-4 h-0.5 bg-zinc-300 transition-all duration-200 " + (menuOpen ? "opacity-0" : "")}/>
+            <span className={"block w-4 h-0.5 bg-zinc-300 transition-all duration-200 " + (menuOpen ? "-rotate-45 -translate-y-2" : "")}/>
           </button>
         </div>
-        {/* Dropdown Menu */}
+        {/* Dropdown — อยู่ใน flow ไม่ทับ content */}
         {menuOpen && (
-          <div className="absolute top-full right-4 mt-2 z-50 rounded-2xl overflow-hidden shadow-2xl border border-amber-900/40"
-            style={{background:'#1a1408', minWidth:'200px'}}>
-            <div className="py-2">
+          <div className="border-b border-amber-900/30" style={{background:'#1a1408'}}>
+            <div className="py-1">
               {TABS.map(t => (
                 <button key={t.id} onClick={() => { setTab(t.id); setMenuOpen(false); if (t.id !== "add") setEditSes(null); }}
                   className={"w-full flex items-center gap-3 px-5 py-3 text-sm font-medium transition-colors " + (tab === t.id ? "text-amber-400 bg-amber-500/10" : "text-zinc-300 hover:text-amber-300 hover:bg-white/5")}>
@@ -1705,9 +1705,7 @@ export default function App() {
             </div>
           </div>
         )}
-      </header>
-      {/* overlay to close menu on outside click */}
-      {menuOpen && <div className="fixed inset-0 z-30 sm:hidden" onClick={() => setMenuOpen(false)}/>}
+      </div>
       <main className="max-w-3xl mx-auto px-4 py-6">
         {tab === "dashboard"   && <DashboardView data={data}
           onGoLeader={name => { setProfileSel(name); setTab("profiles"); }}
