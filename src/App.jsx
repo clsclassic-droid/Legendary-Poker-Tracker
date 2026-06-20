@@ -564,7 +564,6 @@ function RacingBarChart({ sessions, players, nicknames }) {
   const [speed, setSpeed] = useState(1);
   const timerRef = useState(null);
 
-  const TOP_N = 8;
   const COLORS = ['#f0b429','#34d399','#60a5fa','#f87171','#a78bfa','#fb923c','#4ade80','#f472b6','#94a3b8','#fbbf24','#e2e8f0','#c084fc'];
 
   const colorMap = useMemo(() => {
@@ -610,7 +609,8 @@ function RacingBarChart({ sessions, players, nicknames }) {
 
   const scores = getScores(curSes);
   const maxAbs = Math.max(...scores.map(s => Math.abs(s.profit)), 1);
-  const top = scores.slice(0, TOP_N);
+  // ── แสดงทุกคนตามจำนวนผู้เล่นจริง ──
+  const top = scores;
   const ses = sessions[curSes];
 
   if (total === 0) return null;
