@@ -1496,6 +1496,7 @@ export default function App() {
   const [saving,  setSaving]  = useState(false);
   const [error,   setError]   = useState(null);
   const [isAdmin, setIsAdmin] = useState(() => localStorage.getItem("lspc_admin") === "1");
+  const [menuOpen, setMenuOpen] = useState(false);
 
   async function refresh() {
     try {
@@ -1620,7 +1621,8 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
-      <header className="border-b border-zinc-800/80 bg-zinc-950/90 backdrop-blur-md sticky top-0 z-40">
+      {/* ── DESKTOP header (sm ขึ้นไป) ── */}
+      <header className="hidden sm:block border-b border-zinc-800/80 bg-zinc-950/90 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-3xl mx-auto px-3 flex items-center gap-2">
           <img src={LOGO_SRC} alt="Legendary Secrets Poker Club" className="h-14 w-14 rounded-xl object-cover flex-shrink-0 my-1"/>
           <div className="flex flex-1 items-center justify-between overflow-x-auto">
@@ -1629,7 +1631,7 @@ export default function App() {
                 <button key={t.id} onClick={() => { setTab(t.id); if (t.id !== "add") setEditSes(null); }}
                   className={"flex items-center gap-1 px-2 sm:px-2.5 py-4 text-xs font-medium border-b-2 transition-colors whitespace-nowrap " + (tab === t.id ? "border-amber-400 text-amber-400" : "border-transparent text-zinc-500 hover:text-zinc-300")}>
                   <span>{t.icon}</span>
-                  <span className="hidden sm:inline">{t.label}</span>
+                  <span>{t.label}</span>
                 </button>
               ))}
             </div>
@@ -1651,6 +1653,61 @@ export default function App() {
           </div>
         </div>
       </header>
+
+      {/* ── MOBILE header (< sm) ── */}
+      <header className="sm:hidden sticky top-0 z-40 bg-zinc-950/95 backdrop-blur-md border-b border-zinc-800/60">
+        <div className="flex items-center justify-between px-4 py-3">
+          {/* Logo + ชื่อ */}
+          <div className="flex items-center gap-2">
+            <img src={LOGO_SRC} alt="logo" className="h-9 w-9 rounded-lg object-cover"/>
+            <div className="leading-tight">
+              <div className="text-amber-400 font-bold text-xs tracking-widest">LEGENDARY</div>
+              <div className="text-zinc-400 text-[10px] tracking-widest">SECRETS POKER</div>
+            </div>
+          </div>
+          {/* กองกลาง */}
+          <button onClick={() => { setTab("pot"); setMenuOpen(false); }}
+            className={"text-sm font-mono font-bold px-3 py-1.5 rounded-xl border transition-colors " + (potBal >= 0 ? "text-amber-400 border-amber-500/30 bg-amber-500/10" : "text-red-400 border-red-500/30 bg-red-500/10")}>
+            💰 {fmt(potBal)} ฿
+          </button>
+          {/* Hamburger */}
+          <button onClick={() => setMenuOpen(o => !o)}
+            className="w-9 h-9 rounded-xl bg-zinc-800 border border-zinc-700 flex flex-col items-center justify-center gap-1.5 flex-shrink-0">
+            <span className={"block w-4 h-0.5 bg-zinc-300 transition-all " + (menuOpen ? "rotate-45 translate-y-2" : "")}/>
+            <span className={"block w-4 h-0.5 bg-zinc-300 transition-all " + (menuOpen ? "opacity-0" : "")}/>
+            <span className={"block w-4 h-0.5 bg-zinc-300 transition-all " + (menuOpen ? "-rotate-45 -translate-y-2" : "")}/>
+          </button>
+        </div>
+        {/* Dropdown Menu */}
+        {menuOpen && (
+          <div className="absolute top-full left-0 right-0 bg-zinc-950/98 border-b border-zinc-800 shadow-2xl z-50">
+            <div className="px-4 py-3 space-y-1">
+              {TABS.map(t => (
+                <button key={t.id} onClick={() => { setTab(t.id); setMenuOpen(false); if (t.id !== "add") setEditSes(null); }}
+                  className={"w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors " + (tab === t.id ? "bg-amber-500/15 text-amber-400 border border-amber-500/30" : "text-zinc-400 hover:bg-zinc-800 hover:text-white")}>
+                  <span className="text-lg">{t.icon}</span>
+                  <span>{t.label}</span>
+                  {tab === t.id && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-amber-400"/>}
+                </button>
+              ))}
+              <div className="border-t border-zinc-800 pt-2 mt-2">
+                {isAdmin
+                  ? <button onClick={() => { localStorage.removeItem("lspc_admin"); setIsAdmin(false); setTab("dashboard"); setMenuOpen(false); }}
+                      className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-zinc-500 hover:text-white hover:bg-zinc-800 transition-colors">
+                      <span className="text-lg">🔓</span><span>Logout</span>
+                    </button>
+                  : <button onClick={() => { setTab("login"); setMenuOpen(false); }}
+                      className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-zinc-500 hover:text-amber-400 hover:bg-zinc-800 transition-colors">
+                      <span className="text-lg">🔐</span><span>Admin Login</span>
+                    </button>
+                }
+              </div>
+            </div>
+          </div>
+        )}
+      </header>
+      {/* overlay to close menu on outside click */}
+      {menuOpen && <div className="fixed inset-0 z-30 sm:hidden" onClick={() => setMenuOpen(false)}/>}
       <main className="max-w-3xl mx-auto px-4 py-6">
         {tab === "dashboard"   && <DashboardView data={data}
           onGoLeader={name => { setProfileSel(name); setTab("profiles"); }}
