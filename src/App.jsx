@@ -709,6 +709,22 @@ function RacingBarChart({ sessions, players, nicknames }) {
   );
 }
 
+// ─────────────────────────────────────────────────────────────────
+// RACE VIEW (standalone page)
+// ─────────────────────────────────────────────────────────────────
+function RaceView({ data }) {
+  return (
+    <div className="space-y-4">
+      <h2 className="text-xl font-bold text-white">🏎️ Ranking Race</h2>
+      <p className="text-zinc-500 text-sm">กำไรสะสมแต่ละเซสชั่น</p>
+      {data.sessions.length > 1
+        ? <RacingBarChart sessions={data.sessions} players={data.players} nicknames={data.nicknames}/>
+        : <Box><div className="text-center py-12 text-zinc-600"><div className="text-4xl mb-3">🏎️</div>ต้องมีอย่างน้อย 2 เซสชั่นขึ้นไป</div></Box>
+      }
+    </div>
+  );
+}
+
 function LeaderboardView({ data }) {
   const [filter, setFilter] = useState("all");
 
@@ -870,10 +886,7 @@ function LeaderboardView({ data }) {
           </Box>
         </>
       )}
-      {/* Racing Bar Chart */}
-      {data.sessions.length > 1 && (
-        <RacingBarChart sessions={data.sessions} players={data.players} nicknames={data.nicknames}/>
-      )}
+
     </div>
   );
 }
@@ -1541,6 +1554,7 @@ export default function App() {
     { id:"dashboard",   icon:"📊", label:"ภาพรวม",  adminOnly: false },
     { id:"leaderboard", icon:"🏆", label:"Rank",     adminOnly: false },
     { id:"profiles",    icon:"👤", label:"Players",  adminOnly: false },
+    { id:"race",        icon:"🏎️", label:"Race",      adminOnly: false },
     { id:"sessions",    icon:"📋", label:"เซสชั่น",  adminOnly: false },
     { id:"add",         icon:"➕", label:"บันทึก",   adminOnly: true  },
     { id:"pot",         icon:"💰", label:"กองกลาง",  adminOnly: false },
@@ -1589,6 +1603,7 @@ export default function App() {
         />}
         {tab === "leaderboard" && <LeaderboardView data={data}/>}
         {tab === "profiles"    && <PlayerProfilesView data={data} initialSel={profileSel} onClearSel={()=>setProfileSel(null)}/>}
+        {tab === "race"        && <RaceView data={data}/>}
         {tab === "sessions"    && !editSes && <SessionsView data={data}
           onEdit={isAdmin ? (s => { setEditSes(s); setTab("add"); }) : null}
           onDelete={isAdmin ? delSes : null}
