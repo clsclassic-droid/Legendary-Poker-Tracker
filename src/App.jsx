@@ -1105,7 +1105,7 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
       </div>
 
       {/* Date + Note */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-3">
         <div>
           <label className="block text-zinc-400 text-sm mb-1">📅 วันที่เล่น</label>
           <input type="date" value={date} onChange={e=>setDate(e.target.value)}
@@ -1153,21 +1153,21 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
       {/* Rate + Fee */}
       <Box className="space-y-3">
         <div className="text-zinc-300 font-semibold text-sm">⚙️ ตั้งค่าเซสชั่นนี้</div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="rounded-xl p-3 space-y-2" style={{background:"rgba(255,255,255,0.06)"}}>
-            <div className="text-amber-400 text-xs font-semibold">🎰 อัตราแลกชิป</div>
+        <div className="grid grid-cols-1 gap-3">
+          <div className="rounded-xl p-3" style={{background:"rgba(255,255,255,0.06)"}}>
+            <div className="text-amber-400 text-xs font-semibold mb-2">🎰 อัตราแลกชิป</div>
             <div className="flex items-center gap-2">
               <div className="flex-1"><label className="text-zinc-500 text-xs">ชิป</label><NInput value={rate.chips} onChange={v=>setRate(r=>({...r,chips:v}))}/></div>
-              <span className="text-zinc-500 mt-4">=</span>
+              <span className="text-zinc-500 pt-5">=</span>
               <div className="flex-1"><label className="text-zinc-500 text-xs">บาท</label><NInput value={rate.baht} onChange={v=>setRate(r=>({...r,baht:v}))}/></div>
             </div>
-            <div className="text-zinc-500 text-xs font-mono">1 ชิป ≈ {rate.chips>0?(rate.baht/rate.chips).toFixed(4):0} ฿</div>
-            {errs.rate && <p className="text-red-400 text-xs">{errs.rate}</p>}
+            <div className="text-zinc-500 text-xs font-mono mt-1">1 ชิป ≈ {rate.chips>0?(rate.baht/rate.chips).toFixed(4):0} ฿</div>
+            {errs.rate && <p className="text-red-400 text-xs mt-1">{errs.rate}</p>}
           </div>
-          <div className="rounded-xl p-3 space-y-2" style={{background:"rgba(255,255,255,0.06)"}}>
-            <div className="text-purple-400 text-xs font-semibold">📦 ค่าส่วนกลาง/คน</div>
+          <div className="rounded-xl p-3" style={{background:"rgba(255,255,255,0.06)"}}>
+            <div className="text-purple-400 text-xs font-semibold mb-2">📦 ค่าส่วนกลาง/คน</div>
             <NInput value={fee} onChange={setFee}/>
-            <div className="text-zinc-500 text-xs font-mono">{active} คน × {fmt(fee)} = <span className="text-purple-300">{fmt(active*fee)} ฿</span></div>
+            <div className="text-zinc-500 text-xs font-mono mt-1">{active} คน × {fmt(fee)} = <span className="text-purple-300">{fmt(active*fee)} ฿</span></div>
           </div>
         </div>
       </Box>
