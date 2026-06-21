@@ -1564,21 +1564,60 @@ function CalcView() {
         )}
       </div>
 
-      {/* Guide */}
+      {/* Guide — Outs */}
       <Box>
-        <div className="text-zinc-400 text-xs font-semibold mb-3">📖 เกณฑ์อ้างอิง</div>
+        <div className="text-zinc-400 text-xs font-semibold mb-3">🃏 จำนวน Out ที่ต้องการ (Rule of 2 & 4)</div>
         <div className="space-y-2">
-          {[
-            ["≤ 25%", "Call คุ้มมาก", "text-emerald-400", "border-emerald-500/30"],
-            ["26–33%", "Call ได้ ถ้า hand แข็ง", "text-amber-400", "border-amber-500/30"],
-            ["> 33%", "ควร Fold เว้นแต่มี implied odds", "text-red-400", "border-red-500/30"],
-          ].map(([range, desc, color, border]) => (
-            <div key={range} className={"flex items-center gap-3 px-3 py-2 rounded-xl border " + border}
-              style={{background:"rgba(255,255,255,0.03)"}}>
-              <span className={"font-mono font-bold text-sm w-16 flex-shrink-0 " + color}>{range}</span>
-              <span className="text-zinc-400 text-xs">{desc}</span>
+          {total > 0 ? (
+            // แสดง out ที่ต้องการตาม equity ที่คำนวณได้
+            [
+              { street: "Call ที่ Flop", mult: 4, desc: "ยังมี 2 ใบ (turn+river)" },
+              { street: "Call ที่ Turn", mult: 2, desc: "เหลือ 1 ใบ (river)" },
+              { street: "All-in ที่ Flop", mult: 4, desc: "ได้ดู 2 ใบ (turn+river)" },
+            ].map(({ street, mult, desc }) => {
+              const outsNeeded = Math.ceil(equity / mult);
+              const isOk = outsNeeded <= 9;
+              return (
+                <div key={street} className={"flex items-center justify-between px-3 py-2.5 rounded-xl border " + (isOk ? "border-emerald-500/25" : "border-red-500/25")}
+                  style={{background: isOk ? "rgba(5,30,15,0.2)" : "rgba(30,5,5,0.2)"}}>
+                  <div>
+                    <div className={"text-sm font-semibold " + (isOk ? "text-emerald-300" : "text-red-300")}>{street}</div>
+                    <div className="text-zinc-600 text-[10px]">{desc} · ×{mult} rule</div>
+                  </div>
+                  <div className="text-right">
+                    <div className={"font-mono font-black text-xl " + (isOk ? "text-emerald-400" : "text-red-400")}>
+                      ≥ {outsNeeded} out
+                    </div>
+                    <div className="text-zinc-600 text-[10px]">{(outsNeeded * mult).toFixed(0)}% equity</div>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            // แสดงตาราง out อ้างอิงทั่วไป
+            <div>
+              <div className="grid grid-cols-4 gap-1 mb-2 text-[10px] text-zinc-600 font-semibold px-1">
+                <span>Out</span><span className="text-center">Flop→River</span><span className="text-center">Turn→River</span><span className="text-center">ตัวอย่าง</span>
+              </div>
+              {[
+                [2, "8%",  "4%",  "Pocket pair → set"],
+                [4, "16%", "8%",  "Gutshot straight"],
+                [6, "24%", "12%", "Two pair → full house"],
+                [8, "32%", "16%", "Open-ended straight"],
+                [9, "36%", "18%", "Flush draw"],
+                [12,"48%", "24%", "Flush + gutshot"],
+                [15,"60%", "30%", "Flush + open-ended"],
+              ].map(([out, pct4, pct2, ex]) => (
+                <div key={out} className="grid grid-cols-4 gap-1 px-1 py-1.5 border-b border-zinc-800/30 text-xs items-center">
+                  <span className="font-mono font-bold text-amber-300">{out} out</span>
+                  <span className="text-center font-mono text-zinc-300">{pct4}</span>
+                  <span className="text-center font-mono text-zinc-300">{pct2}</span>
+                  <span className="text-zinc-500 text-[10px] truncate">{ex}</span>
+                </div>
+              ))}
+              <div className="text-zinc-600 text-[10px] mt-2 text-center">กรอก Pot + Call เพื่อดูว่าต้องการกี่ out</div>
             </div>
-          ))}
+          )}
         </div>
       </Box>
 
