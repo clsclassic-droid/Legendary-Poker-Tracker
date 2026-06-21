@@ -1450,6 +1450,74 @@ function SettingsView({ data, onUpdate, saving }) {
   );
 }
 
+// ─── StreetOutCard — dropdown table of hands ───────────────────
+function StreetOutCard({ street, desc, mult, outsNeeded, isOk, validHands, allHands }) {
+  const [open, setOpen] = useState(false);
+  const failHands = allHands.filter(h => h.out < outsNeeded);
+
+  return (
+    <div className={"rounded-xl border overflow-hidden " + (isOk ? "border-emerald-500/25" : "border-red-500/25")}
+      style={{background: isOk ? "rgba(5,30,15,0.2)" : "rgba(30,5,5,0.2)"}}>
+      {/* Header row — always visible */}
+      <button className="w-full flex items-center justify-between px-3 py-2.5 text-left"
+        onClick={() => setOpen(o => !o)}>
+        <div>
+          <div className={"text-sm font-semibold " + (isOk ? "text-emerald-300" : "text-red-300")}>{street}</div>
+          <div className="text-zinc-600 text-[10px]">{desc} · ×{mult} rule</div>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="text-right">
+            <div className={"font-mono font-black text-xl " + (isOk ? "text-emerald-400" : "text-red-400")}>
+              ≥ {outsNeeded} out
+            </div>
+            <div className="text-zinc-600 text-[10px]">≈{(outsNeeded * mult).toFixed(0)}% equity</div>
+          </div>
+          <span className={"text-zinc-600 text-xs transition-transform " + (open ? "rotate-180" : "")}>▼</span>
+        </div>
+      </button>
+
+      {/* Dropdown table */}
+      {open && (
+        <div className="border-t border-white/5 px-3 pb-3 pt-2">
+          {/* column headers */}
+          <div className="flex text-[10px] text-zinc-600 mb-1 px-1">
+            <span className="w-6"/>
+            <span className="flex-1">Hand / Draw</span>
+            <span className="w-8 text-right">Out</span>
+          </div>
+          {/* fail hands — faded */}
+          {failHands.map((h, i) => (
+            <div key={i} className="flex items-center gap-2 px-1 py-1 opacity-30">
+              <span className="w-6 text-center text-xs">{"♠♥♦♣"[i%4]}</span>
+              <span className="flex-1 text-xs text-zinc-500">{h.name}</span>
+              <span className="w-8 text-right text-xs font-mono text-red-500">{h.out}</span>
+            </div>
+          ))}
+          {/* threshold line */}
+          {failHands.length > 0 && (
+            <div className="relative my-1.5">
+              <div className={"border-t border-dashed " + (isOk ? "border-emerald-600/50" : "border-red-600/50")}/>
+              <span className={"absolute right-0 -top-2.5 text-[9px] px-1 " + (isOk ? "text-emerald-500" : "text-red-500")}
+                style={{background:"rgba(0,0,0,0.5)"}}>≥ {outsNeeded} out ✓</span>
+            </div>
+          )}
+          {/* valid hands — highlighted */}
+          {validHands.length === 0
+            ? <div className="text-center text-zinc-600 text-xs py-2">ต้องการ out มากเกินไป</div>
+            : validHands.map((h, i) => (
+              <div key={i} className={"flex items-center gap-2 px-1 py-1.5 rounded-lg " + (isOk ? "text-emerald-300" : "text-red-300")}>
+                <span className="w-6 text-center text-sm">{"♠♥♦♣"[i%4]}</span>
+                <span className="flex-1 text-xs font-medium">{h.name}</span>
+                <span className={"w-8 text-right text-xs font-mono font-bold " + (isOk ? "text-emerald-400" : "text-red-400")}>{h.out}</span>
+              </div>
+            ))
+          }
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─────────────────────────────────────────────────────────────────
 // CALCULATOR VIEW (Pot Odds)
 // ─────────────────────────────────────────────────────────────────
@@ -1583,38 +1651,27 @@ function CalcView() {
                 { out: 2,  name: "Pocket pair → set" },
                 { out: 3,  name: "One overcard" },
                 { out: 4,  name: "Gutshot straight" },
-                { out: 5,  name: "One overcard + gutshot" },
                 { out: 6,  name: "Two overcards" },
-                { out: 7,  name: "Two overcards + gutshot" },
+                { out: 7,  name: "One overcard + gutshot" },
                 { out: 8,  name: "Open-ended straight" },
                 { out: 9,  name: "Flush draw" },
-                { out: 10, name: "Flush draw + gutshot" },
-                { out: 11, name: "Flush draw + overcard" },
-                { out: 12, name: "Flush draw + gutshot + overcard" },
-                { out: 13, name: "Flush draw + two overcards" },
-                { out: 14, name: "Flush draw + open-ended" },
-                { out: 15, name: "Flush draw + open-ended + overcard" },
+                { out: 10, name: "Two overcards + gutshot" },
+                { out: 12, name: "Flush draw + gutshot" },
+                { out: 12, name: "Flush draw + overcard" },
+                { out: 13, name: "Flush draw + gutshot + overcard" },
+                { out: 15, name: "Flush draw + two overcards" },
+                { out: 17, name: "Flush draw + open-ended" },
+                { out: 21, name: "Flush draw + open-ended + two overcards" },
               ];
               const validHands = outsNeeded <= 0 ? [] : allHands.filter(h => h.out >= outsNeeded);
               const exampleText = validHands.length === 0 ? (outsNeeded > 15 ? "แทบทุก draw รวมกัน" : "—")
                 : validHands.map(h => h.name).join(", ");
               return (
-                <div key={street} className={"rounded-xl border px-3 py-2.5 " + (isOk ? "border-emerald-500/25" : "border-red-500/25")}
-                  style={{background: isOk ? "rgba(5,30,15,0.2)" : "rgba(30,5,5,0.2)"}}>
-                  <div className="flex items-center justify-between mb-1">
-                    <div>
-                      <div className={"text-sm font-semibold " + (isOk ? "text-emerald-300" : "text-red-300")}>{street}</div>
-                      <div className="text-zinc-600 text-[10px]">{desc} · ×{mult} rule{exampleText ? <span className="text-amber-300/70"> · {exampleText}</span> : ""}</div>
-                    </div>
-                    <div className="text-right">
-                      <div className={"font-mono font-black text-xl " + (isOk ? "text-emerald-400" : "text-red-400")}>
-                        ≥ {outsNeeded} out
-                      </div>
-                      <div className="text-zinc-600 text-[10px]">≈{(outsNeeded * mult).toFixed(0)}% equity</div>
-                    </div>
-                  </div>
-
-                </div>
+                <StreetOutCard key={street}
+                  street={street} desc={desc} mult={mult}
+                  outsNeeded={outsNeeded} isOk={isOk}
+                  validHands={validHands} allHands={allHands}
+                />
               );
             })
           ) : (
