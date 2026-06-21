@@ -685,7 +685,7 @@ function RacingBarChart({ sessions, players, nicknames }) {
           <span className="text-zinc-600 text-xs">ความเร็ว:</span>
           {[1,2,4].map(s => (
             <button key={s} onClick={() => setSpeed(s)}
-              className={"px-2 py-1 rounded-md text-xs border transition-colors " + (speed===s ? "bg-amber-500/15 text-amber-400 border-amber-500/30" : "bg-zinc-800 text-zinc-500 border-zinc-700")}>
+              className={"px-2 py-1 rounded-md text-xs border transition-colors " + (speed===s ? "bg-amber-500/15 text-amber-400 border-amber-500/30" : "bg-white/5 text-zinc-500 border-zinc-700/60")}>
               {s}×
             </button>
           ))}
@@ -844,7 +844,7 @@ function LeaderboardView({ data }) {
           <select
             value={filter.startsWith("sea:")?filter:""}
             onChange={e=>e.target.value&&setFilter(e.target.value)}
-            className={"flex-1 border rounded-lg px-3 py-1.5 text-xs focus:outline-none transition-colors "+(filter.startsWith("sea:")?"bg-amber-500/10 border-amber-500/40 text-amber-400":"bg-zinc-900 border-zinc-700 text-zinc-500 focus:border-zinc-500")}>
+            className={"flex-1 border rounded-lg px-3 py-1.5 text-xs focus:outline-none transition-colors "+(filter.startsWith("sea:")?"bg-amber-500/10 border-amber-500/40 text-amber-400":"bg-white/5 border-zinc-700/60 text-zinc-400 focus:border-zinc-500")}>
             <option value="">ซีซั่น</option>
             {seasonKeys
               .filter(k => {
@@ -861,7 +861,7 @@ function LeaderboardView({ data }) {
           <select
             value={filter.startsWith("sid:")?filter:""}
             onChange={e=>e.target.value&&setFilter(e.target.value)}
-            className={"flex-1 border rounded-lg px-3 py-1.5 text-xs focus:outline-none transition-colors "+(filter.startsWith("sid:")?"bg-amber-500/10 border-amber-500/40 text-amber-400":"bg-zinc-900 border-zinc-700 text-zinc-500 focus:border-zinc-500")}>
+            className={"flex-1 border rounded-lg px-3 py-1.5 text-xs focus:outline-none transition-colors "+(filter.startsWith("sid:")?"bg-amber-500/10 border-amber-500/40 text-amber-400":"bg-white/5 border-zinc-700/60 text-zinc-400 focus:border-zinc-500")}>
             <option value="">เซสชั่น</option>
             {[...data.sessions]
               .reverse()
@@ -923,7 +923,7 @@ function LeaderboardView({ data }) {
                 </tr></thead>
                 <tbody>
                   {summary.map(p => (
-                    <tr key={p.name} className="border-b border-zinc-800/50 hover:bg-zinc-800/30 transition-colors">
+                    <tr key={p.name} className="border-b border-zinc-800/50 hover:bg-white/5 transition-colors">
                       <td className="px-2 py-2.5 text-zinc-500 font-mono text-xs">{p.rank}</td>
                       <td className="px-3 py-2 font-semibold text-white">
                         <div className="font-semibold text-white text-sm">{p.name}</div>
@@ -966,7 +966,7 @@ function SessionsView({ data, onEdit, onDelete, initialOpen=null }) {
         const fee = s.entries.length*s.fee;
         return (
           <div key={s.internalId} className="border border-zinc-700/50 rounded-2xl overflow-hidden" style={{background:"rgba(15,10,3,0.12)",backdropFilter:"blur(14px)"}}>
-            <button className="w-full flex items-center justify-between px-4 py-4 hover:bg-zinc-800/30 transition-colors text-left" onClick={()=>setOpen(isOpen?null:s.internalId)}>
+            <button className="w-full flex items-center justify-between px-4 py-4 hover:bg-white/5 transition-colors text-left" onClick={()=>setOpen(isOpen?null:s.internalId)}>
               <div className="flex items-center gap-3">
                 <div className="text-center">
                   <div className="text-amber-400 font-bold font-mono text-base">เซสชั่น {s.sessionNo}</div>
@@ -1108,7 +1108,7 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
         <div>
           <label className="block text-zinc-400 text-sm mb-1">📝 หมายเหตุ</label>
           <input type="text" value={note} onChange={e=>setNote(e.target.value)} placeholder="เช่น บ้านแนน..."
-            className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2.5 text-white placeholder-zinc-600 focus:border-amber-500 focus:outline-none"/>
+            className="w-full border border-zinc-600/60 rounded-xl px-4 py-2.5 text-white placeholder-zinc-600 focus:border-amber-500 focus:outline-none" style={{background:"rgba(255,255,255,0.06)"}}/>
         </div>
       </div>
 
@@ -1130,7 +1130,7 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
               <div className="flex items-center gap-1">
                 <button onClick={()=>setSesNo(n=>Math.max(1,n-1))} className="w-8 h-9 rounded-lg bg-zinc-700 hover:bg-zinc-600 text-white font-bold text-lg flex-shrink-0">−</button>
                 <input type="number" min="1" value={sesNo} onChange={e=>setSesNo(Number(e.target.value)||1)}
-                  className={"w-full text-center bg-zinc-800 border rounded-lg py-1.5 text-white font-mono font-bold text-xl focus:outline-none "+(isDup?"border-red-500":"border-zinc-600 focus:border-amber-500")}/>
+                  className={"w-full text-center border border-zinc-600/60 rounded-lg py-1.5 text-white font-mono font-bold text-xl focus:outline-none "+(isDup?"border-red-500":"border-zinc-600 focus:border-amber-500")}/>
                 <button onClick={()=>setSesNo(n=>n+1)} className="w-8 h-9 rounded-lg bg-zinc-700 hover:bg-zinc-600 text-white font-bold text-lg flex-shrink-0">+</button>
               </div>
               {errs.sesNo ? <p className="text-red-400 text-xs mt-1 text-center">{errs.sesNo}</p> : <p className="text-zinc-600 text-xs mt-1 text-center">ปรับได้</p>}
@@ -1228,10 +1228,10 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
                   <button className="text-xs px-2 py-1 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-400 hover:bg-amber-500/25 transition-colors">
                     + เพิ่มผู้เล่น
                   </button>
-                  <div className="absolute right-0 top-full mt-1 bg-zinc-900 border border-zinc-700 rounded-xl shadow-xl z-20 hidden group-hover:block group-focus-within:block min-w-[120px]">
+                  <div className="absolute right-0 top-full mt-1 border border-zinc-700/60 rounded-xl shadow-xl z-20 hidden gro" style={{background:"rgba(15,10,3,0.92)",backdropFilter:"blur(16px)"}} className="group-hover:block group-focus-within:block min-w-[120px]">
                     {available.map(p => (
                       <button key={p} onClick={() => setRows(prev => [...prev, {player:p, buy:0, sell:0}])}
-                        className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white transition-colors first:rounded-t-xl last:rounded-b-xl">
+                        className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-white/10 hover:text-white transition-colors first:rounded-t-xl last:rounded-b-xl">
                         {p}
                       </button>
                     ))}
@@ -1329,10 +1329,10 @@ function PotView({ data, onAddTx, onDeleteTx, saving }) {
             <button onClick={()=>setType("expense")} className={"flex-1 py-2 rounded-md text-sm font-medium transition-colors "+(type==="expense"?"bg-red-600 text-white":"text-zinc-400 hover:text-white")}>➖ รายจ่าย</button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div><label className="text-zinc-500 text-xs">วันที่</label><input type="date" value={dt} onChange={e=>setDt(e.target.value)} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm focus:border-amber-500 focus:outline-none"/></div>
+            <div><label className="text-zinc-500 text-xs">วันที่</label><input type="date" value={dt} onChange={e=>setDt(e.target.value)} className="w-full border border-zinc-600/60 rounded-lg px-3 py-2 text-white text-sm focus:border-amber-500 focus:outline-none" style={{background:"rgba(255,255,255,0.06)"}}/></div>
             <div><label className="text-zinc-500 text-xs">จำนวนเงิน (฿)</label><NInput value={amt} onChange={setAmt}/></div>
           </div>
-          <div><label className="text-zinc-500 text-xs">รายการ</label><input type="text" value={txt} onChange={e=>setTxt(e.target.value)} placeholder="เช่น ค่าอาหาร..." className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm placeholder-zinc-600 focus:border-amber-500 focus:outline-none"/></div>
+          <div><label className="text-zinc-500 text-xs">รายการ</label><input type="text" value={txt} onChange={e=>setTxt(e.target.value)} placeholder="เช่น ค่าอาหาร..." className="w-full border border-zinc-600/60 rounded-lg px-3 py-2 text-white text-sm placeholder-zinc-600 focus:border-amber-500 focus:outline-none"/></div>
           {err && <p className="text-red-400 text-xs">{err}</p>}
           <button onClick={submit} className={"w-full py-2.5 rounded-xl font-bold text-sm text-white transition-colors "+(type==="income"?"bg-emerald-600 hover:bg-emerald-500":"bg-red-600 hover:bg-red-500")}>บันทึกรายการ</button>
         </Box>
@@ -1399,7 +1399,7 @@ function SettingsView({ data, onUpdate, saving }) {
         <div className="text-zinc-300 font-semibold text-sm">👥 ผู้เล่น</div>
         <div className="flex gap-2">
           <input value={newName} onChange={e=>setNewName(e.target.value)} onKeyDown={e=>e.key==="Enter"&&addPlayer()} placeholder="ชื่อผู้เล่นใหม่..."
-            className="flex-1 bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2.5 text-white placeholder-zinc-600 focus:border-amber-500 focus:outline-none"/>
+            className="flex-1 border border-zinc-600/60 rounded-xl px-4 py-2.5 text-white placeholder-zinc-600 focus:border-amber-500 focus:outline-none" style={{background:"rgba(255,255,255,0.06)"}}/>
           <button onClick={addPlayer} className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold">เพิ่ม</button>
         </div>
         <div className="space-y-2">
@@ -1410,7 +1410,7 @@ function SettingsView({ data, onUpdate, saving }) {
                 value={nicknames[p] || ""}
                 onChange={e => setNick(p, e.target.value)}
                 placeholder="Nickname..."
-                className="flex-1 bg-zinc-900 border border-zinc-600 rounded-lg px-3 py-1.5 text-zinc-300 text-xs placeholder-zinc-600 focus:border-amber-500 focus:outline-none"
+                className="flex-1 border border-zinc-600/60 rounded-lg px-3 py-1.5 text-zinc-300 text-xs placeholder-zinc-600 focus:border-amber-500 focus:outline-none" style={{background:"rgba(255,255,255,0.06)"}}
               />
               <button onClick={()=>rmPlayer(p)} className="text-zinc-600 hover:text-red-400 text-xs flex-shrink-0">✕</button>
             </div>
@@ -1434,7 +1434,7 @@ function SettingsView({ data, onUpdate, saving }) {
             value={adminPassword}
             onChange={e => setAdminPassword(e.target.value)}
             placeholder="ตั้ง password สำหรับ admin..."
-            className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2.5 text-white placeholder-zinc-600 focus:border-amber-500 focus:outline-none pr-16" style={{background:"rgba(255,255,255,0.08)"}}
+            className="w-full border border-zinc-600/60 rounded-xl px-4 py-2.5 text-white placeholder-zinc-600 focus:border-amber-500 focus:outline-none pr-16" style={{background:"rgba(255,255,255,0.08)"}}
           />
           <button onClick={()=>setShowPw(p=>!p)}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 text-xs">
@@ -1501,7 +1501,7 @@ function LoginView({ data, onLogin, onCancel }) {
             onChange={e => setPw(e.target.value)}
             onKeyDown={e => e.key === "Enter" && submit()}
             placeholder="กรอก admin password..."
-            className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2.5 text-white placeholder-zinc-600 focus:border-amber-500 focus:outline-none"
+            className="w-full border border-zinc-600/60 rounded-xl px-4 py-2.5 text-white placeholder-zinc-600 focus:border-amber-500 focus:outline-none" style={{background:"rgba(255,255,255,0.06)"}}
           />
           {err && <p className="text-red-400 text-sm mt-1">{err}</p>}
         </div>
@@ -1677,11 +1677,11 @@ export default function App() {
               </span>
               {isAdmin
                 ? <button onClick={() => { localStorage.removeItem("lspc_admin"); setIsAdmin(false); setTab("dashboard"); }}
-                    className="text-xs px-2 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white border border-zinc-700 transition-colors">
+                    className="text-xs px-2 py-1 rounded-lg hover:bg-white/10 text-zinc-400 hover:text-white border border-zinc-700 transition-colors">
                     🔓 Logout
                   </button>
                 : <button onClick={() => setTab("login")}
-                    className="text-xs px-2 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-amber-400 border border-zinc-700 transition-colors">
+                    className="text-xs px-2 py-1 rounded-lg hover:bg-white/10 text-zinc-400 hover:text-amber-400 border border-zinc-700 transition-colors">
                     🔐 Login
                   </button>
               }
