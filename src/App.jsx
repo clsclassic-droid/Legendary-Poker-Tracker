@@ -541,7 +541,7 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
             </div>
             <div className="flex gap-1 text-xs mr-2">
               {p.gold>0   && <span className="bg-amber-500/20 border border-amber-500/30 text-amber-300 px-1.5 py-0.5 rounded-full">🥇{p.gold}</span>}
-              {p.silver>0 && <span className="bg-zinc-600/30 border border-zinc-600 text-zinc-300 px-1.5 py-0.5 rounded-full">🥈{p.silver}</span>}
+              {p.silver>0 && <span className=" border border-zinc-600 text-zinc-300 px-1.5 py-0.5 rounded-full">🥈{p.silver}</span>}
               {p.last>0   && <span className="bg-red-900/30 border border-red-700/30 text-red-400 px-1.5 py-0.5 rounded-full">💀{p.last}</span>}
             </div>
             <div className="text-right flex-shrink-0">
@@ -674,7 +674,7 @@ function RacingBarChart({ sessions, players, nicknames }) {
       {/* Controls */}
       <div className="flex items-center gap-2 flex-wrap">
         <button onClick={togglePlay}
-          className={"px-3 py-1.5 rounded-lg text-xs font-bold transition-colors " + (playing ? "bg-zinc-700 text-white" : "bg-amber-500 text-black")}>
+          className={"px-3 py-1.5 rounded-lg text-xs font-bold transition-colors " + (playing ? " text-white" : "bg-amber-500 text-black")}>
           {playing ? "⏸ หยุด" : "▶ Play"}
         </button>
         <button onClick={() => { setPlaying(false); setCurSes(0); }}
@@ -697,7 +697,7 @@ function RacingBarChart({ sessions, players, nicknames }) {
         <span className="text-zinc-600 text-[10px] font-mono flex-shrink-0">เซสชั่น 1</span>
         <input type="range" min={0} max={total-1} value={curSes}
           onChange={e => { setPlaying(false); setCurSes(Number(e.target.value)); }}
-          className="flex-1 h-1 rounded-full appearance-none bg-zinc-700 accent-amber-400 cursor-pointer"/>
+          className="flex-1 h-1 rounded-full appearance-none  accent-amber-400 cursor-pointer"/>
         <span className="text-zinc-600 text-[10px] font-mono flex-shrink-0">เซสชั่น {total}</span>
       </div>
 
@@ -901,10 +901,10 @@ function LeaderboardView({ data }) {
                   <div className={"font-mono text-2xl font-black mt-1 "+(p.total>=0?"text-emerald-400":"text-red-400")}>{p.total>0?"+":""}{fmt(p.total)} ฿</div>
                   <div className="mt-2 flex flex-wrap gap-1 text-xs">
                     {p.gold>0   && <span className="bg-amber-500/20 border border-amber-500/30 text-amber-300 px-1.5 py-0.5 rounded-full">🥇×{p.gold}</span>}
-                    {p.silver>0 && <span className="bg-zinc-400/20 border border-zinc-400/30 text-zinc-300 px-1.5 py-0.5 rounded-full">🥈×{p.silver}</span>}
+                    {p.silver>0 && <span className=" border border-zinc-400/30 text-zinc-300 px-1.5 py-0.5 rounded-full">🥈×{p.silver}</span>}
                     {p.bronze>0 && <span className="bg-orange-700/20 border border-orange-700/30 text-orange-300 px-1.5 py-0.5 rounded-full">🥉×{p.bronze}</span>}
                     {p.last>0   && <span className="bg-red-900/30 border border-red-700/30 text-red-400 px-1.5 py-0.5 rounded-full">💀×{p.last}</span>}
-                    <span className="bg-zinc-700/40 border border-zinc-600/40 text-zinc-500 px-1.5 py-0.5 rounded-full">{p.n} เซสชั่น</span>
+                    <span className=" border border-zinc-600/40 text-zinc-500 px-1.5 py-0.5 rounded-full">{p.n} เซสชั่น</span>
                   </div>
                 </div>
               ))}
@@ -1015,7 +1015,7 @@ function SessionsView({ data, onEdit, onDelete, initialOpen=null }) {
                 {s.note && <p className="mt-3 text-zinc-500 text-sm rounded-lg px-3 py-2" style={{background:"rgba(255,255,255,0.06)"}}>📝 {s.note}</p>}
                 {(onEdit || onDelete) && (
                   <div className="flex gap-2 mt-4 justify-end">
-                    {onEdit   && <button onClick={()=>onEdit(s)} className="px-4 py-1.5 rounded-lg bg-zinc-700 hover:bg-zinc-600 text-white text-sm">✏️ แก้ไข</button>}
+                    {onEdit   && <button onClick={()=>onEdit(s)} className="px-4 py-1.5 rounded-lg  hover:bg-zinc-600 text-white text-sm">✏️ แก้ไข</button>}
                     {onDelete && <button onClick={()=>onDelete(s.internalId)} className="px-4 py-1.5 rounded-lg bg-red-900/40 hover:bg-red-800/50 text-red-400 text-sm">🗑️ ลบ</button>}
                   </div>
                 )}
@@ -1128,10 +1128,10 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
             <div className="sm:w-36">
               <div className="text-amber-400 text-xs font-semibold mb-1">🎯 เซสชั่นที่</div>
               <div className="flex items-center gap-1">
-                <button onClick={()=>setSesNo(n=>Math.max(1,n-1))} className="w-8 h-9 rounded-lg bg-zinc-700 hover:bg-zinc-600 text-white font-bold text-lg flex-shrink-0">−</button>
+                <button onClick={()=>setSesNo(n=>Math.max(1,n-1))} className="w-8 h-9 rounded-lg  hover:bg-zinc-600 text-white font-bold text-lg flex-shrink-0">−</button>
                 <input type="number" min="1" value={sesNo} onChange={e=>setSesNo(Number(e.target.value)||1)}
                   className={"w-full text-center border border-zinc-600/60 rounded-lg py-1.5 text-white font-mono font-bold text-xl focus:outline-none "+(isDup?"border-red-500":"border-zinc-600 focus:border-amber-500")}/>
-                <button onClick={()=>setSesNo(n=>n+1)} className="w-8 h-9 rounded-lg bg-zinc-700 hover:bg-zinc-600 text-white font-bold text-lg flex-shrink-0">+</button>
+                <button onClick={()=>setSesNo(n=>n+1)} className="w-8 h-9 rounded-lg  hover:bg-zinc-600 text-white font-bold text-lg flex-shrink-0">+</button>
               </div>
               {errs.sesNo ? <p className="text-red-400 text-xs mt-1 text-center">{errs.sesNo}</p> : <p className="text-zinc-600 text-xs mt-1 text-center">ปรับได้</p>}
             </div>
@@ -1248,7 +1248,7 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
             return (
               <div key={r.player} className={"px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 "+(act?"":"opacity-50")}>
                 <div className="flex items-center gap-2 min-w-[80px]">
-                  <span className={"w-2 h-2 rounded-full flex-shrink-0 "+(pb>0?"bg-emerald-400":pb<0?"bg-red-400":"bg-zinc-600")}/>
+                  <span className={"w-2 h-2 rounded-full flex-shrink-0 "+(pb>0?"bg-emerald-400":pb<0?"bg-red-400":"")}/>
                   <span className="text-white font-medium"><PlayerName player={r.player} nicknames={data.nicknames}/></span>
                   <button onClick={() => setRows(prev => prev.filter(x => x.player !== r.player))}
                     className="ml-1 text-zinc-600 hover:text-red-400 text-xs transition-colors">✕</button>
@@ -1697,9 +1697,9 @@ export default function App() {
           {/* Hamburger ซ้าย */}
           <button onClick={() => setMenuOpen(o => !o)}
             className="w-9 h-9 rounded-xl border border-zinc-700/60 flex flex-col items-center justify-center gap-1.5 flex-shrink-0" style={{background:"rgba(255,255,255,0.08)"}}>
-            <span className={"block w-4 h-0.5 bg-zinc-300 transition-all duration-200 " + (menuOpen ? "rotate-45 translate-y-2" : "")}/>
-            <span className={"block w-4 h-0.5 bg-zinc-300 transition-all duration-200 " + (menuOpen ? "opacity-0" : "")}/>
-            <span className={"block w-4 h-0.5 bg-zinc-300 transition-all duration-200 " + (menuOpen ? "-rotate-45 -translate-y-2" : "")}/>
+            <span className={"block w-4 h-0.5  transition-all duration-200 " + (menuOpen ? "rotate-45 translate-y-2" : "")}/>
+            <span className={"block w-4 h-0.5  transition-all duration-200 " + (menuOpen ? "opacity-0" : "")}/>
+            <span className={"block w-4 h-0.5  transition-all duration-200 " + (menuOpen ? "-rotate-45 -translate-y-2" : "")}/>
           </button>
           {/* Logo + ชื่อ กลาง */}
           <div className="flex items-center gap-2">
