@@ -1105,15 +1105,15 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
       </div>
 
       {/* Date + Note */}
-      <div className="grid grid-cols-1 gap-3">
+      <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="block text-zinc-400 text-sm mb-1">📅 วันที่เล่น</label>
+          <label className="block text-zinc-400 text-xs mb-1">📅 วันที่เล่น</label>
           <input type="date" value={date} onChange={e=>setDate(e.target.value)}
             className="w-full border border-zinc-700/40 rounded-lg px-3 py-2 text-white text-sm focus:border-amber-500 focus:outline-none" style={{background:"rgba(255,255,255,0.06)"}}/>
           {errs.date && <p className="text-red-400 text-xs mt-1">{errs.date}</p>}
         </div>
         <div>
-          <label className="block text-zinc-400 text-sm mb-1">📝 หมายเหตุ</label>
+          <label className="block text-zinc-400 text-xs mb-1">📝 หมายเหตุ</label>
           <input type="text" value={note} onChange={e=>setNote(e.target.value)} placeholder="เช่น บ้านแนน..."
             className="w-full border border-zinc-700/40 rounded-lg px-3 py-2 text-white text-sm placeholder-zinc-600 focus:border-amber-500 focus:outline-none" style={{background:"rgba(255,255,255,0.06)"}}/>
         </div>
