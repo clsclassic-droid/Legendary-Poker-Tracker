@@ -1519,6 +1519,147 @@ function StreetOutCard({ street, desc, mult, outsNeeded, isOk, validHands, allHa
 }
 
 // ─────────────────────────────────────────────────────────────────
+// STREAK VIEW
+// ─────────────────────────────────────────────────────────────────
+const STREAK_ITEMS = [
+  // หมวด คู่
+  { id:"pair_flop",   group:"🃏 ติดคู่",    label:"ติดคู่ที่ Flop",              prob:32.46, avgEvery:3  },
+  { id:"pair_turn",   group:"🃏 ติดคู่",    label:"ติดคู่ที่ Turn เท่านั้น",     prob:8.63,  avgEvery:12 },
+  { id:"pair_river",  group:"🃏 ติดคู่",    label:"ติดคู่ที่ River เท่านั้น",    prob:7.68,  avgEvery:13 },
+  { id:"pair_5",      group:"🃏 ติดคู่",    label:"ติดคู่ภายใน 5 ใบ รวม",       prob:48.77, avgEvery:2  },
+  // หมวด Set
+  { id:"set_flop",    group:"🎯 ติด Set",   label:"ติด Set ที่ Flop",            prob:11.76, avgEvery:9  },
+  { id:"set_turn",    group:"🎯 ติด Set",   label:"ติด Set ที่ Turn เท่านั้น",   prob:3.75,  avgEvery:27 },
+  { id:"set_river",   group:"🎯 ติด Set",   label:"ติด Set ที่ River เท่านั้น",  prob:3.67,  avgEvery:27 },
+  { id:"set_5",       group:"🎯 ติด Set",   label:"ติด Set ภายใน 5 ใบ รวม",     prob:19.18, avgEvery:5  },
+  // หมวด Flush
+  { id:"flush_flop",  group:"♦️ Flush",     label:"ติด Flush สมบูรณ์ที่ Flop",  prob:0.84,  avgEvery:119},
+  { id:"flush_draw",  group:"♦️ Flush",     label:"มี Flush Draw ที่ Flop",      prob:10.94, avgEvery:9  },
+  { id:"flush_turn",  group:"♦️ Flush",     label:"Draw → ติดที่ Turn",          prob:19.15, avgEvery:5  },
+  { id:"flush_river", group:"♦️ Flush",     label:"Draw → ติดที่ River",         prob:15.82, avgEvery:6  },
+  { id:"flush_tr",    group:"♦️ Flush",     label:"Draw → ติดใน Turn หรือ River",prob:34.97, avgEvery:3  },
+  // หมวด Straight
+  { id:"str_flop",    group:"♠️ Straight",  label:"ติด Straight สมบูรณ์ที่ Flop",prob:2.61, avgEvery:38 },
+  { id:"oesd_flop",   group:"♠️ Straight",  label:"มี OESD ที่ Flop",            prob:10.5,  avgEvery:10 },
+  { id:"oesd_turn",   group:"♠️ Straight",  label:"OESD → ติดที่ Turn",          prob:17.02, avgEvery:6  },
+  { id:"oesd_river",  group:"♠️ Straight",  label:"OESD → ติดที่ River",         prob:14.43, avgEvery:7  },
+  { id:"oesd_tr",     group:"♠️ Straight",  label:"OESD → ติดใน Turn หรือ River",prob:31.45, avgEvery:3  },
+  { id:"gut_tr",      group:"♠️ Straight",  label:"Gutshot → Turn หรือ River",   prob:16.47, avgEvery:6  },
+];
+
+function StreakView() {
+  const initState = () => {
+    const s = {};
+    STREAK_ITEMS.forEach(item => { s[item.id] = 0; });
+    return s;
+  };
+  const [counts, setCounts] = useState(initState);
+
+  function tick(id) {
+    setCounts(prev => ({ ...prev, [id]: prev[id] + 1 }));
+  }
+  function reset(id) {
+    setCounts(prev => ({ ...prev, [id]: 0 }));
+  }
+  function resetAll() {
+    setCounts(initState());
+  }
+
+  // จัดกลุ่ม
+  const groups = [...new Set(STREAK_ITEMS.map(i => i.group))];
+
+  return (
+    <div className="space-y-5">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-bold text-white">🎯 Streak</h2>
+          <p className="text-zinc-500 text-sm mt-0.5">นับว่าแต่ละสถานการณ์ยังไม่เกิดมากี่ครั้งแล้ว</p>
+        </div>
+        <button onClick={resetAll}
+          className="px-3 py-1.5 rounded-xl text-xs text-zinc-500 hover:text-red-400 border border-zinc-700/30 transition-colors"
+          style={{background:"rgba(255,255,255,0.04)"}}>
+          🔄 Reset ทั้งหมด
+        </button>
+      </div>
+
+      {groups.map(group => (
+        <div key={group}>
+          <div className="text-amber-400 text-xs font-bold mb-2 px-1">{group}</div>
+          <div className="space-y-2">
+            {STREAK_ITEMS.filter(i => i.group === group).map(item => {
+              const count = counts[item.id];
+              const over  = count > item.avgEvery;
+              const ratio = item.avgEvery > 0 ? (count / item.avgEvery) : 0;
+              const pct   = Math.min(ratio * 100, 100);
+              return (
+                <div key={item.id} className={"rounded-xl border px-3 py-2.5 " + (
+                  count === 0 ? "border-zinc-700/25" :
+                  over ? "border-red-500/30" : "border-emerald-500/20"
+                )} style={{background: count === 0 ? "rgba(255,255,255,0.03)" :
+                  over ? "rgba(30,5,5,0.25)" : "rgba(5,20,10,0.25)"}}>
+                  {/* Header */}
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex-1">
+                      <div className="text-sm font-semibold text-white">{item.label}</div>
+                      <div className="text-zinc-600 text-[10px] mt-0.5">
+                        โอกาส {item.prob}% · ควรเกิด 1 ใน ~{item.avgEvery} ครั้ง
+                      </div>
+                    </div>
+                    {/* Counter */}
+                    <div className="flex items-center gap-2 flex-shrink-0 ml-3">
+                      <div className="text-right">
+                        <div className={"font-mono font-black text-2xl leading-none " + (
+                          count === 0 ? "text-zinc-600" :
+                          over ? "text-red-400" : "text-emerald-400"
+                        )}>{count}</div>
+                        <div className="text-zinc-600 text-[9px]">ครั้ง</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Progress bar */}
+                  {count > 0 && (
+                    <div className="mb-2">
+                      <div className="h-1.5 rounded-full overflow-hidden" style={{background:"rgba(255,255,255,0.06)"}}>
+                        <div className={"h-full rounded-full transition-all " + (over ? "bg-red-500" : "bg-emerald-500")}
+                          style={{width: pct + "%"}}/>
+                      </div>
+                      <div className="flex justify-between text-[9px] text-zinc-700 mt-0.5">
+                        <span>0</span>
+                        <span className={over ? "text-red-500" : "text-zinc-600"}>
+                          {over ? `เกินค่าเฉลี่ย ${count - item.avgEvery} ครั้ง ⚠️` : `${item.avgEvery - count} ครั้งจะถึงค่าเฉลี่ย`}
+                        </span>
+                        <span>~{item.avgEvery}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Buttons */}
+                  <div className="flex gap-2">
+                    <button onClick={() => tick(item.id)}
+                      className="flex-1 py-2 rounded-lg text-xs font-bold border border-zinc-700/30 text-zinc-300 hover:text-white hover:border-amber-500/40 transition-colors"
+                      style={{background:"rgba(255,255,255,0.06)"}}>
+                      ☐ ยังไม่ติด +1
+                    </button>
+                    {count > 0 && (
+                      <button onClick={() => reset(item.id)}
+                        className="px-3 py-2 rounded-lg text-xs text-zinc-600 hover:text-red-400 border border-zinc-700/20 transition-colors"
+                        style={{background:"rgba(255,255,255,0.03)"}}>
+                        ↺
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────
 // CALCULATOR VIEW (Pot Odds)
 // ─────────────────────────────────────────────────────────────────
 function CalcView() {
@@ -1988,6 +2129,7 @@ export default function App() {
     { id:"profiles",    icon:"👤", label:"Players",  adminOnly: false },
     { id:"race",        icon:"🏎️", label:"Race",      adminOnly: false },
     { id:"calc",        icon:"🧮", label:"Calc",      adminOnly: false },
+    { id:"streak",      icon:"🎯", label:"Streak",    adminOnly: false },
     { id:"sessions",    icon:"📋", label:"เซสชั่น",  adminOnly: false },
     { id:"add",         icon:"➕", label:"บันทึก",   adminOnly: true  },
     { id:"pot",         icon:"💰", label:"กองกลาง",  adminOnly: false },
@@ -2100,6 +2242,7 @@ export default function App() {
         {tab === "profiles"    && <PlayerProfilesView data={data} initialSel={profileSel} onClearSel={()=>setProfileSel(null)}/>}
         {tab === "race"        && <RaceView data={data}/>}
         {tab === "calc"        && <CalcView/>}
+        {tab === "streak"      && <StreakView/>}
         {tab === "sessions"    && !editSes && <SessionsView data={data}
           onEdit={isAdmin ? (s => { setEditSes(s); setTab("add"); }) : null}
           onDelete={isAdmin ? delSes : null}
