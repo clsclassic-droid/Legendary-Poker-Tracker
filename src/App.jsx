@@ -1042,8 +1042,8 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
   const [qok,  setQok]    = useState(false);
   const [errs, setErrs]   = useState({});
   const [rows, setRows]   = useState(
-    editSession ? editSession.entries.map(e=>({player:e.player, buy:e.buyInChips, sell:e.cashOutChips, bluffWin:e.bluffWin||0, bluffLose:e.bluffLose||0, catchBluff:e.catchBluff||0}))
-                : data.players.map(p=>({player:p, buy:0, sell:0, bluffWin:0, bluffLose:0, catchBluff:0}))
+    editSession ? editSession.entries.map(e=>({player:e.player, buy:e.buyInChips, sell:e.cashOutChips, bluffWin:e.bluffWin||0, bluffLose:e.bluffLose||0, catchBluff:e.catchBluff||0, gotBluffed:e.gotBluffed||0}))
+                : data.players.map(p=>({player:p, buy:0, sell:0, bluffWin:0, bluffLose:0, catchBluff:0, gotBluffed:0}))
   );
 
   const {year, season} = useMemo(() => date ? dateToSeason(date) : {year:null,season:null}, [date]);
@@ -1086,7 +1086,7 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
         player:r.player, buyInChips:r.buy, cashOutChips:r.sell,
         buyInBaht:c2b(r.buy,rate), cashOutBaht:c2b(r.sell,rate),
         profitBaht:profit(r.buy,r.sell,rate),
-        bluffWin:r.bluffWin||0, bluffLose:r.bluffLose||0, catchBluff:r.catchBluff||0
+        bluffWin:r.bluffWin||0, bluffLose:r.bluffLose||0, catchBluff:r.catchBluff||0, gotBluffed:r.gotBluffed||0, gotBluffed:r.gotBluffed||0
       }))
     });
   }
@@ -1280,6 +1280,7 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
                     ["bluffWin",   "🎭 บลัฟผ่าน",    "text-emerald-400"],
                     ["bluffLose",  "❌ บลัฟไม่ผ่าน", "text-red-400"],
                     ["catchBluff", "🔍 จับบลัฟได้",  "text-amber-400"],
+                    ["gotBluffed",  "😵 โดนบลัฟ",     "text-purple-400"],
                   ].map(([field, label, color]) => (
                     <div key={field} className="flex-1">
                       <label className={"text-[10px] font-semibold " + color}>{label}</label>
@@ -2029,15 +2030,17 @@ function CalcView() {
 function buildSkillSummary(players, sessions) {
   const map = {};
   players.forEach(p => {
-    map[p] = { name:p, bluffWin:0, bluffLose:0, catchBluff:0, n:0 };
+    map[p] = { name:p, bluffWin:0, bluffLose:0, catchBluff:0, gotBluffed:0, n:0 };
   });
   sessions.forEach(s => {
     s.entries.forEach(e => {
-      if (!map[e.player]) map[e.player] = { name:e.player, bluffWin:0, bluffLose:0, catchBluff:0, n:0 };
+      if (!map[e.player]) map[e.player] = { name:e.player, bluffWin:0, bluffLose:0, catchBluff:0, gotBluffed:0, n:0 };
       const p = map[e.player];
       p.bluffWin   += e.bluffWin   || 0;
       p.bluffLose  += e.bluffLose  || 0;
       p.catchBluff += e.catchBluff || 0;
+      p.gotBluffed += e.gotBluffed || 0;
+      p.gotBluffed += e.gotBluffed || 0;
       p.n++;
     });
   });
@@ -2059,7 +2062,7 @@ function SkillView({ data }) {
   }, [data.sessions, filter, latest]);
 
   const summary = useMemo(() => buildSkillSummary(data.players, filtered), [data.players, filtered]);
-  const hasData = summary.some(p => p.bluffWin+p.bluffLose+p.catchBluff > 0);
+  const hasData = summary.some(p => p.bluffWin+p.bluffLose+p.catchBluff+p.gotBluffed > 0);
 
   return (
     <div className="space-y-5">
@@ -2103,7 +2106,7 @@ function SkillView({ data }) {
                     <span className="text-2xl">{MEDAL[i]}</span>
                     <div className="text-white font-bold text-lg">{p.name}</div>
                   </div>
-                  <div className="grid grid-cols-3 gap-2 text-center">
+                  <div className="grid grid-cols-4 gap-2 text-center">
                     <div>
                       <div className="text-emerald-400 font-black text-xl font-mono">{p.bluffWin}</div>
                       <div className="text-zinc-600 text-[10px]">🎭 ผ่าน</div>
@@ -2115,6 +2118,14 @@ function SkillView({ data }) {
                     <div>
                       <div className="text-amber-400 font-black text-xl font-mono">{p.catchBluff}</div>
                       <div className="text-zinc-600 text-[10px]">🔍 จับได้</div>
+                    </div>
+                    <div>
+                      <div className="text-purple-400 font-black text-xl font-mono">{p.gotBluffed}</div>
+                      <div className="text-zinc-600 text-[10px]">😵 โดนบลัฟ</div>
+                    </div>
+                    <div>
+                      <div className="text-purple-400 font-black text-xl font-mono">{p.gotBluffed}</div>
+                      <div className="text-zinc-600 text-[10px]">😱 โดนบลัฟ</div>
                     </div>
                   </div>
                   <div className="mt-3 pt-2 border-t border-white/5 text-center">
@@ -2137,6 +2148,8 @@ function SkillView({ data }) {
                     <th className="px-2 py-2.5 text-center">🎭 ผ่าน</th>
                     <th className="px-2 py-2.5 text-center">❌ ไม่ผ่าน</th>
                     <th className="px-2 py-2.5 text-center">🔍 จับได้</th>
+                    <th className="px-2 py-2.5 text-center">😵 โดนบลัฟ</th>
+                    <th className="px-2 py-2.5 text-center">😱 โดนบลัฟ</th>
                     <th className="px-2 py-2.5 text-center">Rate</th>
                   </tr>
                 </thead>
@@ -2151,6 +2164,8 @@ function SkillView({ data }) {
                         <td className="px-2 py-2.5 text-center font-mono font-bold text-emerald-400">{p.bluffWin > 0 ? p.bluffWin : <span className="text-zinc-700">—</span>}</td>
                         <td className="px-2 py-2.5 text-center font-mono font-bold text-red-400">{p.bluffLose > 0 ? p.bluffLose : <span className="text-zinc-700">—</span>}</td>
                         <td className="px-2 py-2.5 text-center font-mono font-bold text-amber-400">{p.catchBluff > 0 ? p.catchBluff : <span className="text-zinc-700">—</span>}</td>
+                        <td className="px-2 py-2.5 text-center font-mono font-bold text-purple-400">{p.gotBluffed > 0 ? p.gotBluffed : <span className="text-zinc-700">—</span>}</td>
+                        <td className="px-2 py-2.5 text-center font-mono font-bold text-purple-400">{p.gotBluffed > 0 ? p.gotBluffed : <span className="text-zinc-700">—</span>}</td>
                         <td className="px-2 py-2.5 text-center">
                           {rate !== null
                             ? <span className={"text-xs font-bold font-mono " + (rate>=50?"text-emerald-400":rate>=33?"text-amber-400":"text-red-400")}>{rate}%</span>
