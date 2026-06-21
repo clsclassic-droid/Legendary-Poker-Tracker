@@ -1577,19 +1577,46 @@ function CalcView() {
             ].map(({ street, mult, desc }) => {
               const outsNeeded = Math.ceil(equity / mult);
               const isOk = outsNeeded <= 9;
+              // map out → hand examples
+              const handExamples = {
+                1:  "1 pair → trips (set)",
+                2:  "Pocket pair → set",
+                3:  "One overcard",
+                4:  "Gutshot straight draw",
+                5:  "One overcard + gutshot",
+                6:  "Two overcards",
+                7:  "Two overcards + gutshot",
+                8:  "Open-ended straight draw",
+                9:  "Flush draw",
+                10: "Flush draw + gutshot",
+                11: "Flush draw + one overcard",
+                12: "Flush draw + gutshot + overcard",
+                13: "Flush draw + two overcards",
+                14: "Flush draw + open-ended straight",
+                15: "Flush draw + open-ended + overcard",
+              };
+              const exampleText = handExamples[outsNeeded] || (outsNeeded <= 0 ? "—" : outsNeeded > 15 ? "แทบทุก draw รวมกัน" : "");
               return (
-                <div key={street} className={"flex items-center justify-between px-3 py-2.5 rounded-xl border " + (isOk ? "border-emerald-500/25" : "border-red-500/25")}
+                <div key={street} className={"rounded-xl border px-3 py-2.5 " + (isOk ? "border-emerald-500/25" : "border-red-500/25")}
                   style={{background: isOk ? "rgba(5,30,15,0.2)" : "rgba(30,5,5,0.2)"}}>
-                  <div>
-                    <div className={"text-sm font-semibold " + (isOk ? "text-emerald-300" : "text-red-300")}>{street}</div>
-                    <div className="text-zinc-600 text-[10px]">{desc} · ×{mult} rule</div>
-                  </div>
-                  <div className="text-right">
-                    <div className={"font-mono font-black text-xl " + (isOk ? "text-emerald-400" : "text-red-400")}>
-                      ≥ {outsNeeded} out
+                  <div className="flex items-center justify-between mb-1">
+                    <div>
+                      <div className={"text-sm font-semibold " + (isOk ? "text-emerald-300" : "text-red-300")}>{street}</div>
+                      <div className="text-zinc-600 text-[10px]">{desc} · ×{mult} rule</div>
                     </div>
-                    <div className="text-zinc-600 text-[10px]">{(outsNeeded * mult).toFixed(0)}% equity</div>
+                    <div className="text-right">
+                      <div className={"font-mono font-black text-xl " + (isOk ? "text-emerald-400" : "text-red-400")}>
+                        ≥ {outsNeeded} out
+                      </div>
+                      <div className="text-zinc-600 text-[10px]">≈{(outsNeeded * mult).toFixed(0)}% equity</div>
+                    </div>
                   </div>
+                  {exampleText && (
+                    <div className="mt-1 pt-1.5 border-t border-white/5">
+                      <span className="text-zinc-500 text-[10px]">ตัวอย่าง: </span>
+                      <span className="text-amber-300/80 text-[10px] font-medium">{exampleText}</span>
+                    </div>
+                  )}
                 </div>
               );
             })
