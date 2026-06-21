@@ -1136,8 +1136,9 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
               <div className="text-amber-400 text-xs font-semibold mb-1">🎯 เซสชั่นที่</div>
               <div className="flex items-center gap-1">
                 <button onClick={()=>setSesNo(n=>Math.max(1,n-1))} className="w-8 h-9 rounded-lg  hover:bg-zinc-600 text-white font-bold text-lg flex-shrink-0">−</button>
-                <input type="number" min="1" value={sesNo > 0 ? sesNo : ""} onChange={e=>setSesNo(Number(e.target.value)||1)}
-                  className={"w-full text-center border border-zinc-600/60 rounded-lg py-1.5 text-white font-mono font-bold text-xl focus:outline-none "+(isDup?"border-red-500":"border-zinc-600 focus:border-amber-500")}/>
+                <input type="number" min="1" value={sesNo || ""} onChange={e=>setSesNo(Number(e.target.value)||1)}
+                  className={"w-full text-center border rounded-lg py-1.5 font-mono font-bold text-xl focus:outline-none "+(isDup?"border-red-500 text-red-300":"border-amber-500/60 text-amber-300 focus:border-amber-400")}
+                  style={{background:"rgba(20,12,2,0.8)", WebkitTextFillColor: isDup ? "#fca5a5" : "#fcd34d"}}/>
                 <button onClick={()=>setSesNo(n=>n+1)} className="w-8 h-9 rounded-lg  hover:bg-zinc-600 text-white font-bold text-lg flex-shrink-0">+</button>
               </div>
               {errs.sesNo ? <p className="text-red-400 text-xs mt-1 text-center">{errs.sesNo}</p> : <p className="text-zinc-600 text-xs mt-1 text-center">ปรับได้</p>}
