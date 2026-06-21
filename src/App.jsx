@@ -1048,8 +1048,8 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
 
   const {year, season} = useMemo(() => date ? dateToSeason(date) : {year:null,season:null}, [date]);
   const sameSes = useMemo(() => data.sessions.filter(s=>s.year===year&&s.season===season&&s.internalId!==editSession?.internalId), [data.sessions,year,season,editSession]);
-  const autoNo  = useMemo(() => editSession ? editSession.sessionNo : sameSes.length===0 ? 1 : Math.max(...sameSes.map(s=>s.sessionNo))+1, [editSession,sameSes]);
-  const [sesNo, setSesNo] = useState(autoNo);
+  const autoNo  = useMemo(() => editSession ? editSession.sessionNo : sameSes.length===0 ? 1 : (Math.max(...sameSes.map(s=>s.sessionNo))||0)+1, [editSession,sameSes]);
+  const [sesNo, setSesNo] = useState(autoNo || 1);
   useEffect(()=>{ if(!editSession) setSesNo(autoNo); },[autoNo,editSession]);
   const isDup = sameSes.some(s=>s.sessionNo===sesNo);
 
@@ -1130,7 +1130,7 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
               <div className="text-amber-400 text-xs font-semibold mb-1">🎯 เซสชั่นที่</div>
               <div className="flex items-center gap-1">
                 <button onClick={()=>setSesNo(n=>Math.max(1,n-1))} className="w-8 h-9 rounded-lg  hover:bg-zinc-600 text-white font-bold text-lg flex-shrink-0">−</button>
-                <input type="number" min="1" value={sesNo} onChange={e=>setSesNo(Number(e.target.value)||1)}
+                <input type="number" min="1" value={sesNo||""} onChange={e=>setSesNo(Number(e.target.value)||1)}
                   className={"w-full text-center border border-zinc-600/60 rounded-lg py-1.5 text-white font-mono font-bold text-xl focus:outline-none "+(isDup?"border-red-500":"border-zinc-600 focus:border-amber-500")}/>
                 <button onClick={()=>setSesNo(n=>n+1)} className="w-8 h-9 rounded-lg  hover:bg-zinc-600 text-white font-bold text-lg flex-shrink-0">+</button>
               </div>
