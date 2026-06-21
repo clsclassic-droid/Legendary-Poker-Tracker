@@ -1042,8 +1042,8 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
   const [qok,  setQok]    = useState(false);
   const [errs, setErrs]   = useState({});
   const [rows, setRows]   = useState(
-    editSession ? editSession.entries.map(e=>({player:e.player, buy:e.buyInChips, sell:e.cashOutChips}))
-                : data.players.map(p=>({player:p, buy:0, sell:0}))
+    editSession ? editSession.entries.map(e=>({player:e.player, buy:e.buyInChips, sell:e.cashOutChips, bluffWin:e.bluffWin||0, bluffLose:e.bluffLose||0, catchBluff:e.catchBluff||0}))
+                : data.players.map(p=>({player:p, buy:0, sell:0, bluffWin:0, bluffLose:0, catchBluff:0}))
   );
 
   const {year, season} = useMemo(() => date ? dateToSeason(date) : {year:null,season:null}, [date]);
@@ -1085,7 +1085,8 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
       entries: clean.map(r=>({
         player:r.player, buyInChips:r.buy, cashOutChips:r.sell,
         buyInBaht:c2b(r.buy,rate), cashOutBaht:c2b(r.sell,rate),
-        profitBaht:profit(r.buy,r.sell,rate)
+        profitBaht:profit(r.buy,r.sell,rate),
+        bluffWin:r.bluffWin||0, bluffLose:r.bluffLose||0, catchBluff:r.catchBluff||0
       }))
     });
   }
@@ -1246,30 +1247,53 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
             const pb  = profit(r.buy, r.sell, rate);
             const act = r.buy>0 || r.sell>0;
             return (
-              <div key={r.player} className={"px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 "+(act?"":"opacity-50")}>
-                <div className="flex items-center gap-2 min-w-[80px]">
-                  <span className={"w-2 h-2 rounded-full flex-shrink-0 "+(pb>0?"bg-emerald-400":pb<0?"bg-red-400":"")}/>
-                  <span className="text-white font-medium"><PlayerName player={r.player} nicknames={data.nicknames}/></span>
-                  <button onClick={() => setRows(prev => prev.filter(x => x.player !== r.player))}
-                    className="ml-1 text-zinc-600 hover:text-red-400 text-xs transition-colors">✕</button>
-                </div>
-                <div className="flex gap-2 flex-1">
-                  <div className="flex-1">
-                    <label className="text-zinc-600 text-xs">ซื้อ {mode==="baht"?"(฿)":"(ชิป)"}</label>
-                    <NInput value={dv(r.buy)} onChange={v=>upd(i,"buy",v)}/>
-                    {r.buy>0 && <div className="text-zinc-600 text-xs mt-0.5 font-mono">= {mode==="chips"?fmt(c2b(r.buy,rate))+" ฿":fmt(r.buy)+" ชิป"}</div>}
+              <div key={r.player} className={"border-b border-zinc-800/30 " + (act?"":"opacity-50")}>
+                <div className="px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                  <div className="flex items-center gap-2 min-w-[80px]">
+                    <span className={"w-2 h-2 rounded-full flex-shrink-0 "+(pb>0?"bg-emerald-400":pb<0?"bg-red-400":"")}/>
+                    <span className="text-white font-medium"><PlayerName player={r.player} nicknames={data.nicknames}/></span>
+                    <button onClick={() => setRows(prev => prev.filter(x => x.player !== r.player))}
+                      className="ml-1 text-zinc-600 hover:text-red-400 text-xs transition-colors">✕</button>
                   </div>
-                  <div className="flex-1">
-                    <label className="text-zinc-600 text-xs">แลก {mode==="baht"?"(฿)":"(ชิป)"}</label>
-                    <NInput value={dv(r.sell)} onChange={v=>upd(i,"sell",v)}/>
-                    {r.sell>0 && <div className="text-zinc-600 text-xs mt-0.5 font-mono">= {mode==="chips"?fmt(c2b(r.sell,rate))+" ฿":fmt(r.sell)+" ชิป"}</div>}
+                  <div className="flex gap-2 flex-1">
+                    <div className="flex-1">
+                      <label className="text-zinc-600 text-xs">ซื้อ {mode==="baht"?"(฿)":"(ชิป)"}</label>
+                      <NInput value={dv(r.buy)} onChange={v=>upd(i,"buy",v)}/>
+                      {r.buy>0 && <div className="text-zinc-600 text-xs mt-0.5 font-mono">= {mode==="chips"?fmt(c2b(r.buy,rate))+" ฿":fmt(r.buy)+" ชิป"}</div>}
+                    </div>
+                    <div className="flex-1">
+                      <label className="text-zinc-600 text-xs">แลก {mode==="baht"?"(฿)":"(ชิป)"}</label>
+                      <NInput value={dv(r.sell)} onChange={v=>upd(i,"sell",v)}/>
+                      {r.sell>0 && <div className="text-zinc-600 text-xs mt-0.5 font-mono">= {mode==="chips"?fmt(c2b(r.sell,rate))+" ฿":fmt(r.sell)+" ชิป"}</div>}
+                    </div>
+                  </div>
+                  <div className="text-right min-w-[90px]">
+                    <div className="text-xs text-zinc-600">กำไร/ขาดทุน</div>
+                    <Profit v={pb} sx=" ฿"/>
+                    {act && <div className="text-purple-400 text-xs font-mono">-{fmt(fee)} ฿ ส่วนกลาง</div>}
+                    {act && <Profit v={pb-fee} sx=" ฿ สุทธิ"/>}
                   </div>
                 </div>
-                <div className="text-right min-w-[90px]">
-                  <div className="text-xs text-zinc-600">กำไร/ขาดทุน</div>
-                  <Profit v={pb} sx=" ฿"/>
-                  {act && <div className="text-purple-400 text-xs font-mono">-{fmt(fee)} ฿ ส่วนกลาง</div>}
-                  {act && <Profit v={pb-fee} sx=" ฿ สุทธิ"/>}
+                {/* Bluff fields */}
+                <div className="flex gap-2 px-4 pb-3">
+                  {[
+                    ["bluffWin",   "🎭 บลัฟผ่าน",    "text-emerald-400"],
+                    ["bluffLose",  "❌ บลัฟไม่ผ่าน", "text-red-400"],
+                    ["catchBluff", "🔍 จับบลัฟได้",  "text-amber-400"],
+                  ].map(([field, label, color]) => (
+                    <div key={field} className="flex-1">
+                      <label className={"text-[10px] font-semibold " + color}>{label}</label>
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <button onClick={() => { const n=[...rows]; n[i]={...n[i],[field]:Math.max(0,(n[i][field]||0)-1)}; setRows(n); }}
+                          className="w-6 h-6 rounded-md text-zinc-400 hover:text-white text-sm flex items-center justify-center border border-zinc-700/30"
+                          style={{background:"rgba(255,255,255,0.05)"}}>−</button>
+                        <span className={"flex-1 text-center font-mono font-bold text-sm " + color}>{r[field]||0}</span>
+                        <button onClick={() => { const n=[...rows]; n[i]={...n[i],[field]:(n[i][field]||0)+1}; setRows(n); }}
+                          className="w-6 h-6 rounded-md text-zinc-400 hover:text-white text-sm flex items-center justify-center border border-zinc-700/30"
+                          style={{background:"rgba(255,255,255,0.05)"}}>+</button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             );
@@ -2000,6 +2024,152 @@ function CalcView() {
 }
 
 // ─────────────────────────────────────────────────────────────────
+// SKILL VIEW
+// ─────────────────────────────────────────────────────────────────
+function buildSkillSummary(players, sessions) {
+  const map = {};
+  players.forEach(p => {
+    map[p] = { name:p, bluffWin:0, bluffLose:0, catchBluff:0, n:0 };
+  });
+  sessions.forEach(s => {
+    s.entries.forEach(e => {
+      if (!map[e.player]) map[e.player] = { name:e.player, bluffWin:0, bluffLose:0, catchBluff:0, n:0 };
+      const p = map[e.player];
+      p.bluffWin   += e.bluffWin   || 0;
+      p.bluffLose  += e.bluffLose  || 0;
+      p.catchBluff += e.catchBluff || 0;
+      p.n++;
+    });
+  });
+  return Object.values(map)
+    .filter(p => p.n > 0)
+    .sort((a,b) => (b.bluffWin - b.bluffLose) - (a.bluffWin - a.bluffLose));
+}
+
+function SkillView({ data }) {
+  const [filter, setFilter] = useState("all");
+  const yearKeys = useMemo(() => [...new Set(data.sessions.map(s=>String(s.year)))].sort((a,b)=>b-a), [data.sessions]);
+  const latest   = data.sessions[data.sessions.length-1] ?? null;
+
+  const filtered = useMemo(() => {
+    if (filter==="all")    return data.sessions;
+    if (filter==="latest") return latest ? [latest] : [];
+    if (filter.startsWith("yr:")) { const y=Number(filter.slice(3)); return data.sessions.filter(x=>x.year===y); }
+    return data.sessions;
+  }, [data.sessions, filter, latest]);
+
+  const summary = useMemo(() => buildSkillSummary(data.players, filtered), [data.players, filtered]);
+  const hasData = summary.some(p => p.bluffWin+p.bluffLose+p.catchBluff > 0);
+
+  return (
+    <div className="space-y-5">
+      <div>
+        <h2 className="text-xl font-bold text-white">🎭 Skill</h2>
+        <p className="text-zinc-500 text-sm mt-0.5">สถิติ Bluff แต่ละผู้เล่น</p>
+      </div>
+
+      {/* Filter */}
+      <div className="flex gap-2 overflow-x-auto pb-1">
+        {[["all","ทั้งหมด"],["latest","ล่าสุด"],...yearKeys.map(y=>["yr:"+y,"ปี "+y])].map(([key,label]) => (
+          <button key={key} onClick={()=>setFilter(key)}
+            className={"px-3 py-1.5 rounded-full text-xs font-medium border transition-colors flex-shrink-0 " + (
+              filter===key ? "bg-amber-500/15 text-amber-400 border-amber-500/40"
+                           : "bg-transparent text-zinc-500 border-zinc-700 hover:text-zinc-300")}>
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {!hasData ? (
+        <div className="border border-zinc-700/25 rounded-2xl p-8 text-center" style={{background:"rgba(255,255,255,0.03)"}}>
+          <div className="text-4xl mb-3">🎭</div>
+          <div className="text-zinc-500 text-sm">ยังไม่มีข้อมูล Bluff</div>
+          <div className="text-zinc-700 text-xs mt-1">กรอกข้อมูล Bluff ตอนบันทึกเซสชั่น</div>
+        </div>
+      ) : (
+        <>
+          {/* Top 3 cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {summary.slice(0,3).map((p,i) => {
+              const total = p.bluffWin + p.bluffLose;
+              const rate  = total > 0 ? Math.round((p.bluffWin/total)*100) : 0;
+              const GRAD  = ["border-amber-500/40","border-zinc-500/40","border-orange-700/40"];
+              const BG    = ["rgba(25,14,2,0.4)","rgba(20,20,20,0.4)","rgba(25,12,2,0.4)"];
+              const MEDAL = ["🥇","🥈","🥉"];
+              return (
+                <div key={p.name} className={"rounded-2xl border p-4 " + GRAD[i]}
+                  style={{background:BG[i]}}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-2xl">{MEDAL[i]}</span>
+                    <div className="text-white font-bold text-lg">{p.name}</div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 text-center">
+                    <div>
+                      <div className="text-emerald-400 font-black text-xl font-mono">{p.bluffWin}</div>
+                      <div className="text-zinc-600 text-[10px]">🎭 ผ่าน</div>
+                    </div>
+                    <div>
+                      <div className="text-red-400 font-black text-xl font-mono">{p.bluffLose}</div>
+                      <div className="text-zinc-600 text-[10px]">❌ ไม่ผ่าน</div>
+                    </div>
+                    <div>
+                      <div className="text-amber-400 font-black text-xl font-mono">{p.catchBluff}</div>
+                      <div className="text-zinc-600 text-[10px]">🔍 จับได้</div>
+                    </div>
+                  </div>
+                  <div className="mt-3 pt-2 border-t border-white/5 text-center">
+                    <span className="text-xs text-zinc-500">Bluff rate </span>
+                    <span className={"text-sm font-bold font-mono " + (rate>=50?"text-emerald-400":rate>=33?"text-amber-400":"text-red-400")}>{rate}%</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Full table */}
+          <div className="border border-zinc-700/25 rounded-2xl overflow-hidden" style={{background:"rgba(15,10,3,0.05)"}}>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-zinc-800 text-zinc-500 text-xs">
+                    <th className="px-3 py-2.5 text-left">#</th>
+                    <th className="px-3 py-2.5 text-left">ผู้เล่น</th>
+                    <th className="px-2 py-2.5 text-center">🎭 ผ่าน</th>
+                    <th className="px-2 py-2.5 text-center">❌ ไม่ผ่าน</th>
+                    <th className="px-2 py-2.5 text-center">🔍 จับได้</th>
+                    <th className="px-2 py-2.5 text-center">Rate</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {summary.map((p, i) => {
+                    const total = p.bluffWin + p.bluffLose;
+                    const rate  = total > 0 ? Math.round((p.bluffWin/total)*100) : null;
+                    return (
+                      <tr key={p.name} className="border-b border-zinc-800/30 hover:bg-white/5 transition-colors">
+                        <td className="px-3 py-2.5 text-zinc-600 font-mono text-xs">{i+1}</td>
+                        <td className="px-3 py-2.5 text-white font-semibold">{p.name}</td>
+                        <td className="px-2 py-2.5 text-center font-mono font-bold text-emerald-400">{p.bluffWin > 0 ? p.bluffWin : <span className="text-zinc-700">—</span>}</td>
+                        <td className="px-2 py-2.5 text-center font-mono font-bold text-red-400">{p.bluffLose > 0 ? p.bluffLose : <span className="text-zinc-700">—</span>}</td>
+                        <td className="px-2 py-2.5 text-center font-mono font-bold text-amber-400">{p.catchBluff > 0 ? p.catchBluff : <span className="text-zinc-700">—</span>}</td>
+                        <td className="px-2 py-2.5 text-center">
+                          {rate !== null
+                            ? <span className={"text-xs font-bold font-mono " + (rate>=50?"text-emerald-400":rate>=33?"text-amber-400":"text-red-400")}>{rate}%</span>
+                            : <span className="text-zinc-700">—</span>}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────
 // APP
 // ─────────────────────────────────────────────────────────────────
 function Spinner() {
@@ -2189,6 +2359,7 @@ export default function App() {
     { id:"leaderboard", icon:"🏆", label:"Rank",     adminOnly: false },
     { id:"profiles",    icon:"👤", label:"Players",  adminOnly: false },
     { id:"race",        icon:"🏎️", label:"Race",      adminOnly: false },
+    { id:"skill",       icon:"🎭", label:"Skill",     adminOnly: false },
     { id:"calc",        icon:"🧮", label:"Calc",      adminOnly: true },
     { id:"streak",      icon:"🎯", label:"Streak",    adminOnly: true },
     { id:"sessions",    icon:"📋", label:"เซสชั่น",  adminOnly: false },
@@ -2302,6 +2473,7 @@ export default function App() {
         {tab === "leaderboard" && <LeaderboardView data={data}/>}
         {tab === "profiles"    && <PlayerProfilesView data={data} initialSel={profileSel} onClearSel={()=>setProfileSel(null)}/>}
         {tab === "race"        && <RaceView data={data}/>}
+        {tab === "skill"       && <SkillView data={data}/>}
         {tab === "calc"        && <CalcView/>}
         {tab === "streak"      && <StreakView/>}
         {tab === "sessions"    && !editSes && <SessionsView data={data}
