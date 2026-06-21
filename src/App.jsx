@@ -1451,6 +1451,148 @@ function SettingsView({ data, onUpdate, saving }) {
 }
 
 // ─────────────────────────────────────────────────────────────────
+// CALCULATOR VIEW (Pot Odds)
+// ─────────────────────────────────────────────────────────────────
+function CalcView() {
+  const [pot,  setPot]  = useState(0);
+  const [call, setCall] = useState(0);
+
+  const total   = pot + call;
+  const equity  = total > 0 ? (call / total) * 100 : 0;
+  const ratio   = call > 0 ? (pot / call).toFixed(2) : "—";
+  const isGood  = equity > 0 && equity <= 33;  // rough guide
+
+  function reset() { setPot(0); setCall(0); }
+
+  // quick presets สำหรับ call amount
+  const callPresets = [50, 100, 200, 300, 500];
+  const potPresets  = [100, 200, 300, 500, 1000];
+
+  return (
+    <div className="space-y-5">
+      <div>
+        <h2 className="text-xl font-bold text-white">🧮 Pot Odds Calculator</h2>
+        <p className="text-zinc-500 text-sm mt-0.5">คำนวณ % equity ที่ต้องการเพื่อ call คุ้ม</p>
+      </div>
+
+      {/* Inputs */}
+      <Box className="space-y-4">
+        {/* Pot */}
+        <div>
+          <label className="block text-zinc-400 text-sm font-semibold mb-2">💰 Pot ปัจจุบัน (฿ หรือ ชิป)</label>
+          <NInput value={pot} onChange={setPot} ph="100"/>
+          <div className="flex gap-2 mt-2 flex-wrap">
+            {potPresets.map(v => (
+              <button key={v} onClick={() => setPot(v)}
+                className="px-3 py-1 rounded-lg text-xs border border-zinc-700/30 text-zinc-400 hover:text-amber-300 hover:border-amber-500/30 transition-colors"
+                style={{background:"rgba(255,255,255,0.05)"}}>
+                {v.toLocaleString()}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Call */}
+        <div>
+          <label className="block text-zinc-400 text-sm font-semibold mb-2">📞 จำนวนที่ต้อง Call (฿ หรือ ชิป)</label>
+          <NInput value={call} onChange={setCall} ph="20"/>
+          <div className="flex gap-2 mt-2 flex-wrap">
+            {callPresets.map(v => (
+              <button key={v} onClick={() => setCall(v)}
+                className="px-3 py-1 rounded-lg text-xs border border-zinc-700/30 text-zinc-400 hover:text-amber-300 hover:border-amber-500/30 transition-colors"
+                style={{background:"rgba(255,255,255,0.05)"}}>
+                {v.toLocaleString()}
+              </button>
+            ))}
+          </div>
+        </div>
+      </Box>
+
+      {/* Formula display */}
+      {total > 0 && (
+        <Box>
+          <div className="text-zinc-400 text-xs font-semibold mb-3">📐 สูตรคำนวณ</div>
+          <div className="text-center py-2">
+            <div className="text-zinc-400 text-sm font-mono">
+              ({call.toLocaleString()} ÷ ({pot.toLocaleString()} + {call.toLocaleString()})) × 100
+            </div>
+            <div className="text-zinc-500 text-xs mt-1 font-mono">
+              = ({call.toLocaleString()} ÷ {total.toLocaleString()}) × 100
+            </div>
+          </div>
+        </Box>
+      )}
+
+      {/* Result */}
+      <div className={"rounded-2xl p-6 text-center border " + (
+        total === 0 ? "border-zinc-700/25" :
+        equity <= 25 ? "border-emerald-500/40" :
+        equity <= 33 ? "border-amber-500/40" :
+        "border-red-500/40"
+      )} style={{background: total === 0 ? "rgba(15,10,3,0.05)" :
+        equity <= 25 ? "rgba(5,30,15,0.3)" :
+        equity <= 33 ? "rgba(30,20,5,0.3)" :
+        "rgba(30,5,5,0.3)"}}>
+        {total === 0 ? (
+          <div className="text-zinc-600">
+            <div className="text-4xl mb-2">🃏</div>
+            <div className="text-sm">กรอก Pot และ Call เพื่อคำนวณ</div>
+          </div>
+        ) : (
+          <>
+            <div className="text-zinc-400 text-sm mb-1">Equity ที่ต้องการ</div>
+            <div className={"font-mono font-black text-6xl mb-2 " + (
+              equity <= 25 ? "text-emerald-400" :
+              equity <= 33 ? "text-amber-400" :
+              "text-red-400"
+            )}>
+              {equity.toFixed(1)}%
+            </div>
+            <div className="text-zinc-400 text-sm">
+              Pot Odds = <span className="text-white font-mono font-bold">{ratio} : 1</span>
+            </div>
+            <div className={"mt-3 text-sm font-semibold " + (
+              equity <= 25 ? "text-emerald-300" :
+              equity <= 33 ? "text-amber-300" :
+              "text-red-300"
+            )}>
+              {equity <= 25 ? "✅ Call คุ้มมาก — ต้องการ equity น้อย" :
+               equity <= 33 ? "⚠️ Call พอได้ — ต้องมี hand ที่ดีพอสมควร" :
+               "❌ Call ไม่คุ้ม — ต้องการ equity สูงมาก"}
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Guide */}
+      <Box>
+        <div className="text-zinc-400 text-xs font-semibold mb-3">📖 เกณฑ์อ้างอิง</div>
+        <div className="space-y-2">
+          {[
+            ["≤ 25%", "Call คุ้มมาก", "text-emerald-400", "border-emerald-500/30"],
+            ["26–33%", "Call ได้ ถ้า hand แข็ง", "text-amber-400", "border-amber-500/30"],
+            ["> 33%", "ควร Fold เว้นแต่มี implied odds", "text-red-400", "border-red-500/30"],
+          ].map(([range, desc, color, border]) => (
+            <div key={range} className={"flex items-center gap-3 px-3 py-2 rounded-xl border " + border}
+              style={{background:"rgba(255,255,255,0.03)"}}>
+              <span className={"font-mono font-bold text-sm w-16 flex-shrink-0 " + color}>{range}</span>
+              <span className="text-zinc-400 text-xs">{desc}</span>
+            </div>
+          ))}
+        </div>
+      </Box>
+
+      {/* Reset */}
+      <button onClick={reset}
+        className="w-full py-2.5 rounded-xl text-sm text-zinc-500 hover:text-white border border-zinc-700/30 transition-colors"
+        style={{background:"rgba(255,255,255,0.04)"}}>
+        🔄 รีเซ็ต
+      </button>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────
 // APP
 // ─────────────────────────────────────────────────────────────────
 function Spinner() {
@@ -1640,6 +1782,7 @@ export default function App() {
     { id:"leaderboard", icon:"🏆", label:"Rank",     adminOnly: false },
     { id:"profiles",    icon:"👤", label:"Players",  adminOnly: false },
     { id:"race",        icon:"🏎️", label:"Race",      adminOnly: false },
+    { id:"calc",        icon:"🧮", label:"Calc",      adminOnly: false },
     { id:"sessions",    icon:"📋", label:"เซสชั่น",  adminOnly: false },
     { id:"add",         icon:"➕", label:"บันทึก",   adminOnly: true  },
     { id:"pot",         icon:"💰", label:"กองกลาง",  adminOnly: false },
@@ -1751,6 +1894,7 @@ export default function App() {
         {tab === "leaderboard" && <LeaderboardView data={data}/>}
         {tab === "profiles"    && <PlayerProfilesView data={data} initialSel={profileSel} onClearSel={()=>setProfileSel(null)}/>}
         {tab === "race"        && <RaceView data={data}/>}
+        {tab === "calc"        && <CalcView/>}
         {tab === "sessions"    && !editSes && <SessionsView data={data}
           onEdit={isAdmin ? (s => { setEditSes(s); setTab("add"); }) : null}
           onDelete={isAdmin ? delSes : null}
