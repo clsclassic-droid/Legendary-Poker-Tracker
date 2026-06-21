@@ -151,7 +151,7 @@ function NInput({ value, onChange, ph="0" }) {
 }
 function Box({ children, className="" }) {
   return <div className={"border border-zinc-700/50 rounded-2xl p-4 " + className}
-    style={{background:'rgba(15,10,3,0.45)', backdropFilter:'blur(14px)', WebkitBackdropFilter:'blur(14px)'}}
+    style={{background:'rgba(15,10,3,0.25)', backdropFilter:'blur(14px)', WebkitBackdropFilter:'blur(14px)'}}
   >{children}</div>;
 }
 
@@ -178,7 +178,7 @@ function MiniChart({ player, sessions }) {
   }, [player, sessions]);
 
   if (pts.length < 2) return (
-    <div className="border border-zinc-700/50 rounded-2xl" style={{background:"rgba(15,10,3,0.45)",backdropFilter:"blur(14px)"}} className2=" p-6 text-center">
+    <div className="border border-zinc-700/50 rounded-2xl" style={{background:"rgba(15,10,3,0.25)",backdropFilter:"blur(14px)"}} className2=" p-6 text-center">
       <div className="text-3xl mb-2">📈</div>
       <div className="text-zinc-400 text-sm font-medium">ยังไม่มีกราฟ</div>
       <div className="text-zinc-600 text-xs mt-1">ต้องมีอย่างน้อย 2 เซสขึ้นไป<br/>ปัจจุบันเล่นไป {pts.length} เซส</div>
@@ -324,7 +324,7 @@ function DashboardView({ data, onGoLeader, onGoLatestSes, onGoPot }) {
       <div className="grid grid-cols-3 gap-3">
         {/* Leader — กดแล้วไปหน้า profile ผู้นำ */}
         <button onClick={()=>leader&&onGoLeader(leader.name)}
-          className="border border-amber-500/40 rounded-2xl p-3 text-left hover:border-amber-400/70 transition-colors" style={{background:"rgba(25,14,2,0.5)",backdropFilter:"blur(14px)"}}>
+          className="border border-amber-500/40 rounded-2xl p-3 text-left hover:border-amber-400/70 transition-colors" style={{background:"rgba(25,14,2,0.3)",backdropFilter:"blur(14px)"}}>
           <div className="text-amber-400 text-xs font-semibold mb-1">🏆 นำอยู่</div>
           {leader
             ? <>
@@ -336,7 +336,7 @@ function DashboardView({ data, onGoLeader, onGoLatestSes, onGoPot }) {
         </button>
         {/* Latest session — กดแล้วไปหน้าเซสชั่น พร้อมเปิดเซสล่าสุด */}
         <button onClick={()=>latest&&onGoLatestSes(latest.internalId)}
-          className="border border-zinc-700/50 rounded-2xl p-3 text-left hover:border-zinc-600 transition-colors" style={{background:"rgba(15,10,3,0.45)",backdropFilter:"blur(14px)"}}>
+          className="border border-zinc-700/50 rounded-2xl p-3 text-left hover:border-zinc-600 transition-colors" style={{background:"rgba(15,10,3,0.25)",backdropFilter:"blur(14px)"}}>
           <div className="text-sky-400 text-xs font-semibold mb-1">📋 เซสล่าสุด</div>
           {latest
             ? <>
@@ -348,7 +348,7 @@ function DashboardView({ data, onGoLeader, onGoLatestSes, onGoPot }) {
         </button>
         {/* Pot — กดแล้วไปหน้ากองกลาง */}
         <button onClick={onGoPot}
-          className="border border-purple-500/30 rounded-2xl p-3 text-left hover:border-purple-400/60 transition-colors" style={{background:"rgba(15,8,25,0.5)",backdropFilter:"blur(14px)"}}>
+          className="border border-purple-500/30 rounded-2xl p-3 text-left hover:border-purple-400/60 transition-colors" style={{background:"rgba(15,8,25,0.3)",backdropFilter:"blur(14px)"}}>
           <div className="text-purple-400 text-xs font-semibold mb-1">💰 กองกลาง</div>
           <div className={"font-mono font-black text-lg " + (pot>=0?"text-purple-300":"text-red-400")}>{fmt(pot)} ฿</div>
           <div className="text-zinc-600 text-[10px] mt-1">{data.sessions.length} เซสชั่น · {data.players.length} คน</div>
@@ -363,7 +363,7 @@ function DashboardView({ data, onGoLeader, onGoLatestSes, onGoPot }) {
           ["ซีซั่น",     latest ? "S"+latest.season+"/"+latest.year : "-",             "text-amber-300"],
           ["ปีนี้",      data.sessions.filter(s=>s.year===new Date().getFullYear()).length, "text-sky-300"],
         ].map(([label,value,color]) => (
-          <div key={label} className="border border-zinc-700/50 rounded-xl px-2 py-2 text-center" style={{background:"rgba(15,10,3,0.45)",backdropFilter:"blur(14px)"}}>
+          <div key={label} className="border border-zinc-700/50 rounded-xl px-2 py-2 text-center" style={{background:"rgba(15,10,3,0.25)",backdropFilter:"blur(14px)"}}>
             <div className={"font-mono font-black text-lg "+color}>{value}</div>
             <div className="text-zinc-600 text-[10px] mt-0.5">{label}</div>
           </div>
@@ -456,7 +456,7 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
         </div>
 
         {/* Total */}
-        <div className="text-center py-4 border border-zinc-700/50 rounded-2xl" style={{background:"rgba(15,10,3,0.45)",backdropFilter:"blur(14px)"}}>
+        <div className="text-center py-4 border border-zinc-700/50 rounded-2xl" style={{background:"rgba(15,10,3,0.25)",backdropFilter:"blur(14px)"}}>
           <div className="text-zinc-500 text-sm mb-1">กำไร / ขาดทุนรวม</div>
           <div className={"font-mono font-black text-4xl "+(stats.total>=0?"text-emerald-400":"text-red-400")}>
             {stats.total>0?"+":""}{fmt(stats.total)} ฿
@@ -471,7 +471,7 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
             ["ดีที่สุด",  stats.best!==null  ? (stats.best>0?"+":"")+fmt(stats.best) : "-", "text-emerald-400"],
             ["แย่ที่สุด", stats.worst!==null ? fmt(stats.worst)     : "-", "text-red-400"],
           ].map(([label,value,color]) => (
-            <div key={label} className="border border-zinc-700/50 rounded-xl p-3 text-center" style={{background:"rgba(15,10,3,0.45)",backdropFilter:"blur(14px)"}}>
+            <div key={label} className="border border-zinc-700/50 rounded-xl p-3 text-center" style={{background:"rgba(15,10,3,0.25)",backdropFilter:"blur(14px)"}}>
               <div className={"font-mono font-bold text-lg "+color}>{value}</div>
               <div className="text-zinc-600 text-xs mt-0.5">{label}</div>
             </div>
@@ -505,7 +505,7 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
               const myRank  = ranked(x.s.entries).find(r => r.player === sel)?.rank ?? 0;
               const em = myRank===1?"🥇":myRank===2?"🥈":myRank===3?"🥉":myRank===lastRank?"💀":"#"+myRank;
               return (
-                <div key={i} className="flex items-center justify-between border border-zinc-700/50 rounded-xl px-3 py-2" style={{background:"rgba(15,10,3,0.45)",backdropFilter:"blur(14px)"}}>
+                <div key={i} className="flex items-center justify-between border border-zinc-700/50 rounded-xl px-3 py-2" style={{background:"rgba(15,10,3,0.25)",backdropFilter:"blur(14px)"}}>
                   <div className="flex items-center gap-2">
                     <span className="text-base">{em}</span>
                     <div>
@@ -531,7 +531,7 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
       <div className="space-y-2">
         {summary.map(p => (
           <button key={p.name} onClick={()=>setSel(p.name)}
-            className="w-full flex items-center gap-3 border border-zinc-700/50 hover:border-zinc-600/70 rounded-2xl px-4 py-3 text-left transition-colors" style={{background:"rgba(15,10,3,0.45)",backdropFilter:"blur(14px)"}}>
+            className="w-full flex items-center gap-3 border border-zinc-700/50 hover:border-zinc-600/70 rounded-2xl px-4 py-3 text-left transition-colors" style={{background:"rgba(15,10,3,0.25)",backdropFilter:"blur(14px)"}}>
             <div className="w-9 h-9 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center text-lg flex-shrink-0">
               {p.rank===1 ? "🥇" : p.rank===2 ? "🥈" : p.rank===3 ? "🥉" : "🃏"}
             </div>
@@ -659,7 +659,7 @@ function RacingBarChart({ sessions, players, nicknames }) {
   const containerHeight = players.length * ROW_H;
 
   return (
-    <div className="border border-zinc-700/50 rounded-2xl" style={{background:"rgba(15,10,3,0.45)",backdropFilter:"blur(14px)"}} className2=" p-4 space-y-3">
+    <div className="border border-zinc-700/50 rounded-2xl" style={{background:"rgba(15,10,3,0.25)",backdropFilter:"blur(14px)"}} className2=" p-4 space-y-3">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -965,7 +965,7 @@ function SessionsView({ data, onEdit, onDelete, initialOpen=null }) {
         const pot = s.entries.reduce((a,e)=>a+e.buyInBaht,0);
         const fee = s.entries.length*s.fee;
         return (
-          <div key={s.internalId} className="border border-zinc-700/50 rounded-2xl" style={{background:"rgba(15,10,3,0.45)",backdropFilter:"blur(14px)"}} className2=" overflow-hidden">
+          <div key={s.internalId} className="border border-zinc-700/50 rounded-2xl" style={{background:"rgba(15,10,3,0.25)",backdropFilter:"blur(14px)"}} className2=" overflow-hidden">
             <button className="w-full flex items-center justify-between px-4 py-4 hover:bg-zinc-800/30 transition-colors text-left" onClick={()=>setOpen(isOpen?null:s.internalId)}>
               <div className="flex items-center gap-3">
                 <div className="text-center">
@@ -1341,7 +1341,7 @@ function PotView({ data, onAddTx, onDeleteTx, saving }) {
         <div className="text-zinc-500 text-xs font-semibold">ประวัติรายการ ({pot.transactions.length})</div>
         {pot.transactions.length===0 && <Box><div className="text-center py-6 text-zinc-600 text-sm">ยังไม่มีรายการ</div></Box>}
         {pot.transactions.map(tx => (
-          <div key={tx.id} className="flex items-center justify-between border border-zinc-700/50 rounded-xl px-4 py-3" style={{background:"rgba(15,10,3,0.45)",backdropFilter:"blur(14px)"}}>
+          <div key={tx.id} className="flex items-center justify-between border border-zinc-700/50 rounded-xl px-4 py-3" style={{background:"rgba(15,10,3,0.25)",backdropFilter:"blur(14px)"}}>
             <div className="flex items-center gap-3">
               <span className={"text-lg "+(tx.type==="income"?"text-emerald-400":"text-red-400")}>{tx.type==="income"?"➕":"➖"}</span>
               <div><div className="text-white text-sm font-medium">{tx.note}</div><div className="text-zinc-600 text-xs">{String(tx.date||"").slice(0,10)}</div></div>
@@ -1655,7 +1655,7 @@ export default function App() {
       backgroundAttachment: 'fixed',
     }}>
       {/* dark overlay */}
-      <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.55)',zIndex:0,pointerEvents:'none'}}/>
+      <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.35)',zIndex:0,pointerEvents:'none'}}/>
       <div style={{position:'relative',zIndex:1,minHeight:'100vh'}}>
       {/* ── DESKTOP header (sm ขึ้นไป) ── */}
       <header className="hidden sm:block border-b border-zinc-800/60 sticky top-0 z-40" style={{background:"rgba(8,5,1,0.8)",backdropFilter:"blur(16px)"}}>
