@@ -150,8 +150,8 @@ function NInput({ value, onChange, ph="0" }) {
   );
 }
 function Box({ children, className="" }) {
-  return <div className={"border border-zinc-700/50 rounded-2xl p-4 " + className}
-    style={{background:'rgba(15,10,3,0.12)', backdropFilter:'blur(14px)', WebkitBackdropFilter:'blur(14px)'}}
+  return <div className={"border border-zinc-700/25 rounded-2xl p-4 " + className}
+    style={{background:'rgba(15,10,3,0.05)', backdropFilter:'blur(6px)', WebkitBackdropFilter:'blur(6px)'}}
   >{children}</div>;
 }
 
@@ -178,7 +178,7 @@ function MiniChart({ player, sessions }) {
   }, [player, sessions]);
 
   if (pts.length < 2) return (
-    <div className="border border-zinc-700/50 rounded-2xl p-6 text-center" style={{background:"rgba(15,10,3,0.12)",backdropFilter:"blur(14px)"}}>
+    <div className="border border-zinc-700/25 rounded-2xl p-6 text-center" style={{background:"rgba(15,10,3,0.05)",backdropFilter:"blur(6px)"}}>
       <div className="text-3xl mb-2">📈</div>
       <div className="text-zinc-400 text-sm font-medium">ยังไม่มีกราฟ</div>
       <div className="text-zinc-600 text-xs mt-1">ต้องมีอย่างน้อย 2 เซสขึ้นไป<br/>ปัจจุบันเล่นไป {pts.length} เซส</div>
@@ -283,7 +283,7 @@ function MiniChart({ player, sessions }) {
         </svg>
 
         {h && (
-          <div className="absolute border border-zinc-700/60 rounded-xl px-3 py-2 text-xs shadow-xl pointer-events-none z-10"
+          <div className="absolute border border-zinc-700/30 rounded-xl px-3 py-2 text-xs shadow-xl pointer-events-none z-10"
             style={{left:Math.min(Math.max((hov/(pts.length-1))*100,8),65)+"%", top:"2px", transform:"translateX(-50%)", minWidth:"110px", background:"rgba(20,12,2,0.9)", backdropFilter:"blur(12px)"}}>
             <div className="text-amber-300 font-bold mb-1">{h.label}</div>
             {mode==="profit"
@@ -324,7 +324,7 @@ function DashboardView({ data, onGoLeader, onGoLatestSes, onGoPot }) {
       <div className="grid grid-cols-3 gap-3">
         {/* Leader — กดแล้วไปหน้า profile ผู้นำ */}
         <button onClick={()=>leader&&onGoLeader(leader.name)}
-          className="border border-amber-500/40 rounded-2xl p-3 text-left hover:border-amber-400/70 transition-colors" style={{background:"rgba(25,14,2,0.15)",backdropFilter:"blur(14px)"}}>
+          className="border border-amber-500/40 rounded-2xl p-3 text-left hover:border-amber-400/70 transition-colors" style={{background:"rgba(25,14,2,0.06)",backdropFilter:"blur(6px)"}}>
           <div className="text-amber-400 text-xs font-semibold mb-1">🏆 นำอยู่</div>
           {leader
             ? <>
@@ -336,7 +336,7 @@ function DashboardView({ data, onGoLeader, onGoLatestSes, onGoPot }) {
         </button>
         {/* Latest session — กดแล้วไปหน้าเซสชั่น พร้อมเปิดเซสล่าสุด */}
         <button onClick={()=>latest&&onGoLatestSes(latest.internalId)}
-          className="border border-zinc-700/50 rounded-2xl p-3 text-left hover:border-zinc-600 transition-colors" style={{background:"rgba(15,10,3,0.12)",backdropFilter:"blur(14px)"}}>
+          className="border border-zinc-700/25 rounded-2xl p-3 text-left hover:border-zinc-600 transition-colors" style={{background:"rgba(15,10,3,0.05)",backdropFilter:"blur(6px)"}}>
           <div className="text-sky-400 text-xs font-semibold mb-1">📋 เซสล่าสุด</div>
           {latest
             ? <>
@@ -348,7 +348,7 @@ function DashboardView({ data, onGoLeader, onGoLatestSes, onGoPot }) {
         </button>
         {/* Pot — กดแล้วไปหน้ากองกลาง */}
         <button onClick={onGoPot}
-          className="border border-purple-500/30 rounded-2xl p-3 text-left hover:border-purple-400/60 transition-colors" style={{background:"rgba(15,8,25,0.15)",backdropFilter:"blur(14px)"}}>
+          className="border border-purple-500/30 rounded-2xl p-3 text-left hover:border-purple-400/60 transition-colors" style={{background:"rgba(15,8,25,0.06)",backdropFilter:"blur(6px)"}}>
           <div className="text-purple-400 text-xs font-semibold mb-1">💰 กองกลาง</div>
           <div className={"font-mono font-black text-lg " + (pot>=0?"text-purple-300":"text-red-400")}>{fmt(pot)} ฿</div>
           <div className="text-zinc-600 text-[10px] mt-1">{data.sessions.length} เซสชั่น · {data.players.length} คน</div>
@@ -363,7 +363,7 @@ function DashboardView({ data, onGoLeader, onGoLatestSes, onGoPot }) {
           ["ซีซั่น",     latest ? "S"+latest.season+"/"+latest.year : "-",             "text-amber-300"],
           ["ปีนี้",      data.sessions.filter(s=>s.year===new Date().getFullYear()).length, "text-sky-300"],
         ].map(([label,value,color]) => (
-          <div key={label} className="border border-zinc-700/50 rounded-xl px-2 py-2 text-center" style={{background:"rgba(15,10,3,0.12)",backdropFilter:"blur(14px)"}}>
+          <div key={label} className="border border-zinc-700/25 rounded-xl px-2 py-2 text-center" style={{background:"rgba(15,10,3,0.05)",backdropFilter:"blur(6px)"}}>
             <div className={"font-mono font-black text-lg "+color}>{value}</div>
             <div className="text-zinc-600 text-[10px] mt-0.5">{label}</div>
           </div>
@@ -456,7 +456,7 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
         </div>
 
         {/* Total */}
-        <div className="text-center py-4 border border-zinc-700/50 rounded-2xl" style={{background:"rgba(15,10,3,0.12)",backdropFilter:"blur(14px)"}}>
+        <div className="text-center py-4 border border-zinc-700/25 rounded-2xl" style={{background:"rgba(15,10,3,0.05)",backdropFilter:"blur(6px)"}}>
           <div className="text-zinc-500 text-sm mb-1">กำไร / ขาดทุนรวม</div>
           <div className={"font-mono font-black text-4xl "+(stats.total>=0?"text-emerald-400":"text-red-400")}>
             {stats.total>0?"+":""}{fmt(stats.total)} ฿
@@ -471,7 +471,7 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
             ["ดีที่สุด",  stats.best!==null  ? (stats.best>0?"+":"")+fmt(stats.best) : "-", "text-emerald-400"],
             ["แย่ที่สุด", stats.worst!==null ? fmt(stats.worst)     : "-", "text-red-400"],
           ].map(([label,value,color]) => (
-            <div key={label} className="border border-zinc-700/50 rounded-xl p-3 text-center" style={{background:"rgba(15,10,3,0.12)",backdropFilter:"blur(14px)"}}>
+            <div key={label} className="border border-zinc-700/25 rounded-xl p-3 text-center" style={{background:"rgba(15,10,3,0.05)",backdropFilter:"blur(6px)"}}>
               <div className={"font-mono font-bold text-lg "+color}>{value}</div>
               <div className="text-zinc-600 text-xs mt-0.5">{label}</div>
             </div>
@@ -505,7 +505,7 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
               const myRank  = ranked(x.s.entries).find(r => r.player === sel)?.rank ?? 0;
               const em = myRank===1?"🥇":myRank===2?"🥈":myRank===3?"🥉":myRank===lastRank?"💀":"#"+myRank;
               return (
-                <div key={i} className="flex items-center justify-between border border-zinc-700/50 rounded-xl px-3 py-2" style={{background:"rgba(15,10,3,0.12)",backdropFilter:"blur(14px)"}}>
+                <div key={i} className="flex items-center justify-between border border-zinc-700/25 rounded-xl px-3 py-2" style={{background:"rgba(15,10,3,0.05)",backdropFilter:"blur(6px)"}}>
                   <div className="flex items-center gap-2">
                     <span className="text-base">{em}</span>
                     <div>
@@ -531,8 +531,8 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
       <div className="space-y-2">
         {summary.map(p => (
           <button key={p.name} onClick={()=>setSel(p.name)}
-            className="w-full flex items-center gap-3 border border-zinc-700/50 hover:border-zinc-600/70 rounded-2xl px-4 py-3 text-left transition-colors" style={{background:"rgba(15,10,3,0.12)",backdropFilter:"blur(14px)"}}>
-            <div className="w-9 h-9 rounded-xl border border-zinc-700/50 flex items-center justify-center text-lg flex-shrink-0" style={{background:"rgba(255,255,255,0.07)"}}>
+            className="w-full flex items-center gap-3 border border-zinc-700/25 hover:border-zinc-600/70 rounded-2xl px-4 py-3 text-left transition-colors" style={{background:"rgba(15,10,3,0.05)",backdropFilter:"blur(6px)"}}>
+            <div className="w-9 h-9 rounded-xl border border-zinc-700/25 flex items-center justify-center text-lg flex-shrink-0" style={{background:"rgba(255,255,255,0.07)"}}>
               {p.rank===1 ? "🥇" : p.rank===2 ? "🥈" : p.rank===3 ? "🥉" : "🃏"}
             </div>
             <div className="flex-1">
@@ -659,7 +659,7 @@ function RacingBarChart({ sessions, players, nicknames }) {
   const containerHeight = players.length * ROW_H;
 
   return (
-    <div className="border border-zinc-700/50 rounded-2xl p-4 space-y-3" style={{background:"rgba(15,10,3,0.12)",backdropFilter:"blur(14px)"}}>
+    <div className="border border-zinc-700/25 rounded-2xl p-4 space-y-3" style={{background:"rgba(15,10,3,0.05)",backdropFilter:"blur(6px)"}}>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -678,14 +678,14 @@ function RacingBarChart({ sessions, players, nicknames }) {
           {playing ? "⏸ หยุด" : "▶ Play"}
         </button>
         <button onClick={() => { setPlaying(false); setCurSes(0); }}
-          className="px-3 py-1.5 rounded-lg text-xs font-medium text-zinc-400 hover:text-white border border-zinc-700/60 transition-colors" style={{background:"rgba(255,255,255,0.06)"}}>
+          className="px-3 py-1.5 rounded-lg text-xs font-medium text-zinc-400 hover:text-white border border-zinc-700/30 transition-colors" style={{background:"rgba(255,255,255,0.06)"}}>
           ↺ Reset
         </button>
         <div className="flex items-center gap-1 ml-auto">
           <span className="text-zinc-600 text-xs">ความเร็ว:</span>
           {[1,2,4].map(s => (
             <button key={s} onClick={() => setSpeed(s)}
-              className={"px-2 py-1 rounded-md text-xs border transition-colors " + (speed===s ? "bg-amber-500/15 text-amber-400 border-amber-500/30" : "bg-white/5 text-zinc-500 border-zinc-700/60")}>
+              className={"px-2 py-1 rounded-md text-xs border transition-colors " + (speed===s ? "bg-amber-500/15 text-amber-400 border-amber-500/30" : "bg-white/5 text-zinc-500 border-zinc-700/30")}>
               {s}×
             </button>
           ))}
@@ -844,7 +844,7 @@ function LeaderboardView({ data }) {
           <select
             value={filter.startsWith("sea:")?filter:""}
             onChange={e=>e.target.value&&setFilter(e.target.value)}
-            className={"flex-1 border rounded-lg px-3 py-1.5 text-xs focus:outline-none transition-colors "+(filter.startsWith("sea:")?"bg-amber-500/10 border-amber-500/40 text-amber-400":"bg-white/5 border-zinc-700/60 text-zinc-400 focus:border-zinc-500")}>
+            className={"flex-1 border rounded-lg px-3 py-1.5 text-xs focus:outline-none transition-colors "+(filter.startsWith("sea:")?"bg-amber-500/10 border-amber-500/40 text-amber-400":"bg-white/5 border-zinc-700/30 text-zinc-400 focus:border-zinc-500")}>
             <option value="">ซีซั่น</option>
             {seasonKeys
               .filter(k => {
@@ -861,7 +861,7 @@ function LeaderboardView({ data }) {
           <select
             value={filter.startsWith("sid:")?filter:""}
             onChange={e=>e.target.value&&setFilter(e.target.value)}
-            className={"flex-1 border rounded-lg px-3 py-1.5 text-xs focus:outline-none transition-colors "+(filter.startsWith("sid:")?"bg-amber-500/10 border-amber-500/40 text-amber-400":"bg-white/5 border-zinc-700/60 text-zinc-400 focus:border-zinc-500")}>
+            className={"flex-1 border rounded-lg px-3 py-1.5 text-xs focus:outline-none transition-colors "+(filter.startsWith("sid:")?"bg-amber-500/10 border-amber-500/40 text-amber-400":"bg-white/5 border-zinc-700/30 text-zinc-400 focus:border-zinc-500")}>
             <option value="">เซสชั่น</option>
             {[...data.sessions]
               .reverse()
@@ -965,7 +965,7 @@ function SessionsView({ data, onEdit, onDelete, initialOpen=null }) {
         const pot = s.entries.reduce((a,e)=>a+e.buyInBaht,0);
         const fee = s.entries.length*s.fee;
         return (
-          <div key={s.internalId} className="border border-zinc-700/50 rounded-2xl overflow-hidden" style={{background:"rgba(15,10,3,0.12)",backdropFilter:"blur(14px)"}}>
+          <div key={s.internalId} className="border border-zinc-700/25 rounded-2xl overflow-hidden" style={{background:"rgba(15,10,3,0.05)",backdropFilter:"blur(6px)"}}>
             <button className="w-full flex items-center justify-between px-4 py-4 hover:bg-white/5 transition-colors text-left" onClick={()=>setOpen(isOpen?null:s.internalId)}>
               <div className="flex items-center gap-3">
                 <div className="text-center">
@@ -1228,7 +1228,7 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
                   <button className="text-xs px-2 py-1 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-400 hover:bg-amber-500/25 transition-colors">
                     + เพิ่มผู้เล่น
                   </button>
-                  <div className="absolute right-0 top-full mt-1 border border-zinc-700/60 rounded-xl shadow-xl z-20 hidden gro" style={{background:"rgba(15,10,3,0.92)",backdropFilter:"blur(16px)"}} className="group-hover:block group-focus-within:block min-w-[120px]">
+                  <div className="absolute right-0 top-full mt-1 border border-zinc-700/30 rounded-xl shadow-xl z-20 hidden gro" style={{background:"rgba(15,10,3,0.92)",backdropFilter:"blur(16px)"}} className="group-hover:block group-focus-within:block min-w-[120px]">
                     {available.map(p => (
                       <button key={p} onClick={() => setRows(prev => [...prev, {player:p, buy:0, sell:0}])}
                         className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-white/10 hover:text-white transition-colors first:rounded-t-xl last:rounded-b-xl">
@@ -1341,7 +1341,7 @@ function PotView({ data, onAddTx, onDeleteTx, saving }) {
         <div className="text-zinc-500 text-xs font-semibold">ประวัติรายการ ({pot.transactions.length})</div>
         {pot.transactions.length===0 && <Box><div className="text-center py-6 text-zinc-600 text-sm">ยังไม่มีรายการ</div></Box>}
         {pot.transactions.map(tx => (
-          <div key={tx.id} className="flex items-center justify-between border border-zinc-700/50 rounded-xl px-4 py-3" style={{background:"rgba(15,10,3,0.12)",backdropFilter:"blur(14px)"}}>
+          <div key={tx.id} className="flex items-center justify-between border border-zinc-700/25 rounded-xl px-4 py-3" style={{background:"rgba(15,10,3,0.05)",backdropFilter:"blur(6px)"}}>
             <div className="flex items-center gap-3">
               <span className={"text-lg "+(tx.type==="income"?"text-emerald-400":"text-red-400")}>{tx.type==="income"?"➕":"➖"}</span>
               <div><div className="text-white text-sm font-medium">{tx.note}</div><div className="text-zinc-600 text-xs">{String(tx.date||"").slice(0,10)}</div></div>
@@ -1404,7 +1404,7 @@ function SettingsView({ data, onUpdate, saving }) {
         </div>
         <div className="space-y-2">
           {players.map(p => (
-            <div key={p} className="flex items-center gap-2 border border-zinc-700/60 rounded-xl px-3 py-2" style={{background:"rgba(255,255,255,0.06)"}}>
+            <div key={p} className="flex items-center gap-2 border border-zinc-700/30 rounded-xl px-3 py-2" style={{background:"rgba(255,255,255,0.06)"}}>
               <span className="text-white font-medium text-sm w-16 flex-shrink-0">{p}</span>
               <input
                 value={nicknames[p] || ""}
@@ -1655,7 +1655,7 @@ export default function App() {
       backgroundAttachment: 'fixed',
     }}>
       {/* dark overlay */}
-      <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.2)',zIndex:0,pointerEvents:'none'}}/>
+      <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.05)',zIndex:0,pointerEvents:'none'}}/>
       <div style={{position:'relative',zIndex:1,minHeight:'100vh'}}>
       {/* ── DESKTOP header (sm ขึ้นไป) ── */}
       <header className="hidden sm:block border-b border-zinc-800/60 sticky top-0 z-40" style={{background:"rgba(8,5,1,0.8)",backdropFilter:"blur(16px)"}}>
@@ -1696,7 +1696,7 @@ export default function App() {
         <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800/60">
           {/* Hamburger ซ้าย */}
           <button onClick={() => setMenuOpen(o => !o)}
-            className="w-9 h-9 rounded-xl border border-zinc-700/60 flex flex-col items-center justify-center gap-1.5 flex-shrink-0" style={{background:"rgba(255,255,255,0.08)"}}>
+            className="w-9 h-9 rounded-xl border border-zinc-700/30 flex flex-col items-center justify-center gap-1.5 flex-shrink-0" style={{background:"rgba(255,255,255,0.08)"}}>
             <span className={"block w-4 h-0.5  transition-all duration-200 " + (menuOpen ? "rotate-45 translate-y-2" : "")}/>
             <span className={"block w-4 h-0.5  transition-all duration-200 " + (menuOpen ? "opacity-0" : "")}/>
             <span className={"block w-4 h-0.5  transition-all duration-200 " + (menuOpen ? "-rotate-45 -translate-y-2" : "")}/>
