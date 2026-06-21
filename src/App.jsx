@@ -1522,19 +1522,44 @@ function StreetOutCard({ street, desc, mult, outsNeeded, isOk, validHands, allHa
 // CALCULATOR VIEW (Pot Odds)
 // ─────────────────────────────────────────────────────────────────
 function CalcView() {
-  const [pot,  setPot]  = useState(0);
-  const [call, setCall] = useState(0);
+  const [pot,     setPot]     = useState(0);
+  const [call,    setCall]    = useState(0);
+  const [selHand, setSelHand] = useState("");
 
-  const total   = pot + call;
-  const equity  = total > 0 ? (call / total) * 100 : 0;
-  const ratio   = call > 0 ? (pot / call).toFixed(2) : "—";
-  const isGood  = equity > 0 && equity <= 33;  // rough guide
+  const total  = pot + call;
+  const equity = total > 0 ? (call / total) * 100 : 0;
+  const ratio  = call > 0 ? (pot / call).toFixed(2) : "—";
 
-  function reset() { setPot(0); setCall(0); }
+  function reset() { setPot(0); setCall(0); setSelHand(""); }
 
-  // quick presets สำหรับ call amount
   const callPresets = [50, 100, 200, 300, 500];
   const potPresets  = [100, 200, 300, 500, 1000];
+
+  // hand list พร้อม out count
+  const HANDS = [
+    { name: "Pocket pair → set",             out: 2  },
+    { name: "One overcard",                   out: 3  },
+    { name: "Gutshot straight",               out: 4  },
+    { name: "Two overcards",                  out: 6  },
+    { name: "One overcard + gutshot",         out: 7  },
+    { name: "Open-ended straight",            out: 8  },
+    { name: "Flush draw",                     out: 9  },
+    { name: "Two overcards + gutshot",        out: 10 },
+    { name: "Flush draw + gutshot",           out: 12 },
+    { name: "Flush draw + overcard",          out: 12 },
+    { name: "Flush draw + gutshot + overcard",out: 13 },
+    { name: "Flush draw + two overcards",     out: 15 },
+    { name: "Flush draw + open-ended",        out: 17 },
+    { name: "Flush draw + open-ended + two overcards", out: 21 },
+  ];
+
+  const hand = HANDS.find(h => h.name === selHand) ?? null;
+  // equity ของ hand (rule of 4, flop→river)
+  const handEquity = hand ? hand.out * 4 : null;
+  // pot ขั้นต่ำที่ต้องการให้ call คุ้ม: call/(pot+call) = handEquity/100
+  // → pot = call*(100/handEquity - 1)
+  const minPot = hand && call > 0 ? Math.ceil(call * (100 / handEquity - 1)) : null;
+  const handOk = hand && pot > 0 && call > 0 ? pot >= minPot : null;
 
   return (
     <div className="space-y-5">
@@ -1547,12 +1572,15 @@ function CalcView() {
       <Box className="space-y-4">
         {/* Pot */}
         <div>
-          <label className="block text-zinc-400 text-sm font-semibold mb-2">💰 Pot ปัจจุบัน (฿ หรือ ชิป)</label>
+          <label className="block text-zinc-400 text-sm font-semibold mb-2">💰 Pot ปัจจุบัน</label>
           <div className="flex items-center gap-2">
             <button onClick={() => setPot(v => Math.max(0, v - 5))}
               className="w-10 h-10 rounded-xl border border-zinc-700/30 text-zinc-300 text-lg font-bold hover:text-white hover:border-amber-500/40 transition-colors flex-shrink-0 flex items-center justify-center"
               style={{background:"rgba(255,255,255,0.06)"}}>−</button>
-            <NInput value={pot} onChange={setPot} ph="100"/>
+            <input type="number" value={pot||""} placeholder="100"
+              onChange={e => setPot(Number(e.target.value)||0)}
+              className="w-1/3 border border-zinc-600/40 rounded-xl px-3 py-2 text-white font-mono text-sm font-bold focus:border-amber-500 focus:outline-none text-center"
+              style={{background:"rgba(255,255,255,0.06)"}}/>
             <button onClick={() => setPot(v => v + 5)}
               className="w-10 h-10 rounded-xl border border-zinc-700/30 text-zinc-300 text-lg font-bold hover:text-white hover:border-amber-500/40 transition-colors flex-shrink-0 flex items-center justify-center"
               style={{background:"rgba(255,255,255,0.06)"}}>+</button>
@@ -1568,17 +1596,28 @@ function CalcView() {
           </div>
         </div>
 
-        {/* Call */}
+        {/* Call + Hand dropdown */}
         <div>
-          <label className="block text-zinc-400 text-sm font-semibold mb-2">📞 จำนวนที่ต้อง Call (฿ หรือ ชิป)</label>
+          <label className="block text-zinc-400 text-sm font-semibold mb-2">📞 Call Amount + 🃏 Hand ที่ถือ</label>
           <div className="flex items-center gap-2">
             <button onClick={() => setCall(v => Math.max(0, v - 5))}
               className="w-10 h-10 rounded-xl border border-zinc-700/30 text-zinc-300 text-lg font-bold hover:text-white hover:border-amber-500/40 transition-colors flex-shrink-0 flex items-center justify-center"
               style={{background:"rgba(255,255,255,0.06)"}}>−</button>
-            <NInput value={call} onChange={setCall} ph="20"/>
+            <input type="number" value={call||""} placeholder="20"
+              onChange={e => setCall(Number(e.target.value)||0)}
+              className="w-1/3 border border-zinc-600/40 rounded-xl px-3 py-2 text-white font-mono text-sm font-bold focus:border-amber-500 focus:outline-none text-center"
+              style={{background:"rgba(255,255,255,0.06)"}}/>
             <button onClick={() => setCall(v => v + 5)}
               className="w-10 h-10 rounded-xl border border-zinc-700/30 text-zinc-300 text-lg font-bold hover:text-white hover:border-amber-500/40 transition-colors flex-shrink-0 flex items-center justify-center"
               style={{background:"rgba(255,255,255,0.06)"}}>+</button>
+            <select value={selHand} onChange={e => setSelHand(e.target.value)}
+              className="flex-1 border border-zinc-600/40 rounded-xl px-3 py-2 text-xs focus:border-amber-500 focus:outline-none"
+              style={{background:"rgba(15,10,3,0.7)", color: selHand ? "white" : "#6b7280"}}>
+              <option value="">🃏 Hand...</option>
+              {HANDS.map(h => (
+                <option key={h.name} value={h.name}>{h.name} ({h.out} out)</option>
+              ))}
+            </select>
           </div>
           <div className="flex gap-2 mt-2 flex-wrap">
             {callPresets.map(v => (
@@ -1590,6 +1629,36 @@ function CalcView() {
             ))}
           </div>
         </div>
+
+        {/* Hand result — แสดงเมื่อเลือก hand */}
+        {hand && call > 0 && (
+          <div className={"rounded-xl px-4 py-3 border " + (handOk ? "border-emerald-500/30" : handOk === false ? "border-red-500/30" : "border-zinc-700/30")}
+            style={{background: handOk ? "rgba(5,30,15,0.35)" : handOk === false ? "rgba(30,5,5,0.35)" : "rgba(255,255,255,0.04)"}}>
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-sm font-semibold text-white">{hand.name}</span>
+              <span className="font-mono font-bold text-amber-300">{hand.out} out · ~{handEquity}%</span>
+            </div>
+            {minPot !== null && (
+              <div className="text-xs text-zinc-400 space-y-1">
+                <div className="flex justify-between">
+                  <span>Pot ขั้นต่ำที่ call คุ้ม</span>
+                  <span className="font-mono font-bold text-white">{minPot.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Pot ปัจจุบัน</span>
+                  <span className={"font-mono font-bold " + (handOk ? "text-emerald-400" : "text-red-400")}>
+                    {pot > 0 ? pot.toLocaleString() : "—"}
+                  </span>
+                </div>
+                {pot > 0 && (
+                  <div className={"mt-1 pt-1 border-t border-white/5 font-semibold " + (handOk ? "text-emerald-400" : "text-red-400")}>
+                    {handOk ? "✅ Pot ถึงแล้ว — call คุ้ม" : "❌ Pot ยังไม่ถึง — ควร fold"}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </Box>
 
       {/* Formula display */}
