@@ -1578,24 +1578,26 @@ function CalcView() {
               const outsNeeded = Math.ceil(equity / mult);
               const isOk = outsNeeded <= 9;
               // map out → hand examples
-              const handExamples = {
-                1:  "1 pair → trips (set)",
-                2:  "Pocket pair → set",
-                3:  "One overcard",
-                4:  "Gutshot straight draw",
-                5:  "One overcard + gutshot",
-                6:  "Two overcards",
-                7:  "Two overcards + gutshot",
-                8:  "Open-ended straight draw",
-                9:  "Flush draw",
-                10: "Flush draw + gutshot",
-                11: "Flush draw + one overcard",
-                12: "Flush draw + gutshot + overcard",
-                13: "Flush draw + two overcards",
-                14: "Flush draw + open-ended straight",
-                15: "Flush draw + open-ended + overcard",
-              };
-              const exampleText = handExamples[outsNeeded] || (outsNeeded <= 0 ? "—" : outsNeeded > 15 ? "แทบทุก draw รวมกัน" : "");
+              // ทุก hand draw ที่มี out >= outsNeeded
+              const allHands = [
+                { out: 2,  name: "Pocket pair → set" },
+                { out: 3,  name: "One overcard" },
+                { out: 4,  name: "Gutshot straight" },
+                { out: 5,  name: "One overcard + gutshot" },
+                { out: 6,  name: "Two overcards" },
+                { out: 7,  name: "Two overcards + gutshot" },
+                { out: 8,  name: "Open-ended straight" },
+                { out: 9,  name: "Flush draw" },
+                { out: 10, name: "Flush draw + gutshot" },
+                { out: 11, name: "Flush draw + overcard" },
+                { out: 12, name: "Flush draw + gutshot + overcard" },
+                { out: 13, name: "Flush draw + two overcards" },
+                { out: 14, name: "Flush draw + open-ended" },
+                { out: 15, name: "Flush draw + open-ended + overcard" },
+              ];
+              const validHands = outsNeeded <= 0 ? [] : allHands.filter(h => h.out >= outsNeeded);
+              const exampleText = validHands.length === 0 ? (outsNeeded > 15 ? "แทบทุก draw รวมกัน" : "—")
+                : validHands.map(h => h.name).join(", ");
               return (
                 <div key={street} className={"rounded-xl border px-3 py-2.5 " + (isOk ? "border-emerald-500/25" : "border-red-500/25")}
                   style={{background: isOk ? "rgba(5,30,15,0.2)" : "rgba(30,5,5,0.2)"}}>
