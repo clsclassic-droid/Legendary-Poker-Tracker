@@ -146,7 +146,7 @@ function NInput({ value, onChange, ph="0" }) {
   return (
     <input type="number" value={value||""} placeholder={ph}
       onChange={e => onChange(Number(e.target.value)||0)}
-      className="w-full border border-zinc-600 rounded-lg px-3 py-2 text-white font-mono text-sm focus:border-amber-500 focus:outline-none" style={{background:"rgba(255,255,255,0.08)"}} />
+      className="w-full border border-zinc-700/40 rounded-lg px-3 py-1.5 text-white font-mono text-sm focus:border-amber-500 focus:outline-none" style={{background:"rgba(255,255,255,0.06)"}} />
   );
 }
 function Box({ children, className="" }) {
@@ -1109,13 +1109,13 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
         <div>
           <label className="block text-zinc-400 text-sm mb-1">📅 วันที่เล่น</label>
           <input type="date" value={date} onChange={e=>setDate(e.target.value)}
-            className="w-full border border-zinc-600 rounded-xl px-4 py-2.5 text-white focus:border-amber-500 focus:outline-none" style={{background:"rgba(255,255,255,0.08)"}}/>
+            className="w-full border border-zinc-700/40 rounded-lg px-3 py-2 text-white text-sm focus:border-amber-500 focus:outline-none" style={{background:"rgba(255,255,255,0.06)"}}/>
           {errs.date && <p className="text-red-400 text-xs mt-1">{errs.date}</p>}
         </div>
         <div>
           <label className="block text-zinc-400 text-sm mb-1">📝 หมายเหตุ</label>
           <input type="text" value={note} onChange={e=>setNote(e.target.value)} placeholder="เช่น บ้านแนน..."
-            className="w-full border border-zinc-600/60 rounded-xl px-4 py-2.5 text-white placeholder-zinc-600 focus:border-amber-500 focus:outline-none" style={{background:"rgba(255,255,255,0.06)"}}/>
+            className="w-full border border-zinc-700/40 rounded-lg px-3 py-2 text-white text-sm placeholder-zinc-600 focus:border-amber-500 focus:outline-none" style={{background:"rgba(255,255,255,0.06)"}}/>
         </div>
       </div>
 
@@ -1154,7 +1154,7 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
       <Box className="space-y-3">
         <div className="text-zinc-300 font-semibold text-sm">⚙️ ตั้งค่าเซสชั่นนี้</div>
         <div className="grid grid-cols-1 gap-3">
-          <div className="rounded-xl p-3" style={{background:"rgba(255,255,255,0.06)"}}>
+          <div className="rounded-lg p-2.5" style={{background:"rgba(255,255,255,0.05)"}}>
             <div className="text-amber-400 text-xs font-semibold mb-2">🎰 อัตราแลกชิป</div>
             <div className="flex items-center gap-2">
               <div className="flex-1"><label className="text-zinc-500 text-xs">ชิป</label><NInput value={rate.chips} onChange={v=>setRate(r=>({...r,chips:v}))}/></div>
@@ -1164,7 +1164,7 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
             <div className="text-zinc-500 text-xs font-mono mt-1">1 ชิป ≈ {rate.chips>0?(rate.baht/rate.chips).toFixed(4):0} ฿</div>
             {errs.rate && <p className="text-red-400 text-xs mt-1">{errs.rate}</p>}
           </div>
-          <div className="rounded-xl p-3" style={{background:"rgba(255,255,255,0.06)"}}>
+          <div className="rounded-lg p-2.5" style={{background:"rgba(255,255,255,0.05)"}}>
             <div className="text-purple-400 text-xs font-semibold mb-2">📦 ค่าส่วนกลาง/คน</div>
             <NInput value={fee} onChange={setFee}/>
             <div className="text-zinc-500 text-xs font-mono mt-1">{active} คน × {fmt(fee)} = <span className="text-purple-300">{fmt(active*fee)} ฿</span></div>
