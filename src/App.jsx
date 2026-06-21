@@ -1553,16 +1553,37 @@ function StreakView() {
     STREAK_ITEMS.forEach(item => { s[item.id] = 0; });
     return s;
   };
-  const [counts, setCounts] = useState(initState);
+  const [counts,  setCounts]  = useState(initState);
+  const [history, setHistory] = useState(() => {
+    // history: { [id]: [{count, time}] }
+    const h = {};
+    STREAK_ITEMS.forEach(item => { h[item.id] = []; });
+    return h;
+  });
+  const [openHist, setOpenHist] = useState(null); // id ที่เปิด history dropdown
 
   function tick(id) {
     setCounts(prev => ({ ...prev, [id]: prev[id] + 1 }));
+  }
+  function hit(id) {
+    // บันทึกว่าครั้งนี้ใช้ไป count+1 ครั้ง (นับรวมครั้งที่ติดด้วย)
+    const count = counts[id] + 1;
+    const now   = new Date();
+    const timeStr = now.getHours().toString().padStart(2,"0") + ":" + now.getMinutes().toString().padStart(2,"0");
+    setHistory(prev => ({
+      ...prev,
+      [id]: [...prev[id], { count, time: timeStr }]
+    }));
+    setCounts(prev => ({ ...prev, [id]: 0 })); // reset counter
   }
   function reset(id) {
     setCounts(prev => ({ ...prev, [id]: 0 }));
   }
   function resetAll() {
     setCounts(initState());
+  }
+  function clearHistory(id) {
+    setHistory(prev => ({ ...prev, [id]: [] }));
   }
 
   // จัดกลุ่ม
@@ -1641,6 +1662,11 @@ function StreakView() {
                       style={{background:"rgba(255,255,255,0.06)"}}>
                       ☐ ยังไม่ติด +1
                     </button>
+                    <button onClick={() => hit(item.id)}
+                      className="flex-1 py-2 rounded-lg text-xs font-bold border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 transition-colors"
+                      style={{background:"rgba(5,30,15,0.3)"}}>
+                      ✅ ติดแล้ว! บันทึก
+                    </button>
                     {count > 0 && (
                       <button onClick={() => reset(item.id)}
                         className="px-3 py-2 rounded-lg text-xs text-zinc-600 hover:text-red-400 border border-zinc-700/20 transition-colors"
@@ -1649,6 +1675,44 @@ function StreakView() {
                       </button>
                     )}
                   </div>
+
+                  {/* History */}
+                  {history[item.id].length > 0 && (
+                    <div className="mt-2">
+                      <button onClick={() => setOpenHist(openHist === item.id ? null : item.id)}
+                        className="w-full flex items-center justify-between text-[10px] text-zinc-600 hover:text-zinc-400 transition-colors py-1">
+                        <span>📋 ประวัติ ({history[item.id].length} ครั้ง) · เฉลี่ย {(history[item.id].reduce((s,h)=>s+h.count,0)/history[item.id].length).toFixed(1)} ครั้ง/ติด</span>
+                        <span>{openHist === item.id ? "▲" : "▼"}</span>
+                      </button>
+                      {openHist === item.id && (
+                        <div className="mt-1 rounded-lg overflow-hidden" style={{background:"rgba(255,255,255,0.03)"}}>
+                          <div className="flex text-[9px] text-zinc-700 px-3 py-1 border-b border-white/5">
+                            <span className="w-6">#</span>
+                            <span className="flex-1">ใช้ไปกี่ครั้ง</span>
+                            <span className="w-12 text-right">เวลา</span>
+                            <span className="w-12 text-right">vs เฉลี่ย</span>
+                          </div>
+                          {history[item.id].map((h, i) => {
+                            const diff = h.count - item.avgEvery;
+                            return (
+                              <div key={i} className="flex items-center text-xs px-3 py-1.5 border-b border-white/5 last:border-0">
+                                <span className="w-6 text-zinc-600 text-[10px]">{i+1}</span>
+                                <span className="flex-1 font-mono font-bold text-white">{h.count} ครั้ง</span>
+                                <span className="w-12 text-right text-zinc-600 text-[10px]">{h.time}</span>
+                                <span className={"w-12 text-right text-[10px] font-mono " + (diff > 0 ? "text-red-400" : "text-emerald-400")}>
+                                  {diff > 0 ? "+" : ""}{diff}
+                                </span>
+                              </div>
+                            );
+                          })}
+                          <button onClick={() => clearHistory(item.id)}
+                            className="w-full text-[10px] text-zinc-700 hover:text-red-400 py-1.5 transition-colors border-t border-white/5">
+                            🗑 ล้างประวัติ
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               );
             })}
