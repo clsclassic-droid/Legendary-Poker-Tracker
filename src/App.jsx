@@ -1053,10 +1053,10 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
     if (sameSes.length === 0) return 1;
     return Math.max(...sameSes.map(s => s.sessionNo)) + 1;
   }, [editSession, sameSes]);
-  const [sesNoOverride, setSesNoOverride] = useState(null);
-  const sesNo = sesNoOverride !== null ? sesNoOverride : autoNo;
+  const [sesNoOverride, setSesNoOverride] = useState(undefined);
+  const sesNo = (sesNoOverride !== undefined && sesNoOverride !== null) ? sesNoOverride : autoNo;
   const setSesNo = (v) => setSesNoOverride(v);
-  useEffect(() => { setSesNoOverride(null); }, [autoNo]);
+  useEffect(() => { setSesNoOverride(undefined); }, [autoNo]);
   const isDup = sameSes.some(s => s.sessionNo === sesNo);
 
   const gc = v => mode==="baht" ? b2c(v,rate) : v;
@@ -1092,7 +1092,7 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
         player:r.player, buyInChips:r.buy, cashOutChips:r.sell,
         buyInBaht:c2b(r.buy,rate), cashOutBaht:c2b(r.sell,rate),
         profitBaht:profit(r.buy,r.sell,rate),
-        bluffWin:r.bluffWin||0, bluffLose:r.bluffLose||0, catchBluff:r.catchBluff||0, gotBluffed:r.gotBluffed||0, gotBluffed:r.gotBluffed||0
+        bluffWin:r.bluffWin||0, bluffLose:r.bluffLose||0, catchBluff:r.catchBluff||0, gotBluffed:r.gotBluffed||0
       }))
     });
   }
@@ -2046,7 +2046,6 @@ function buildSkillSummary(players, sessions) {
       p.bluffLose  += e.bluffLose  || 0;
       p.catchBluff += e.catchBluff || 0;
       p.gotBluffed += e.gotBluffed || 0;
-      p.gotBluffed += e.gotBluffed || 0;
       p.n++;
     });
   });
@@ -2129,10 +2128,6 @@ function SkillView({ data }) {
                       <div className="text-purple-400 font-black text-xl font-mono">{p.gotBluffed}</div>
                       <div className="text-zinc-600 text-[10px]">😵 โดนบลัฟ</div>
                     </div>
-                    <div>
-                      <div className="text-purple-400 font-black text-xl font-mono">{p.gotBluffed}</div>
-                      <div className="text-zinc-600 text-[10px]">😱 โดนบลัฟ</div>
-                    </div>
                   </div>
                   <div className="mt-3 pt-2 border-t border-white/5 text-center">
                     <span className="text-xs text-zinc-500">Bluff rate </span>
@@ -2155,7 +2150,6 @@ function SkillView({ data }) {
                     <th className="px-2 py-2.5 text-center">❌ ไม่ผ่าน</th>
                     <th className="px-2 py-2.5 text-center">🔍 จับได้</th>
                     <th className="px-2 py-2.5 text-center">😵 โดนบลัฟ</th>
-                    <th className="px-2 py-2.5 text-center">😱 โดนบลัฟ</th>
                     <th className="px-2 py-2.5 text-center">Rate</th>
                   </tr>
                 </thead>
@@ -2170,7 +2164,6 @@ function SkillView({ data }) {
                         <td className="px-2 py-2.5 text-center font-mono font-bold text-emerald-400">{p.bluffWin > 0 ? p.bluffWin : <span className="text-zinc-700">—</span>}</td>
                         <td className="px-2 py-2.5 text-center font-mono font-bold text-red-400">{p.bluffLose > 0 ? p.bluffLose : <span className="text-zinc-700">—</span>}</td>
                         <td className="px-2 py-2.5 text-center font-mono font-bold text-amber-400">{p.catchBluff > 0 ? p.catchBluff : <span className="text-zinc-700">—</span>}</td>
-                        <td className="px-2 py-2.5 text-center font-mono font-bold text-purple-400">{p.gotBluffed > 0 ? p.gotBluffed : <span className="text-zinc-700">—</span>}</td>
                         <td className="px-2 py-2.5 text-center font-mono font-bold text-purple-400">{p.gotBluffed > 0 ? p.gotBluffed : <span className="text-zinc-700">—</span>}</td>
                         <td className="px-2 py-2.5 text-center">
                           {rate !== null
