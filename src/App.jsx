@@ -146,7 +146,7 @@ function NInput({ value, onChange, ph="0" }) {
   return (
     <input type="number" value={value||""} placeholder={ph}
       onChange={e => onChange(Number(e.target.value)||0)}
-      className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white font-mono text-sm focus:border-amber-500 focus:outline-none" />
+      className="w-full border border-zinc-600 rounded-lg px-3 py-2 text-white font-mono text-sm focus:border-amber-500 focus:outline-none" style={{background:"rgba(255,255,255,0.08)"}} />
   );
 }
 function Box({ children, className="" }) {
@@ -178,7 +178,7 @@ function MiniChart({ player, sessions }) {
   }, [player, sessions]);
 
   if (pts.length < 2) return (
-    <div className="border border-zinc-700/50 rounded-2xl" style={{background:"rgba(15,10,3,0.12)",backdropFilter:"blur(14px)"}} className2=" p-6 text-center">
+    <div className="border border-zinc-700/50 rounded-2xl p-6 text-center" style={{background:"rgba(15,10,3,0.12)",backdropFilter:"blur(14px)"}}>
       <div className="text-3xl mb-2">📈</div>
       <div className="text-zinc-400 text-sm font-medium">ยังไม่มีกราฟ</div>
       <div className="text-zinc-600 text-xs mt-1">ต้องมีอย่างน้อย 2 เซสขึ้นไป<br/>ปัจจุบันเล่นไป {pts.length} เซส</div>
@@ -237,7 +237,7 @@ function MiniChart({ player, sessions }) {
     <Box>
       <div className="flex items-center justify-between mb-2">
         <span className="text-zinc-400 text-xs font-semibold">{mode==="profit"?"📈 กำไรสะสม":"🏅 อันดับแต่ละเซส"}</span>
-        <div className="flex bg-zinc-800 rounded-lg p-0.5 gap-0.5">
+        <div className="flex rounded-lg p-0.5 gap-0.5" style={{background:"rgba(255,255,255,0.08)"}}>
           {[["profit","📈"],["rank","🏅"]].map(([id,icon]) => (
             <button key={id} onClick={()=>{setMode(id);setHov(null);}}
               className={"px-2.5 py-1 rounded-md text-xs font-semibold transition-all " + (mode===id?"bg-amber-500 text-black":"text-zinc-400 hover:text-white")}>
@@ -283,8 +283,8 @@ function MiniChart({ player, sessions }) {
         </svg>
 
         {h && (
-          <div className="absolute bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-xs shadow-xl pointer-events-none z-10"
-            style={{left:Math.min(Math.max((hov/(pts.length-1))*100,8),65)+"%", top:"2px", transform:"translateX(-50%)", minWidth:"110px"}}>
+          <div className="absolute border border-zinc-700/60 rounded-xl px-3 py-2 text-xs shadow-xl pointer-events-none z-10"
+            style={{left:Math.min(Math.max((hov/(pts.length-1))*100,8),65)+"%", top:"2px", transform:"translateX(-50%)", minWidth:"110px", background:"rgba(20,12,2,0.9)", backdropFilter:"blur(12px)"}}>
             <div className="text-amber-300 font-bold mb-1">{h.label}</div>
             {mode==="profit"
               ? <><div className="flex justify-between gap-2"><span className="text-zinc-400">เซสนี้</span><Profit v={h.p} sx=" ฿"/></div>
@@ -487,7 +487,7 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
           <div className="grid grid-cols-4 gap-2 text-center">
             {[["🥇",stats.gold,"ทอง","text-amber-300"],["🥈",stats.silver,"เงิน","text-zinc-300"],
               ["🥉",stats.bronze,"ทองแดง","text-orange-300"],["💀",stats.last,"โหล่","text-red-400"]].map(([emoji,count,label,color]) => (
-              <div key={label} className="bg-zinc-800/50 rounded-xl p-2">
+              <div key={label} className="rounded-xl p-2" style={{background:"rgba(255,255,255,0.05)"}}>
                 <div className="text-xl">{emoji}</div>
                 <div className={"font-mono font-black text-xl "+color}>{count}</div>
                 <div className="text-zinc-600 text-[10px]">{label}</div>
@@ -532,7 +532,7 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
         {summary.map(p => (
           <button key={p.name} onClick={()=>setSel(p.name)}
             className="w-full flex items-center gap-3 border border-zinc-700/50 hover:border-zinc-600/70 rounded-2xl px-4 py-3 text-left transition-colors" style={{background:"rgba(15,10,3,0.12)",backdropFilter:"blur(14px)"}}>
-            <div className="w-9 h-9 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center text-lg flex-shrink-0">
+            <div className="w-9 h-9 rounded-xl border border-zinc-700/50 flex items-center justify-center text-lg flex-shrink-0" style={{background:"rgba(255,255,255,0.07)"}}>
               {p.rank===1 ? "🥇" : p.rank===2 ? "🥈" : p.rank===3 ? "🥉" : "🃏"}
             </div>
             <div className="flex-1">
@@ -659,7 +659,7 @@ function RacingBarChart({ sessions, players, nicknames }) {
   const containerHeight = players.length * ROW_H;
 
   return (
-    <div className="border border-zinc-700/50 rounded-2xl" style={{background:"rgba(15,10,3,0.12)",backdropFilter:"blur(14px)"}} className2=" p-4 space-y-3">
+    <div className="border border-zinc-700/50 rounded-2xl p-4 space-y-3" style={{background:"rgba(15,10,3,0.12)",backdropFilter:"blur(14px)"}}>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -678,7 +678,7 @@ function RacingBarChart({ sessions, players, nicknames }) {
           {playing ? "⏸ หยุด" : "▶ Play"}
         </button>
         <button onClick={() => { setPlaying(false); setCurSes(0); }}
-          className="px-3 py-1.5 rounded-lg text-xs font-medium bg-zinc-800 text-zinc-400 hover:text-white border border-zinc-700 transition-colors">
+          className="px-3 py-1.5 rounded-lg text-xs font-medium text-zinc-400 hover:text-white border border-zinc-700/60 transition-colors" style={{background:"rgba(255,255,255,0.06)"}}>
           ↺ Reset
         </button>
         <div className="flex items-center gap-1 ml-auto">
@@ -729,12 +729,12 @@ function RacingBarChart({ sessions, players, nicknames }) {
                 {s.nick && <div className="text-[9px] text-zinc-600 truncate">"{s.nick}"</div>}
               </div>
               {/* Bar */}
-              <div className="flex-1 bg-zinc-800/60 rounded-lg overflow-hidden relative" style={{height:'30px'}}>
+              <div className="flex-1 rounded-lg overflow-hidden relative" style={{background:"rgba(255,255,255,0.06)",height:'30px'}}>
                 <div
-                  className="h-full rounded-lg flex items-center justify-end pr-2"
+                  className="h-full rounded-lg flex items-center justify-end pr-2" 
                   style={{
                     width: pct + '%',
-                    background: isPos ? s.color : 'rgba(248,113,113,0.5)',
+                    background: isPos ? s.color : 'rgba(248,113,113,0.6)',
                     transition: `width ${dur} ease`,
                     minWidth: '4px',
                   }}>
@@ -913,7 +913,7 @@ function LeaderboardView({ data }) {
           <Box className="overflow-hidden p-0">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead><tr className="border-b border-zinc-800 text-zinc-400 bg-zinc-900/80">
+                <thead><tr className="border-b border-zinc-800 text-zinc-400 bg-transparent">
                   <th className="px-2 py-2 text-left">#</th>
                   <th className="px-2 py-2 text-left">ผู้เล่น</th>
                   <th className="px-2 py-2 text-right">กำไร/ขาดทุน (฿)</th>
@@ -965,7 +965,7 @@ function SessionsView({ data, onEdit, onDelete, initialOpen=null }) {
         const pot = s.entries.reduce((a,e)=>a+e.buyInBaht,0);
         const fee = s.entries.length*s.fee;
         return (
-          <div key={s.internalId} className="border border-zinc-700/50 rounded-2xl" style={{background:"rgba(15,10,3,0.12)",backdropFilter:"blur(14px)"}} className2=" overflow-hidden">
+          <div key={s.internalId} className="border border-zinc-700/50 rounded-2xl overflow-hidden" style={{background:"rgba(15,10,3,0.12)",backdropFilter:"blur(14px)"}}>
             <button className="w-full flex items-center justify-between px-4 py-4 hover:bg-zinc-800/30 transition-colors text-left" onClick={()=>setOpen(isOpen?null:s.internalId)}>
               <div className="flex items-center gap-3">
                 <div className="text-center">
@@ -1012,7 +1012,7 @@ function SessionsView({ data, onEdit, onDelete, initialOpen=null }) {
                     ))}</tbody>
                   </table>
                 </div>
-                {s.note && <p className="mt-3 text-zinc-500 text-sm bg-zinc-800/40 rounded-lg px-3 py-2">📝 {s.note}</p>}
+                {s.note && <p className="mt-3 text-zinc-500 text-sm rounded-lg px-3 py-2" style={{background:"rgba(255,255,255,0.06)"}}>📝 {s.note}</p>}
                 {(onEdit || onDelete) && (
                   <div className="flex gap-2 mt-4 justify-end">
                     {onEdit   && <button onClick={()=>onEdit(s)} className="px-4 py-1.5 rounded-lg bg-zinc-700 hover:bg-zinc-600 text-white text-sm">✏️ แก้ไข</button>}
@@ -1102,7 +1102,7 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
         <div>
           <label className="block text-zinc-400 text-sm mb-1">📅 วันที่เล่น</label>
           <input type="date" value={date} onChange={e=>setDate(e.target.value)}
-            className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2.5 text-white focus:border-amber-500 focus:outline-none"/>
+            className="w-full border border-zinc-600 rounded-xl px-4 py-2.5 text-white focus:border-amber-500 focus:outline-none" style={{background:"rgba(255,255,255,0.08)"}}/>
           {errs.date && <p className="text-red-400 text-xs mt-1">{errs.date}</p>}
         </div>
         <div>
@@ -1136,7 +1136,7 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
               {errs.sesNo ? <p className="text-red-400 text-xs mt-1 text-center">{errs.sesNo}</p> : <p className="text-zinc-600 text-xs mt-1 text-center">ปรับได้</p>}
             </div>
           </div>
-          <div className="mt-3 bg-zinc-900/50 rounded-xl px-3 py-2 text-center">
+          <div className="mt-3 rounded-xl px-3 py-2 text-center">
             <span className="text-amber-300 font-bold font-mono text-sm">📋 ปี {year} · ซีซั่น {season} · เซสชั่นที่ {sesNo}</span>
           </div>
         </div>
@@ -1146,7 +1146,7 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
       <Box className="space-y-3">
         <div className="text-zinc-300 font-semibold text-sm">⚙️ ตั้งค่าเซสชั่นนี้</div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="bg-zinc-800/60 rounded-xl p-3 space-y-2">
+          <div className="rounded-xl p-3 space-y-2" style={{background:"rgba(255,255,255,0.06)"}}>
             <div className="text-amber-400 text-xs font-semibold">🎰 อัตราแลกชิป</div>
             <div className="flex items-center gap-2">
               <div className="flex-1"><label className="text-zinc-500 text-xs">ชิป</label><NInput value={rate.chips} onChange={v=>setRate(r=>({...r,chips:v}))}/></div>
@@ -1156,7 +1156,7 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
             <div className="text-zinc-500 text-xs font-mono">1 ชิป ≈ {rate.chips>0?(rate.baht/rate.chips).toFixed(4):0} ฿</div>
             {errs.rate && <p className="text-red-400 text-xs">{errs.rate}</p>}
           </div>
-          <div className="bg-zinc-800/60 rounded-xl p-3 space-y-2">
+          <div className="rounded-xl p-3 space-y-2" style={{background:"rgba(255,255,255,0.06)"}}>
             <div className="text-purple-400 text-xs font-semibold">📦 ค่าส่วนกลาง/คน</div>
             <NInput value={fee} onChange={setFee}/>
             <div className="text-zinc-500 text-xs font-mono">{active} คน × {fmt(fee)} = <span className="text-purple-300">{fmt(active*fee)} ฿</span></div>
@@ -1186,7 +1186,7 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
       {/* Mode toggle */}
       <div className="flex items-center gap-2">
         <span className="text-zinc-500 text-sm">กรอกเป็น:</span>
-        <div className="flex bg-zinc-800 rounded-lg p-0.5">
+        <div className="flex rounded-lg p-0.5" style={{background:"rgba(255,255,255,0.08)"}}>
           {[["chips","🎰 ชิป"],["baht","💵 บาท"]].map(([m,label]) => (
             <button key={m} onClick={()=>setMode(m)} className={"px-4 py-1.5 rounded-md text-sm font-medium transition-colors "+(mode===m?"bg-amber-500 text-black":"text-zinc-400 hover:text-white")}>{label}</button>
           ))}
@@ -1324,7 +1324,7 @@ function PotView({ data, onAddTx, onDeleteTx, saving }) {
       {add && (
         <Box className="space-y-3">
           <div className="text-zinc-300 font-semibold text-sm">เพิ่มรายการ</div>
-          <div className="flex bg-zinc-800 rounded-lg p-0.5">
+          <div className="flex rounded-lg p-0.5" style={{background:"rgba(255,255,255,0.08)"}}>
             <button onClick={()=>setType("income")}  className={"flex-1 py-2 rounded-md text-sm font-medium transition-colors "+(type==="income"?"bg-emerald-600 text-white":"text-zinc-400 hover:text-white")}>➕ รายรับ</button>
             <button onClick={()=>setType("expense")} className={"flex-1 py-2 rounded-md text-sm font-medium transition-colors "+(type==="expense"?"bg-red-600 text-white":"text-zinc-400 hover:text-white")}>➖ รายจ่าย</button>
           </div>
@@ -1404,7 +1404,7 @@ function SettingsView({ data, onUpdate, saving }) {
         </div>
         <div className="space-y-2">
           {players.map(p => (
-            <div key={p} className="flex items-center gap-2 bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2">
+            <div key={p} className="flex items-center gap-2 border border-zinc-700/60 rounded-xl px-3 py-2" style={{background:"rgba(255,255,255,0.06)"}}>
               <span className="text-white font-medium text-sm w-16 flex-shrink-0">{p}</span>
               <input
                 value={nicknames[p] || ""}
@@ -1434,7 +1434,7 @@ function SettingsView({ data, onUpdate, saving }) {
             value={adminPassword}
             onChange={e => setAdminPassword(e.target.value)}
             placeholder="ตั้ง password สำหรับ admin..."
-            className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2.5 text-white placeholder-zinc-600 focus:border-amber-500 focus:outline-none pr-16"
+            className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2.5 text-white placeholder-zinc-600 focus:border-amber-500 focus:outline-none pr-16" style={{background:"rgba(255,255,255,0.08)"}}
           />
           <button onClick={()=>setShowPw(p=>!p)}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 text-xs">
@@ -1618,14 +1618,14 @@ export default function App() {
   }
 
   if (loading) return (
-    <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center gap-3">
+    <div className="min-h-screen flex flex-col items-center justify-center gap-3" style={{backgroundImage:`url(${BG_SRC})`,backgroundSize:"cover",backgroundPosition:"center"}}>
       <Spinner/>
       <div className="text-amber-400 text-sm">กำลังโหลดข้อมูลจาก Google Sheets...</div>
     </div>
   );
 
   if (error) return (
-    <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center gap-4 px-6">
+    <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-6" style={{backgroundImage:`url(${BG_SRC})`,backgroundSize:"cover",backgroundPosition:"center"}}>
       <div className="text-4xl">⚠️</div>
       <div className="text-red-400 text-center text-sm">{error}</div>
       <div className="text-zinc-600 text-xs text-center">ตรวจสอบว่า Apps Script Deploy ถูกต้องแล้วหรือยัง</div>
@@ -1696,7 +1696,7 @@ export default function App() {
         <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800/60">
           {/* Hamburger ซ้าย */}
           <button onClick={() => setMenuOpen(o => !o)}
-            className="w-9 h-9 rounded-xl bg-zinc-800 border border-zinc-700 flex flex-col items-center justify-center gap-1.5 flex-shrink-0">
+            className="w-9 h-9 rounded-xl border border-zinc-700/60 flex flex-col items-center justify-center gap-1.5 flex-shrink-0" style={{background:"rgba(255,255,255,0.08)"}}>
             <span className={"block w-4 h-0.5 bg-zinc-300 transition-all duration-200 " + (menuOpen ? "rotate-45 translate-y-2" : "")}/>
             <span className={"block w-4 h-0.5 bg-zinc-300 transition-all duration-200 " + (menuOpen ? "opacity-0" : "")}/>
             <span className={"block w-4 h-0.5 bg-zinc-300 transition-all duration-200 " + (menuOpen ? "-rotate-45 -translate-y-2" : "")}/>
