@@ -1602,7 +1602,7 @@ function CalcView() {
                   <div className="flex items-center justify-between mb-1">
                     <div>
                       <div className={"text-sm font-semibold " + (isOk ? "text-emerald-300" : "text-red-300")}>{street}</div>
-                      <div className="text-zinc-600 text-[10px]">{desc} · ×{mult} rule</div>
+                      <div className="text-zinc-600 text-[10px]">{desc} · ×{mult} rule{exampleText ? <span className="text-amber-300/70"> · {exampleText}</span> : ""}</div>
                     </div>
                     <div className="text-right">
                       <div className={"font-mono font-black text-xl " + (isOk ? "text-emerald-400" : "text-red-400")}>
@@ -1611,12 +1611,7 @@ function CalcView() {
                       <div className="text-zinc-600 text-[10px]">≈{(outsNeeded * mult).toFixed(0)}% equity</div>
                     </div>
                   </div>
-                  {exampleText && (
-                    <div className="mt-1 pt-1.5 border-t border-white/5">
-                      <span className="text-zinc-500 text-[10px]">ตัวอย่าง: </span>
-                      <span className="text-amber-300/80 text-[10px] font-medium">{exampleText}</span>
-                    </div>
-                  )}
+
                 </div>
               );
             })
