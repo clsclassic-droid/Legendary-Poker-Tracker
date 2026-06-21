@@ -1049,8 +1049,8 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
   const {year, season} = useMemo(() => date ? dateToSeason(date) : {year:null,season:null}, [date]);
   const sameSes = useMemo(() => data.sessions.filter(s=>s.year===year&&s.season===season&&s.internalId!==editSession?.internalId), [data.sessions,year,season,editSession]);
   const autoNo  = useMemo(() => editSession ? editSession.sessionNo : sameSes.length===0 ? 1 : (Math.max(...sameSes.map(s=>s.sessionNo))||0)+1, [editSession,sameSes]);
-  const [sesNo, setSesNo] = useState(0);
-  useEffect(()=>{ setSesNo(editSession ? editSession.sessionNo : (autoNo || 1)); },[autoNo,editSession]);
+  const [sesNo, setSesNo] = useState(() => editSession ? editSession.sessionNo : 1);
+  useEffect(()=>{ if(!editSession) setSesNo(autoNo || 1); },[autoNo]);
   const isDup = sameSes.some(s=>s.sessionNo===sesNo);
 
   const gc = v => mode==="baht" ? b2c(v,rate) : v;
