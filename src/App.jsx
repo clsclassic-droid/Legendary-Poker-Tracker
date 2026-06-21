@@ -1534,17 +1534,14 @@ const STREAK_ITEMS = [
   { id:"set_5",       group:"🎯 ติด Set",   label:"ติด Set ภายใน 5 ใบ รวม",     prob:19.18, avgEvery:5  },
   // หมวด Flush
   { id:"flush_flop",  group:"♦️ Flush",     label:"ติด Flush สมบูรณ์ที่ Flop",  prob:0.84,  avgEvery:119},
-  { id:"flush_draw",  group:"♦️ Flush",     label:"มี Flush Draw ที่ Flop",      prob:10.94, avgEvery:9  },
   { id:"flush_turn",  group:"♦️ Flush",     label:"Draw → ติดที่ Turn",          prob:19.15, avgEvery:5  },
   { id:"flush_river", group:"♦️ Flush",     label:"Draw → ติดที่ River",         prob:15.82, avgEvery:6  },
   { id:"flush_tr",    group:"♦️ Flush",     label:"Draw → ติดใน Turn หรือ River",prob:34.97, avgEvery:3  },
   // หมวด Straight
   { id:"str_flop",    group:"♠️ Straight",  label:"ติด Straight สมบูรณ์ที่ Flop",prob:2.61, avgEvery:38 },
-  { id:"oesd_flop",   group:"♠️ Straight",  label:"มี OESD ที่ Flop",            prob:10.5,  avgEvery:10 },
   { id:"oesd_turn",   group:"♠️ Straight",  label:"OESD → ติดที่ Turn",          prob:17.02, avgEvery:6  },
   { id:"oesd_river",  group:"♠️ Straight",  label:"OESD → ติดที่ River",         prob:14.43, avgEvery:7  },
   { id:"oesd_tr",     group:"♠️ Straight",  label:"OESD → ติดใน Turn หรือ River",prob:31.45, avgEvery:3  },
-  { id:"gut_tr",      group:"♠️ Straight",  label:"Gutshot → Turn หรือ River",   prob:16.47, avgEvery:6  },
 ];
 
 function StreakView() {
