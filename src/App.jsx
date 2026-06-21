@@ -1548,7 +1548,15 @@ function CalcView() {
         {/* Pot */}
         <div>
           <label className="block text-zinc-400 text-sm font-semibold mb-2">💰 Pot ปัจจุบัน (฿ หรือ ชิป)</label>
-          <NInput value={pot} onChange={setPot} ph="100"/>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setPot(v => Math.max(0, v - 5))}
+              className="w-10 h-10 rounded-xl border border-zinc-700/30 text-zinc-300 text-lg font-bold hover:text-white hover:border-amber-500/40 transition-colors flex-shrink-0 flex items-center justify-center"
+              style={{background:"rgba(255,255,255,0.06)"}}>−</button>
+            <NInput value={pot} onChange={setPot} ph="100"/>
+            <button onClick={() => setPot(v => v + 5)}
+              className="w-10 h-10 rounded-xl border border-zinc-700/30 text-zinc-300 text-lg font-bold hover:text-white hover:border-amber-500/40 transition-colors flex-shrink-0 flex items-center justify-center"
+              style={{background:"rgba(255,255,255,0.06)"}}>+</button>
+          </div>
           <div className="flex gap-2 mt-2 flex-wrap">
             {potPresets.map(v => (
               <button key={v} onClick={() => setPot(v)}
@@ -1563,7 +1571,15 @@ function CalcView() {
         {/* Call */}
         <div>
           <label className="block text-zinc-400 text-sm font-semibold mb-2">📞 จำนวนที่ต้อง Call (฿ หรือ ชิป)</label>
-          <NInput value={call} onChange={setCall} ph="20"/>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setCall(v => Math.max(0, v - 5))}
+              className="w-10 h-10 rounded-xl border border-zinc-700/30 text-zinc-300 text-lg font-bold hover:text-white hover:border-amber-500/40 transition-colors flex-shrink-0 flex items-center justify-center"
+              style={{background:"rgba(255,255,255,0.06)"}}>−</button>
+            <NInput value={call} onChange={setCall} ph="20"/>
+            <button onClick={() => setCall(v => v + 5)}
+              className="w-10 h-10 rounded-xl border border-zinc-700/30 text-zinc-300 text-lg font-bold hover:text-white hover:border-amber-500/40 transition-colors flex-shrink-0 flex items-center justify-center"
+              style={{background:"rgba(255,255,255,0.06)"}}>+</button>
+          </div>
           <div className="flex gap-2 mt-2 flex-wrap">
             {callPresets.map(v => (
               <button key={v} onClick={() => setCall(v)}
