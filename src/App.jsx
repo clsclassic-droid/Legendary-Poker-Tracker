@@ -16,11 +16,17 @@ async function apiGet() {
   if (!json.ok) throw new Error(json.error);
   const d = json.data;
   if (!d.nicknames) d.nicknames = {};
+  if (!d.avatars) d.avatars = {};
   if (d.settings) {
     // parse nicknames from settings if stored as key=value string
     const nk = d.settings?.nicknames;
     if (nk && typeof nk === 'string') {
       d.nicknames = Object.fromEntries(nk.split(',').map(p => p.split(':').map(s=>s.trim())).filter(p=>p.length===2));
+    }
+    // parse avatars
+    const av = d.settings?.avatars;
+    if (av && typeof av === 'string') {
+      d.avatars = Object.fromEntries(av.split(',').map(p => p.split('|').map(s=>s.trim())).filter(p=>p.length===2 && p[0]));
     }
   }
   if (d.sessions) {
@@ -524,32 +530,55 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
   }
 
   // Player list
+  const DEFAULT_AVATAR = "https://raw.githubusercontent.com/clsclassic-droid/Legendary-Poker-Tracker/main/src/default-player.png";
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-bold text-white">👤 Player Profiles</h2>
       <p className="text-zinc-500 text-sm">กดชื่อเพื่อดูสถิติและกราฟ</p>
-      <div className="space-y-2">
-        {summary.map(p => (
-          <button key={p.name} onClick={()=>setSel(p.name)}
-            className="w-full flex items-center gap-3 border border-zinc-700/25 hover:border-zinc-600/70 rounded-2xl px-4 py-3 text-left transition-colors" style={{background:"rgba(15,10,3,0.05)",backdropFilter:"blur(6px)"}}>
-            <div className="w-9 h-9 rounded-xl border border-zinc-700/25 flex items-center justify-center text-lg flex-shrink-0" style={{background:"rgba(255,255,255,0.07)"}}>
-              {p.rank===1 ? "🥇" : p.rank===2 ? "🥈" : p.rank===3 ? "🥉" : "🃏"}
-            </div>
-            <div className="flex-1">
-              <div className="text-white font-bold"><PlayerName player={p.name} nicknames={data.nicknames}/></div>
-              <div className="text-zinc-500 text-xs">{p.n} เซสชั่น · Win rate {p.n>0?Math.round((p.gold/p.n)*100):0}%</div>
-            </div>
-            <div className="flex gap-1 text-xs mr-2">
-              {p.gold>0   && <span className="bg-amber-500/20 border border-amber-500/30 text-amber-300 px-1.5 py-0.5 rounded-full">🥇{p.gold}</span>}
-              {p.silver>0 && <span className=" border border-zinc-600 text-zinc-300 px-1.5 py-0.5 rounded-full">🥈{p.silver}</span>}
-              {p.last>0   && <span className="bg-red-900/30 border border-red-700/30 text-red-400 px-1.5 py-0.5 rounded-full">💀{p.last}</span>}
-            </div>
-            <div className="text-right flex-shrink-0">
-              <Profit v={p.total} sx=" ฿"/>
-            </div>
-            <span className="text-zinc-600">›</span>
-          </button>
-        ))}
+      <div className="space-y-3">
+        {summary.map((p, idx) => {
+          const isFirst = idx === 0;
+          const avatar = (data.avatars||{})[p.name] || DEFAULT_AVATAR;
+          return (
+            <button key={p.name} onClick={()=>setSel(p.name)}
+              className={"w-full text-left transition-all hover:scale-[1.01] " + (isFirst ? "rounded-2xl" : "rounded-2xl")}
+              style={{
+                background: isFirst ? "linear-gradient(135deg, rgba(201,162,39,0.15), rgba(201,162,39,0.05))" : "rgba(15,10,3,0.05)",
+                border: isFirst ? "1px solid rgba(201,162,39,0.4)" : "1px solid rgba(255,255,255,0.08)",
+                backdropFilter: "blur(6px)",
+              }}>
+              <div className="flex items-end gap-3 px-4 pb-3" style={{paddingTop: isFirst ? "0" : "0"}}>
+                {/* รูปตัวละคร overflow ด้านบน */}
+                <div className="relative flex-shrink-0" style={{width: isFirst?"72px":"56px", marginTop: isFirst?"-20px":"-16px"}}>
+                  <img src={avatar} alt={p.name}
+                    className="w-full rounded-xl object-cover"
+                    style={{height: isFirst?"96px":"72px", objectPosition:"top", filter:"drop-shadow(0 4px 8px rgba(0,0,0,0.5))"}}
+                  />
+                </div>
+                {/* Info */}
+                <div className="flex-1 py-3 min-w-0">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <span className="text-base">{p.rank===1?"🥇":p.rank===2?"🥈":p.rank===3?"🥉":"#"+p.rank}</span>
+                    <span className={"font-black " + (isFirst?"text-amber-300 text-lg":"text-white text-base")}>
+                      <PlayerName player={p.name} nicknames={data.nicknames}/>
+                    </span>
+                  </div>
+                  <div className="text-zinc-500 text-xs mb-1">{p.n} เซสชั่น · Win rate {p.n>0?Math.round((p.gold/p.n)*100):0}%</div>
+                  <div className="flex gap-1 flex-wrap">
+                    {p.gold>0   && <span className="bg-amber-500/20 border border-amber-500/30 text-amber-300 px-1.5 py-0.5 rounded-full text-[10px]">🥇{p.gold}</span>}
+                    {p.silver>0 && <span className="border border-zinc-600 text-zinc-300 px-1.5 py-0.5 rounded-full text-[10px]">🥈{p.silver}</span>}
+                    {p.last>0   && <span className="bg-red-900/30 border border-red-700/30 text-red-400 px-1.5 py-0.5 rounded-full text-[10px]">💀{p.last}</span>}
+                  </div>
+                </div>
+                {/* กำไร */}
+                <div className="text-right flex-shrink-0 py-3">
+                  <Profit v={p.total} sx=" ฿"/>
+                  <div className="text-zinc-600 text-[10px] mt-0.5">›</div>
+                </div>
+              </div>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
@@ -1398,15 +1427,17 @@ function SettingsView({ data, onUpdate, saving }) {
   const [rate,          setRate]          = useState({...data.chipRate});
   const [fee,           setFee]           = useState(data.defaultFee);
   const [nicknames,     setNicknames]     = useState({...( data.nicknames||{} )});
+  const [avatars,       setAvatars]       = useState({...( data.avatars||{} )});
   const [adminPassword, setAdminPassword] = useState(data.adminPassword || "");
   const [showPw,        setShowPw]        = useState(false);
   const [saved,         setSaved]         = useState(false);
 
   function addPlayer() { const n=newName.trim(); if(!n||players.includes(n)) return; setPlayers([...players,n]); setNewName(""); }
-  function rmPlayer(n) { setPlayers(players.filter(p=>p!==n)); const nn={...nicknames}; delete nn[n]; setNicknames(nn); }
+  function rmPlayer(n) { setPlayers(players.filter(p=>p!==n)); const nn={...nicknames}; delete nn[n]; setNicknames(nn); const aa={...avatars}; delete aa[n]; setAvatars(aa); }
   function setNick(player, val) { setNicknames(prev=>({...prev, [player]: val})); }
+  function setAvatar(player, val) { setAvatars(prev=>({...prev, [player]: val})); }
   async function save() {
-    await onUpdate({players, chipRate:rate, defaultFee:fee, nicknames, adminPassword});
+    await onUpdate({players, chipRate:rate, defaultFee:fee, nicknames, avatars, adminPassword});
     setSaved(true); setTimeout(()=>setSaved(false),2000);
   }
 
@@ -1436,15 +1467,25 @@ function SettingsView({ data, onUpdate, saving }) {
         </div>
         <div className="space-y-2">
           {players.map(p => (
-            <div key={p} className="flex items-center gap-2 border border-zinc-700/30 rounded-xl px-3 py-2" style={{background:"rgba(255,255,255,0.06)"}}>
-              <span className="text-white font-medium text-sm w-16 flex-shrink-0">{p}</span>
+            <div key={p} className="border border-zinc-700/30 rounded-xl px-3 py-2 space-y-1.5" style={{background:"rgba(255,255,255,0.06)"}}>
+              <div className="flex items-center gap-2">
+                <img src={avatars[p] || "https://raw.githubusercontent.com/clsclassic-droid/Legendary-Poker-Tracker/main/src/default-player.png"} alt={p}
+                  className="w-8 h-8 rounded-lg object-cover flex-shrink-0" style={{objectPosition:"top"}}/>
+                <span className="text-white font-medium text-sm w-16 flex-shrink-0">{p}</span>
+                <input
+                  value={nicknames[p] || ""}
+                  onChange={e => setNick(p, e.target.value)}
+                  placeholder="Nickname..."
+                  className="flex-1 border border-zinc-600/60 rounded-lg px-3 py-1.5 text-zinc-300 text-xs placeholder-zinc-600 focus:border-amber-500 focus:outline-none" style={{background:"rgba(255,255,255,0.06)"}}
+                />
+                <button onClick={()=>rmPlayer(p)} className="text-zinc-600 hover:text-red-400 text-xs flex-shrink-0">✕</button>
+              </div>
               <input
-                value={nicknames[p] || ""}
-                onChange={e => setNick(p, e.target.value)}
-                placeholder="Nickname..."
-                className="flex-1 border border-zinc-600/60 rounded-lg px-3 py-1.5 text-zinc-300 text-xs placeholder-zinc-600 focus:border-amber-500 focus:outline-none" style={{background:"rgba(255,255,255,0.06)"}}
+                value={avatars[p] || ""}
+                onChange={e => setAvatar(p, e.target.value)}
+                placeholder="URL รูปตัวละคร..."
+                className="w-full border border-zinc-600/60 rounded-lg px-3 py-1.5 text-zinc-300 text-xs placeholder-zinc-600 focus:border-amber-500 focus:outline-none" style={{background:"rgba(255,255,255,0.04)"}}
               />
-              <button onClick={()=>rmPlayer(p)} className="text-zinc-600 hover:text-red-400 text-xs flex-shrink-0">✕</button>
             </div>
           ))}
         </div>
@@ -2470,6 +2511,7 @@ export default function App() {
         ...cfg,
         nextInternalId: data.nextInternalId,
         nicknames: cfg.nicknames||{},
+        avatars: cfg.avatars||{},
         adminPassword: cfg.adminPassword !== undefined ? cfg.adminPassword : (data.adminPassword || ""),
       }});
       await refresh();
