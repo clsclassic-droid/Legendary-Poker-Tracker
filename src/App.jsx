@@ -2076,6 +2076,7 @@ function SkillView({ data }) {
       <div>
         <h2 className="text-xl font-bold text-white">🎭 Skill</h2>
         <p className="text-zinc-500 text-sm mt-0.5">สถิติ Bluff แต่ละผู้เล่น</p>
+        <p className="text-zinc-600 text-xs mt-1">Score = 🎭 บลัฟผ่าน <span className="text-emerald-500">+1</span> · ❌ บลัฟไม่ผ่าน <span className="text-red-500">-1</span> · 🔍 จับบลัฟได้ <span className="text-emerald-500">+1</span> · 😵 โดนบลัฟ <span className="text-red-500">-1</span></p>
       </div>
 
       {/* Filter */}
@@ -2115,15 +2116,15 @@ function SkillView({ data }) {
                   <div className="grid grid-cols-4 gap-2 text-center">
                     <div>
                       <div className="text-emerald-400 font-black text-xl font-mono">{p.bluffWin}</div>
-                      <div className="text-zinc-600 text-[10px]">🎭 ผ่าน</div>
+                      <div className="text-zinc-600 text-[10px]">🎭 บลัฟผ่าน</div>
                     </div>
                     <div>
                       <div className="text-red-400 font-black text-xl font-mono">{p.bluffLose}</div>
-                      <div className="text-zinc-600 text-[10px]">❌ ไม่ผ่าน</div>
+                      <div className="text-zinc-600 text-[10px]">❌ บลัฟไม่ผ่าน</div>
                     </div>
                     <div>
                       <div className="text-amber-400 font-black text-xl font-mono">{p.catchBluff}</div>
-                      <div className="text-zinc-600 text-[10px]">🔍 จับได้</div>
+                      <div className="text-zinc-600 text-[10px]">🔍 จับบลัฟได้</div>
                     </div>
                     <div>
                       <div className="text-purple-400 font-black text-xl font-mono">{p.gotBluffed}</div>
@@ -2147,9 +2148,9 @@ function SkillView({ data }) {
                   <tr className="border-b border-zinc-800 text-zinc-500 text-xs">
                     <th className="px-3 py-2.5 text-left">#</th>
                     <th className="px-3 py-2.5 text-left">ผู้เล่น</th>
-                    <th className="px-2 py-2.5 text-center">🎭 ผ่าน</th>
-                    <th className="px-2 py-2.5 text-center">❌ ไม่ผ่าน</th>
-                    <th className="px-2 py-2.5 text-center">🔍 จับได้</th>
+                    <th className="px-2 py-2.5 text-center">🎭 บลัฟผ่าน</th>
+                    <th className="px-2 py-2.5 text-center">❌ บลัฟไม่ผ่าน</th>
+                    <th className="px-2 py-2.5 text-center">🔍 จับบลัฟได้</th>
                     <th className="px-2 py-2.5 text-center">😵 โดนบลัฟ</th>
                     <th className="px-2 py-2.5 text-center">Score</th>
                   </tr>
