@@ -2489,6 +2489,7 @@ export default function App() {
         {tab === "profiles"    && <PlayerProfilesView data={data} initialSel={profileSel} onClearSel={()=>setProfileSel(null)}/>}
         {tab === "race"        && <RaceView data={data}/>}
         {tab === "skill"       && <SkillView data={data}/>}
+        {tab === "luck"        && <LuckView data={data}/>}
         {tab === "calc"        && <CalcView/>}
         {tab === "streak"      && <StreakView/>}
         {tab === "sessions"    && !editSes && <SessionsView data={data}
