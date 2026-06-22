@@ -2052,7 +2052,8 @@ function buildSkillSummary(players, sessions) {
   });
   return Object.values(map)
     .filter(p => p.n > 0)
-    .sort((a,b) => (b.bluffWin - b.bluffLose) - (a.bluffWin - a.bluffLose));
+    .map(p => ({ ...p, score: p.bluffWin - p.bluffLose + p.catchBluff - p.gotBluffed }))
+    .sort((a,b) => b.score - a.score);
 }
 
 function SkillView({ data }) {
@@ -2101,7 +2102,6 @@ function SkillView({ data }) {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {summary.slice(0,3).map((p,i) => {
               const total = p.bluffWin + p.bluffLose;
-              const rate  = total > 0 ? Math.round((p.bluffWin/total)*100) : 0;
               const GRAD  = ["border-amber-500/40","border-zinc-500/40","border-orange-700/40"];
               const BG    = ["rgba(25,14,2,0.4)","rgba(20,20,20,0.4)","rgba(25,12,2,0.4)"];
               const MEDAL = ["🥇","🥈","🥉"];
@@ -2131,8 +2131,8 @@ function SkillView({ data }) {
                     </div>
                   </div>
                   <div className="mt-3 pt-2 border-t border-white/5 text-center">
-                    <span className="text-xs text-zinc-500">Bluff rate </span>
-                    <span className={"text-sm font-bold font-mono " + (rate>=50?"text-emerald-400":rate>=33?"text-amber-400":"text-red-400")}>{rate}%</span>
+                    <span className="text-xs text-zinc-500">Score </span>
+                    <span className={"text-sm font-bold font-mono " + (p.score>0?"text-emerald-400":p.score<0?"text-red-400":"text-zinc-500")}>{p.score>0?"+":""}{p.score}</span>
                   </div>
                 </div>
               );
@@ -2151,13 +2151,12 @@ function SkillView({ data }) {
                     <th className="px-2 py-2.5 text-center">❌ ไม่ผ่าน</th>
                     <th className="px-2 py-2.5 text-center">🔍 จับได้</th>
                     <th className="px-2 py-2.5 text-center">😵 โดนบลัฟ</th>
-                    <th className="px-2 py-2.5 text-center">Rate</th>
+                    <th className="px-2 py-2.5 text-center">Score</th>
                   </tr>
                 </thead>
                 <tbody>
                   {summary.map((p, i) => {
                     const total = p.bluffWin + p.bluffLose;
-                    const rate  = total > 0 ? Math.round((p.bluffWin/total)*100) : null;
                     return (
                       <tr key={p.name} className="border-b border-zinc-800/30 hover:bg-white/5 transition-colors">
                         <td className="px-3 py-2.5 text-zinc-600 font-mono text-xs">{i+1}</td>
@@ -2167,9 +2166,9 @@ function SkillView({ data }) {
                         <td className="px-2 py-2.5 text-center font-mono font-bold text-amber-400">{p.catchBluff > 0 ? p.catchBluff : <span className="text-zinc-700">—</span>}</td>
                         <td className="px-2 py-2.5 text-center font-mono font-bold text-purple-400">{p.gotBluffed > 0 ? p.gotBluffed : <span className="text-zinc-700">—</span>}</td>
                         <td className="px-2 py-2.5 text-center">
-                          {rate !== null
-                            ? <span className={"text-xs font-bold font-mono " + (rate>=50?"text-emerald-400":rate>=33?"text-amber-400":"text-red-400")}>{rate}%</span>
-                            : <span className="text-zinc-700">—</span>}
+                          <span className={"text-xs font-bold font-mono " + (p.score>0?"text-emerald-400":p.score<0?"text-red-400":"text-zinc-500")}>
+                            {p.score>0?"+":""}{p.score}
+                          </span>
                         </td>
                       </tr>
                     );
