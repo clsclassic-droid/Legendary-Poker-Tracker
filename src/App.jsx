@@ -2184,6 +2184,148 @@ function SkillView({ data }) {
   );
 }
 
+
+// ─────────────────────────────────────────────────────────────────
+// LUCK VIEW
+// ─────────────────────────────────────────────────────────────────
+function buildLuckSummary(players, sessions) {
+  const map = {};
+  players.forEach(p => {
+    map[p] = { name:p, fourCard:0, straightFlush:0, royalStraightFlush:0, n:0 };
+  });
+  sessions.forEach(s => {
+    s.entries.forEach(e => {
+      if (!map[e.player]) map[e.player] = { name:e.player, fourCard:0, straightFlush:0, royalStraightFlush:0, n:0 };
+      const p = map[e.player];
+      p.fourCard           += e.fourCard           || 0;
+      p.straightFlush      += e.straightFlush      || 0;
+      p.royalStraightFlush += e.royalStraightFlush || 0;
+      p.n++;
+    });
+  });
+  return Object.values(map)
+    .filter(p => p.n > 0)
+    .map(p => ({ ...p, score: p.fourCard * 1 + p.straightFlush * 2 + p.royalStraightFlush * 4 }))
+    .sort((a,b) => b.score - a.score);
+}
+
+function LuckView({ data }) {
+  const [filter, setFilter] = useState("all");
+  const yearKeys = useMemo(() => [...new Set(data.sessions.map(s=>String(s.year)))].sort((a,b)=>b-a), [data.sessions]);
+  const latest   = data.sessions[data.sessions.length-1] ?? null;
+
+  const filtered = useMemo(() => {
+    if (filter==="all")    return data.sessions;
+    if (filter==="latest") return latest ? [latest] : [];
+    if (filter.startsWith("yr:")) { const y=Number(filter.slice(3)); return data.sessions.filter(x=>x.year===y); }
+    return data.sessions;
+  }, [data.sessions, filter, latest]);
+
+  const summary = useMemo(() => buildLuckSummary(data.players, filtered), [data.players, filtered]);
+  const hasData = summary.some(p => p.fourCard+p.straightFlush+p.royalStraightFlush > 0);
+
+  return (
+    <div className="space-y-5">
+      <div>
+        <h2 className="text-xl font-bold text-white">🍀 Luck</h2>
+        <p className="text-zinc-500 text-sm mt-0.5">สถิติไพ่พิเศษแต่ละผู้เล่น</p>
+        <p className="text-zinc-600 text-xs mt-1">Score = 🃏 4 Card <span className="text-emerald-500">+1</span> · ♠️ Straight Flush <span className="text-emerald-500">+2</span> · 👑 Royal Straight Flush <span className="text-emerald-500">+4</span></p>
+      </div>
+
+      {/* Filter */}
+      <div className="flex gap-2 overflow-x-auto pb-1">
+        {[["all","ทั้งหมด"],["latest","ล่าสุด"],...yearKeys.map(y=>["yr:"+y,"ปี "+y])].map(([key,label]) => (
+          <button key={key} onClick={()=>setFilter(key)}
+            className={"px-3 py-1.5 rounded-full text-xs font-medium border transition-colors flex-shrink-0 " + (
+              filter===key ? "bg-amber-500/15 text-amber-400 border-amber-500/40"
+                           : "bg-transparent text-zinc-500 border-zinc-700 hover:text-zinc-300")}>
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {!hasData ? (
+        <div className="border border-zinc-700/25 rounded-2xl p-8 text-center" style={{background:"rgba(255,255,255,0.03)"}}>
+          <div className="text-4xl mb-3">🍀</div>
+          <div className="text-zinc-500 text-sm">ยังไม่มีข้อมูล Luck</div>
+          <div className="text-zinc-700 text-xs mt-1">กรอกข้อมูลไพ่พิเศษตอนบันทึกเซสชั่น</div>
+        </div>
+      ) : (
+        <>
+          {/* Top 3 cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {summary.slice(0,3).map((p,i) => {
+              const GRAD  = ["border-amber-500/40","border-zinc-500/40","border-orange-700/40"];
+              const BG    = ["rgba(25,14,2,0.4)","rgba(20,20,20,0.4)","rgba(25,12,2,0.4)"];
+              const MEDAL = ["🥇","🥈","🥉"];
+              return (
+                <div key={p.name} className={"rounded-2xl border p-4 " + GRAD[i]} style={{background:BG[i]}}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-2xl">{MEDAL[i]}</span>
+                    <div className="text-white font-bold text-lg">{p.name}</div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 text-center">
+                    <div>
+                      <div className="text-sky-400 font-black text-xl font-mono">{p.fourCard}</div>
+                      <div className="text-zinc-600 text-[10px]">🃏 4 Card</div>
+                    </div>
+                    <div>
+                      <div className="text-violet-400 font-black text-xl font-mono">{p.straightFlush}</div>
+                      <div className="text-zinc-600 text-[10px]">♠️ Str. Flush</div>
+                    </div>
+                    <div>
+                      <div className="text-amber-400 font-black text-xl font-mono">{p.royalStraightFlush}</div>
+                      <div className="text-zinc-600 text-[10px]">👑 Royal</div>
+                    </div>
+                  </div>
+                  <div className="mt-3 pt-2 border-t border-white/5 text-center">
+                    <span className="text-xs text-zinc-500">Score </span>
+                    <span className={"text-sm font-bold font-mono " + (p.score>0?"text-emerald-400":p.score===0?"text-zinc-500":"text-red-400")}>{p.score>0?"+":""}{p.score}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Full table */}
+          <div className="border border-zinc-700/25 rounded-2xl overflow-hidden" style={{background:"rgba(15,10,3,0.05)"}}>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-zinc-800 text-zinc-500 text-xs">
+                    <th className="px-3 py-2.5 text-left">#</th>
+                    <th className="px-3 py-2.5 text-left">ผู้เล่น</th>
+                    <th className="px-2 py-2.5 text-center">🃏 4 Card</th>
+                    <th className="px-2 py-2.5 text-center">♠️ Straight Flush</th>
+                    <th className="px-2 py-2.5 text-center">👑 Royal Straight Flush</th>
+                    <th className="px-2 py-2.5 text-center">Score</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {summary.map((p, i) => (
+                    <tr key={p.name} className="border-b border-zinc-800/30 hover:bg-white/5 transition-colors">
+                      <td className="px-3 py-2.5 text-zinc-600 font-mono text-xs">{i+1}</td>
+                      <td className="px-3 py-2.5 text-white font-semibold">{p.name}</td>
+                      <td className="px-2 py-2.5 text-center font-mono font-bold text-sky-400">{p.fourCard > 0 ? p.fourCard : <span className="text-zinc-700">—</span>}</td>
+                      <td className="px-2 py-2.5 text-center font-mono font-bold text-violet-400">{p.straightFlush > 0 ? p.straightFlush : <span className="text-zinc-700">—</span>}</td>
+                      <td className="px-2 py-2.5 text-center font-mono font-bold text-amber-400">{p.royalStraightFlush > 0 ? p.royalStraightFlush : <span className="text-zinc-700">—</span>}</td>
+                      <td className="px-2 py-2.5 text-center">
+                        <span className={"text-xs font-bold font-mono " + (p.score>0?"text-emerald-400":p.score===0?"text-zinc-500":"text-red-400")}>
+                          {p.score>0?"+":""}{p.score}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 // ─────────────────────────────────────────────────────────────────
 // APP
 // ─────────────────────────────────────────────────────────────────
@@ -2375,6 +2517,7 @@ export default function App() {
     { id:"profiles",    icon:"👤", label:"Players",  adminOnly: false },
     { id:"race",        icon:"🏎️", label:"Race",      adminOnly: false },
     { id:"skill",       icon:"🎭", label:"Skill",     adminOnly: false },
+    { id:"luck",        icon:"🍀", label:"Luck",      adminOnly: false },
     { id:"calc",        icon:"🧮", label:"Calc",      adminOnly: true },
     { id:"streak",      icon:"🎯", label:"Streak",    adminOnly: true },
     { id:"sessions",    icon:"📋", label:"เซสชั่น",  adminOnly: false },
