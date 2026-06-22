@@ -530,7 +530,7 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
   }
 
   // Player list
-  const DEFAULT_AVATAR = "https://raw.githubusercontent.com/clsclassic-droid/Legendary-Poker-Tracker/main/src/default-player.png";
+  const DEFAULT_AVATAR = "https://raw.githubusercontent.com/clsclassic-droid/Legendary-Poker-Tracker/main/src/default-player.jpg";
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-bold text-white">👤 Player Profiles</h2>
@@ -1469,7 +1469,7 @@ function SettingsView({ data, onUpdate, saving }) {
           {players.map(p => (
             <div key={p} className="border border-zinc-700/30 rounded-xl px-3 py-2 space-y-1.5" style={{background:"rgba(255,255,255,0.06)"}}>
               <div className="flex items-center gap-2">
-                <img src={avatars[p] || "https://raw.githubusercontent.com/clsclassic-droid/Legendary-Poker-Tracker/main/src/default-player.png"} alt={p}
+                <img src={avatars[p] || "https://raw.githubusercontent.com/clsclassic-droid/Legendary-Poker-Tracker/main/src/default-player.jpg"} alt={p}
                   className="w-8 h-8 rounded-lg object-cover flex-shrink-0" style={{objectPosition:"top"}}/>
                 <span className="text-white font-medium text-sm w-16 flex-shrink-0">{p}</span>
                 <input
