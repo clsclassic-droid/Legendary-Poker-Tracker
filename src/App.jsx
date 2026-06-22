@@ -530,7 +530,7 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
   }
 
   // Player list
-  const DEFAULT_AVATAR = "https://raw.githubusercontent.com/clsclassic-droid/Legendary-Poker-Tracker/main/src/default-player.jpg";
+  const DEFAULT_AVATAR = "https://raw.githubusercontent.com/clsclassic-droid/Legendary-Poker-Tracker/main/src/default-player.png";
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-bold text-white">👤 Player Profiles</h2>
@@ -549,10 +549,10 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
               }}>
               <div className="flex items-end gap-3 px-4 pb-3" style={{paddingTop: isFirst ? "0" : "0"}}>
                 {/* รูปตัวละคร overflow ด้านบน */}
-                <div className="relative flex-shrink-0" style={{width: isFirst?"72px":"56px", marginTop: isFirst?"-20px":"-16px"}}>
+                <div className="relative flex-shrink-0" style={{width: isFirst?"88px":"68px", marginTop: isFirst?"-32px":"-24px"}}>
                   <img src={avatar} alt={p.name}
-                    className="w-full rounded-xl object-cover"
-                    style={{height: isFirst?"96px":"72px", objectPosition:"top", filter:"drop-shadow(0 4px 8px rgba(0,0,0,0.5))"}}
+                    className="w-full object-contain"
+                    style={{height: isFirst?"120px":"88px", objectPosition:"top center", filter:"drop-shadow(0 4px 12px rgba(0,0,0,0.7))"}}
                   />
                 </div>
                 {/* Info */}
@@ -1469,7 +1469,7 @@ function SettingsView({ data, onUpdate, saving }) {
           {players.map(p => (
             <div key={p} className="border border-zinc-700/30 rounded-xl px-3 py-2 space-y-1.5" style={{background:"rgba(255,255,255,0.06)"}}>
               <div className="flex items-center gap-2">
-                <img src={avatars[p] || "https://raw.githubusercontent.com/clsclassic-droid/Legendary-Poker-Tracker/main/src/default-player.jpg"} alt={p}
+                <img src={avatars[p] || "https://raw.githubusercontent.com/clsclassic-droid/Legendary-Poker-Tracker/main/src/default-player.png"} alt={p}
                   className="w-8 h-8 rounded-lg object-cover flex-shrink-0" style={{objectPosition:"top"}}/>
                 <span className="text-white font-medium text-sm w-16 flex-shrink-0">{p}</span>
                 <input
