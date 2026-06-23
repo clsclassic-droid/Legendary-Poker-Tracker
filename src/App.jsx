@@ -531,39 +531,71 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
 
   // Player list
   const DEFAULT_AVATAR = "https://raw.githubusercontent.com/clsclassic-droid/Legendary-Poker-Tracker/main/src/default-player.png";
+  const [hovSel, setHovSel] = useState(null);
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-bold text-white">👤 Player Profiles</h2>
-      <p className="text-zinc-500 text-sm">กดชื่อเพื่อดูสถิติและกราฟ</p>
-      <div className="space-y-3">
+      <p className="text-zinc-500 text-sm">กดเพื่อ select · กดอีกครั้งเพื่อดู profile</p>
+      <div className="space-y-2">
         {summary.map((p, idx) => {
-          const isFirst = idx === 0;
-          const avatar = (data.avatars||{})[p.name] || DEFAULT_AVATAR;
+          const isSel   = hovSel === p.name;
+          const avatar  = (data.avatars||{})[p.name] || DEFAULT_AVATAR;
+          const rankNum = idx + 1;
           return (
-            <button key={p.name} onClick={()=>setSel(p.name)}
-              className={"w-full text-left transition-all hover:scale-[1.01] " + (isFirst ? "rounded-2xl" : "rounded-2xl")}
+            <button key={p.name}
+              onClick={() => {
+                if (isSel) { setHovSel(null); setSel(p.name); }
+                else setHovSel(p.name);
+              }}
+              className="w-full text-left transition-all rounded-2xl"
               style={{
-                background: isFirst ? "linear-gradient(135deg, rgba(201,162,39,0.15), rgba(201,162,39,0.05))" : "rgba(15,10,3,0.05)",
-                border: isFirst ? "1px solid rgba(201,162,39,0.4)" : "1px solid rgba(255,255,255,0.08)",
+                background: isSel
+                  ? "linear-gradient(135deg, rgba(201,162,39,0.15), rgba(201,162,39,0.05))"
+                  : "rgba(15,10,3,0.05)",
+                border: isSel
+                  ? "1.5px solid rgba(201,162,39,0.45)"
+                  : "1px solid rgba(255,255,255,0.08)",
                 backdropFilter: "blur(6px)",
               }}>
-              <div className="flex items-end gap-3 px-4 pb-3" style={{paddingTop: isFirst ? "0" : "0"}}>
-                {/* รูปตัวละคร overflow ด้านบน */}
-                <div className="relative flex-shrink-0" style={{width: isFirst?"88px":"68px", marginTop: isFirst?"-32px":"-24px"}}>
+              <div className="flex items-stretch">
+                {/* เลขอันดับ — กึ่งกลาง card */}
+                <div className="flex-shrink-0 flex items-center justify-center" style={{width: isSel?"48px":"40px"}}>
+                  <span style={{
+                    color: isSel ? "#c9a227" : "#555",
+                    fontSize: isSel ? "28px" : "18px",
+                    fontWeight: 700,
+                    lineHeight: 1,
+                  }}>{rankNum}</span>
+                </div>
+                {/* รูป overflow ด้านบน */}
+                <div className="flex-shrink-0 flex items-end pb-3">
                   <img src={avatar} alt={p.name}
-                    className="w-full object-contain"
-                    style={{height: isFirst?"120px":"88px", objectPosition:"top center", filter:"drop-shadow(0 4px 12px rgba(0,0,0,0.7))"}}
+                    className="object-contain"
+                    style={{
+                      width: isSel ? "88px" : "68px",
+                      height: isSel ? "110px" : "84px",
+                      marginTop: isSel ? "-28px" : "-16px",
+                      objectPosition: "top center",
+                      filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.7))",
+                      transition: "all 0.2s ease",
+                    }}
                   />
                 </div>
                 {/* Info */}
-                <div className="flex-1 py-3 min-w-0">
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <span className="text-base">{p.rank===1?"🥇":p.rank===2?"🥈":p.rank===3?"🥉":"#"+p.rank}</span>
-                    <span className={"font-black " + (isFirst?"text-amber-300 text-lg":"text-white text-base")}>
+                <div className="flex-1 flex flex-col justify-center py-3 px-3 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap mb-1">
+                    <span className="font-bold" style={{color: isSel?"#f0c040":"#fff", fontSize: isSel?"16px":"15px"}}>
                       <PlayerName player={p.name} nicknames={data.nicknames}/>
                     </span>
+                    {isSel && (
+                      <span style={{background:"rgba(201,162,39,0.2)", border:"1px solid rgba(201,162,39,0.4)", color:"#c9a227", fontSize:"9px", padding:"2px 7px", borderRadius:"20px", whiteSpace:"nowrap"}}>
+                        กดอีกครั้งเพื่อดู profile ›
+                      </span>
+                    )}
                   </div>
-                  <div className="text-zinc-500 text-xs mb-1">{p.n} เซสชั่น · Win rate {p.n>0?Math.round((p.gold/p.n)*100):0}%</div>
+                  <div className="text-xs mb-1.5" style={{color: isSel?"#888":"#666"}}>
+                    {p.n} เซสชั่น · Win rate {p.n>0?Math.round((p.gold/p.n)*100):0}%
+                  </div>
                   <div className="flex gap-1 flex-wrap">
                     {p.gold>0   && <span className="bg-amber-500/20 border border-amber-500/30 text-amber-300 px-1.5 py-0.5 rounded-full text-[10px]">🥇{p.gold}</span>}
                     {p.silver>0 && <span className="border border-zinc-600 text-zinc-300 px-1.5 py-0.5 rounded-full text-[10px]">🥈{p.silver}</span>}
@@ -571,9 +603,9 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
                   </div>
                 </div>
                 {/* กำไร */}
-                <div className="text-right flex-shrink-0 py-3">
+                <div className="flex flex-col justify-center text-right flex-shrink-0 pr-4">
                   <Profit v={p.total} sx=" ฿"/>
-                  <div className="text-zinc-600 text-[10px] mt-0.5">›</div>
+                  {!isSel && <div className="text-zinc-600 text-[10px] mt-0.5">›</div>}
                 </div>
               </div>
             </button>
