@@ -462,8 +462,17 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
           </div>
         </div>
 
-        {/* Total */}
-        <div className="text-center py-4 border border-zinc-700/25 rounded-2xl" style={{background:"rgba(15,10,3,0.05)",backdropFilter:"blur(6px)"}}>
+        {/* Total + รูป profile */}
+        <div className="border border-zinc-700/25 rounded-2xl pt-2 pb-4 px-4 text-center" style={{background:"rgba(15,10,3,0.05)",backdropFilter:"blur(6px)"}}>
+          {/* รูปตัวละคร กึ่งกลาง บนสุด */}
+          <div className="flex justify-center mb-2">
+            <img
+              src={(data.avatars||{})[sel] || "https://raw.githubusercontent.com/clsclassic-droid/Legendary-Poker-Tracker/main/src/default-player.png"}
+              alt={sel}
+              className="object-contain"
+              style={{width:"100px", height:"130px", objectPosition:"top center", filter:"drop-shadow(0 4px 16px rgba(0,0,0,0.8))", marginTop:"-20px"}}
+            />
+          </div>
           <div className="text-zinc-500 text-sm mb-1">กำไร / ขาดทุนรวม</div>
           <div className={"font-mono font-black text-4xl "+(stats.total>=0?"text-emerald-400":"text-red-400")}>
             {stats.total>0?"+":""}{fmt(stats.total)} ฿
@@ -582,30 +591,21 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
                   />
                 </div>
                 {/* Info */}
-                <div className="flex-1 flex flex-col justify-center py-3 px-3 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap mb-1">
+                <div className="flex-1 flex flex-col justify-center py-3 px-3 pr-4 min-w-0">
+                  <div className="flex items-center justify-between gap-2 mb-1">
                     <span className="font-bold" style={{color: isSel?"#f0c040":"#fff", fontSize: isSel?"16px":"15px"}}>
                       <PlayerName player={p.name} nicknames={data.nicknames}/>
                     </span>
-                    {isSel && (
-                      <span style={{background:"rgba(201,162,39,0.2)", border:"1px solid rgba(201,162,39,0.4)", color:"#c9a227", fontSize:"9px", padding:"2px 7px", borderRadius:"20px", whiteSpace:"nowrap"}}>
-                        กดอีกครั้งเพื่อดู profile ›
-                      </span>
-                    )}
+                    <Profit v={p.total} sx=" ฿"/>
                   </div>
                   <div className="text-xs mb-1.5" style={{color: isSel?"#888":"#666"}}>
                     {p.n} เซสชั่น · Win rate {p.n>0?Math.round((p.gold/p.n)*100):0}%
                   </div>
-                  <div className="flex gap-1 flex-wrap">
-                    {p.gold>0   && <span className="bg-amber-500/20 border border-amber-500/30 text-amber-300 px-1.5 py-0.5 rounded-full text-[10px]">🥇{p.gold}</span>}
-                    {p.silver>0 && <span className="border border-zinc-600 text-zinc-300 px-1.5 py-0.5 rounded-full text-[10px]">🥈{p.silver}</span>}
-                    {p.last>0   && <span className="bg-red-900/30 border border-red-700/30 text-red-400 px-1.5 py-0.5 rounded-full text-[10px]">💀{p.last}</span>}
+                  <div className="flex gap-1" style={{flexWrap:"nowrap"}}>
+                    {p.gold>0   && <span className="bg-amber-500/20 border border-amber-500/30 text-amber-300 px-1.5 py-0.5 rounded-full text-[10px] whitespace-nowrap">🥇{p.gold}</span>}
+                    {p.silver>0 && <span className="border border-zinc-600 text-zinc-300 px-1.5 py-0.5 rounded-full text-[10px] whitespace-nowrap">🥈{p.silver}</span>}
+                    {p.last>0   && <span className="bg-red-900/30 border border-red-700/30 text-red-400 px-1.5 py-0.5 rounded-full text-[10px] whitespace-nowrap">💀{p.last}</span>}
                   </div>
-                </div>
-                {/* กำไร */}
-                <div className="flex flex-col justify-center text-right flex-shrink-0 pr-4">
-                  <Profit v={p.total} sx=" ฿"/>
-                  {!isSel && <div className="text-zinc-600 text-[10px] mt-0.5">›</div>}
                 </div>
               </div>
             </button>
