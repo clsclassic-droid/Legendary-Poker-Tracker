@@ -405,6 +405,7 @@ function DashboardView({ data, onGoLeader, onGoLatestSes, onGoPot }) {
 // ─────────────────────────────────────────────────────────────────
 function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
   const [sel, setSel] = useState(initialSel);
+  const [hovSel, setHovSel] = useState(null);
   const summary = useMemo(() => buildSummary(data.players, data.sessions), [data]);
 
   if (sel) {
@@ -430,7 +431,7 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
       <div className="space-y-4">
         <div className="flex items-center gap-3">
           {/* ปุ่ม back: วงกลมสีทอง */}
-          <button onClick={()=>setSel(null)}
+          <button onClick={()=>{setSel(null);}}
             className="w-9 h-9 rounded-full bg-amber-400 hover:bg-amber-300 flex items-center justify-center flex-shrink-0 transition-colors">
             <span className="text-black font-bold text-base">‹</span>
           </button>
@@ -531,7 +532,6 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
 
   // Player list
   const DEFAULT_AVATAR = "https://raw.githubusercontent.com/clsclassic-droid/Legendary-Poker-Tracker/main/src/default-player.png";
-  const [hovSel, setHovSel] = useState(null);
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-bold text-white">👤 Player Profiles</h2>
@@ -544,8 +544,8 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
           return (
             <button key={p.name}
               onClick={() => {
-                if (isSel) { setHovSel(null); setSel(p.name); }
-                else setHovSel(p.name);
+                if (isSel) { setSel(p.name); }
+                else { setHovSel(p.name); }
               }}
               className="w-full text-left transition-all rounded-2xl"
               style={{
