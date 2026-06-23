@@ -2651,9 +2651,9 @@ export default function App() {
           {/* Hamburger ซ้าย */}
           <button onClick={() => setMenuOpen(o => !o)}
             className="w-9 h-9 rounded-xl border border-zinc-700/30 flex flex-col items-center justify-center gap-1.5 flex-shrink-0" style={{background:"rgba(255,255,255,0.08)"}}>
-            <span className={"block w-4 h-0.5  transition-all duration-200 " + (menuOpen ? "rotate-45 translate-y-2" : "")}/>
-            <span className={"block w-4 h-0.5  transition-all duration-200 " + (menuOpen ? "opacity-0" : "")}/>
-            <span className={"block w-4 h-0.5  transition-all duration-200 " + (menuOpen ? "-rotate-45 -translate-y-2" : "")}/>
+            <span className={"block w-4 h-0.5 bg-zinc-300 transition-all duration-200 " + (menuOpen ? "rotate-45 translate-y-1.5" : "")}/>
+            <span className={"block w-4 h-0.5 bg-zinc-300 transition-all duration-200 " + (menuOpen ? "opacity-0" : "")}/>
+            <span className={"block w-4 h-0.5 bg-zinc-300 transition-all duration-200 " + (menuOpen ? "-rotate-45 -translate-y-1.5" : "")}/>
           </button>
           {/* Logo + ชื่อ กลาง */}
           <div className="flex items-center gap-2">
