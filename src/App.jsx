@@ -1103,8 +1103,8 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
   const [qok,  setQok]    = useState(false);
   const [errs, setErrs]   = useState({});
   const [rows, setRows]   = useState(
-    editSession ? editSession.entries.map(e=>({player:e.player, buy:e.buyInChips, sell:e.cashOutChips, bluffWin:e.bluffWin||0, bluffLose:e.bluffLose||0, catchBluff:e.catchBluff||0, gotBluffed:e.gotBluffed||0}))
-                : data.players.map(p=>({player:p, buy:0, sell:0, bluffWin:0, bluffLose:0, catchBluff:0, gotBluffed:0}))
+    editSession ? editSession.entries.map(e=>({player:e.player, buy:e.buyInChips, sell:e.cashOutChips, bluffWin:e.bluffWin||0, bluffLose:e.bluffLose||0, catchBluff:e.catchBluff||0, gotBluffed:e.gotBluffed||0, fourCard:e.fourCard||0, straightFlush:e.straightFlush||0, royalStraightFlush:e.royalStraightFlush||0}))
+                : data.players.map(p=>({player:p, buy:0, sell:0, bluffWin:0, bluffLose:0, catchBluff:0, gotBluffed:0, fourCard:0, straightFlush:0, royalStraightFlush:0}))
   );
 
   const {year, season} = useMemo(() => date ? dateToSeason(date) : {year:null,season:null}, [date]);
@@ -1153,7 +1153,8 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
         player:r.player, buyInChips:r.buy, cashOutChips:r.sell,
         buyInBaht:c2b(r.buy,rate), cashOutBaht:c2b(r.sell,rate),
         profitBaht:profit(r.buy,r.sell,rate),
-        bluffWin:r.bluffWin||0, bluffLose:r.bluffLose||0, catchBluff:r.catchBluff||0, gotBluffed:r.gotBluffed||0
+        bluffWin:r.bluffWin||0, bluffLose:r.bluffLose||0, catchBluff:r.catchBluff||0, gotBluffed:r.gotBluffed||0,
+        fourCard:r.fourCard||0, straightFlush:r.straightFlush||0, royalStraightFlush:r.royalStraightFlush||0
       }))
     });
   }
@@ -1349,6 +1350,27 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
                     ["bluffLose",  "❌ บลัฟไม่ผ่าน", "text-red-400"],
                     ["catchBluff", "🔍 จับบลัฟได้",  "text-amber-400"],
                     ["gotBluffed",  "😵 โดนบลัฟ",     "text-purple-400"],
+                  ].map(([field, label, color]) => (
+                    <div key={field} className="flex-1">
+                      <label className={"text-[10px] font-semibold " + color}>{label}</label>
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <button onClick={() => { const n=[...rows]; n[i]={...n[i],[field]:Math.max(0,(n[i][field]||0)-1)}; setRows(n); }}
+                          className="w-6 h-6 rounded-md text-zinc-400 hover:text-white text-sm flex items-center justify-center border border-zinc-700/30"
+                          style={{background:"rgba(255,255,255,0.05)"}}>−</button>
+                        <span className={"flex-1 text-center font-mono font-bold text-sm " + color}>{r[field]||0}</span>
+                        <button onClick={() => { const n=[...rows]; n[i]={...n[i],[field]:(n[i][field]||0)+1}; setRows(n); }}
+                          className="w-6 h-6 rounded-md text-zinc-400 hover:text-white text-sm flex items-center justify-center border border-zinc-700/30"
+                          style={{background:"rgba(255,255,255,0.05)"}}>+</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {/* Luck fields */}
+                <div className="flex gap-2 px-4 pb-3">
+                  {[
+                    ["fourCard",           "🃏 4 Card",            "text-sky-400"],
+                    ["straightFlush",      "♠️ Straight Flush",    "text-violet-400"],
+                    ["royalStraightFlush", "👑 Royal Straight Flush","text-amber-400"],
                   ].map(([field, label, color]) => (
                     <div key={field} className="flex-1">
                       <label className={"text-[10px] font-semibold " + color}>{label}</label>
