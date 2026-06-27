@@ -1315,14 +1315,32 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
           {rows.map((r,i) => {
             const pb  = profit(r.buy, r.sell, rate);
             const act = r.buy>0 || r.sell>0;
+            const hasStats = (r.bluffWin||0)+(r.bluffLose||0)+(r.catchBluff||0)+(r.gotBluffed||0)+(r.fourCard||0)+(r.straightFlush||0)+(r.royalStraightFlush||0) > 0;
+            const ALL_STAT_FIELDS = [
+              ["bluffWin",   "🎭",  "text-emerald-400"],
+              ["bluffLose",  "❌",  "text-red-400"],
+              ["catchBluff", "🔍",  "text-amber-400"],
+              ["gotBluffed", "😵",  "text-purple-400"],
+              null, // divider
+              ["fourCard",           "🃏", "text-sky-400"],
+              ["straightFlush",      "♠️", "text-violet-400"],
+              ["royalStraightFlush", "👑", "text-amber-300"],
+            ];
             return (
               <div key={r.player} className={"border-b border-zinc-800/30 " + (act?"":"opacity-50")}>
+                {/* Main row */}
                 <div className="px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
                   <div className="flex items-center gap-2 min-w-[80px]">
                     <span className={"w-2 h-2 rounded-full flex-shrink-0 "+(pb>0?"bg-emerald-400":pb<0?"bg-red-400":"")}/>
                     <span className="text-white font-medium"><PlayerName player={r.player} nicknames={data.nicknames}/></span>
+                    {/* ปุ่ม Stats toggle */}
+                    <button
+                      onClick={() => setRows(prev => prev.map((x,j) => j===i ? {...x, _statsOpen: !x._statsOpen} : x))}
+                      className={"ml-1 text-[10px] px-1.5 py-0.5 rounded border transition-colors " + (r._statsOpen ? "border-amber-500/50 text-amber-400 bg-amber-500/10" : hasStats ? "border-emerald-500/30 text-emerald-400 bg-emerald-500/10" : "border-zinc-700/30 text-zinc-600 hover:text-zinc-400")}>
+                      {r._statsOpen ? "▲ Stats" : (hasStats ? "✦ Stats" : "Stats")}
+                    </button>
                     <button onClick={() => setRows(prev => prev.filter(x => x.player !== r.player))}
-                      className="ml-1 text-zinc-600 hover:text-red-400 text-xs transition-colors">✕</button>
+                      className="ml-auto text-zinc-600 hover:text-red-400 text-xs transition-colors">✕</button>
                   </div>
                   <div className="flex gap-2 flex-1">
                     <div className="flex-1">
@@ -1343,45 +1361,31 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
                     {act && <Profit v={pb-fee} sx=" ฿ สุทธิ"/>}
                   </div>
                 </div>
-                {/* Bluff fields */}
-                <div className="flex gap-2 px-4 pb-3">
-                  {[
-                    ["bluffWin",   "🎭 บลัฟผ่าน",    "text-emerald-400"],
-                    ["bluffLose",  "❌ บลัฟไม่ผ่าน", "text-red-400"],
-                    ["catchBluff", "🔍 จับบลัฟได้",  "text-amber-400"],
-                    ["gotBluffed",  "😵 โดนบลัฟ",     "text-purple-400"],
-                  ].map(([field, label, color]) => (
-                    <div key={field} className="flex-1">
-                      <label className={"text-[10px] font-semibold " + color}>{label}</label>
-                      <div className="flex items-center gap-1 mt-0.5">
-                        <button onClick={() => { const n=[...rows]; n[i]={...n[i],[field]:Math.max(0,(n[i][field]||0)-1)}; setRows(n); }}
-                          className="w-6 h-6 rounded-md text-zinc-400 hover:text-white text-sm flex items-center justify-center border border-zinc-700/30"
-                          style={{background:"rgba(255,255,255,0.05)"}}>−</button>
-                        <span className={"flex-1 text-center font-mono font-bold text-sm " + color}>{r[field]||0}</span>
-                        <button onClick={() => { const n=[...rows]; n[i]={...n[i],[field]:(n[i][field]||0)+1}; setRows(n); }}
-                          className="w-6 h-6 rounded-md text-zinc-400 hover:text-white text-sm flex items-center justify-center border border-zinc-700/30"
-                          style={{background:"rgba(255,255,255,0.05)"}}>+</button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                {/* Luck fields */}
-                <div className="flex gap-2 px-4 pb-3">
-                  {[
-                    ["fourCard",           "🃏 4 Card",           "text-sky-400"],
-                    ["straightFlush",      "♠️ Str.Flush",        "text-violet-400"],
-                    ["royalStraightFlush", "👑 Royal",            "text-amber-400"],
-                  ].map(([field, label, color]) => (
-                    <div key={field} className="flex-1">
-                      <label className={"text-[10px] font-semibold " + color}>{label}</label>
-                      <div className="flex items-center gap-1 mt-0.5">
-                        <button onClick={() => { const n=[...rows]; n[i]={...n[i],[field]:Math.max(0,(n[i][field]||0)-1)}; setRows(n); }} className="w-6 h-6 rounded-md text-zinc-400 hover:text-white text-sm flex items-center justify-center border border-zinc-700/30" style={{background:"rgba(255,255,255,0.05)"}}>−</button>
-                        <span className={"flex-1 text-center font-mono font-bold text-sm " + color}>{r[field]||0}</span>
-                        <button onClick={() => { const n=[...rows]; n[i]={...n[i],[field]:(n[i][field]||0)+1}; setRows(n); }} className="w-6 h-6 rounded-md text-zinc-400 hover:text-white text-sm flex items-center justify-center border border-zinc-700/30" style={{background:"rgba(255,255,255,0.05)"}}>+</button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                {/* Stats row — collapsible */}
+                {r._statsOpen && (
+                  <div className="flex items-center gap-1 px-4 pb-3 flex-wrap" style={{background:"rgba(255,255,255,0.02)"}}>
+                    {ALL_STAT_FIELDS.map((f, fi) => {
+                      if (f === null) return (
+                        <div key={"div"+fi} className="w-px h-8 mx-1 flex-shrink-0" style={{background:"rgba(255,255,255,0.1)"}}/>
+                      );
+                      const [field, emoji, color] = f;
+                      return (
+                        <div key={field} className="flex flex-col items-center gap-0.5 flex-shrink-0">
+                          <span className={"text-[10px] font-semibold " + color}>{emoji}</span>
+                          <div className="flex items-center gap-0.5">
+                            <button onClick={() => { const n=[...rows]; n[i]={...n[i],[field]:Math.max(0,(n[i][field]||0)-1)}; setRows(n); }}
+                              className="w-5 h-5 rounded text-zinc-400 hover:text-white text-xs flex items-center justify-center border border-zinc-700/30"
+                              style={{background:"rgba(255,255,255,0.05)"}}>−</button>
+                            <span className={"w-5 text-center font-mono font-bold text-sm " + color}>{r[field]||0}</span>
+                            <button onClick={() => { const n=[...rows]; n[i]={...n[i],[field]:(n[i][field]||0)+1}; setRows(n); }}
+                              className="w-5 h-5 rounded text-zinc-400 hover:text-white text-xs flex items-center justify-center border border-zinc-700/30"
+                              style={{background:"rgba(255,255,255,0.05)"}}>+</button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             );
           })}
