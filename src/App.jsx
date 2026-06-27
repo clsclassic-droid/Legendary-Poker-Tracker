@@ -1103,8 +1103,8 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
   const [qok,  setQok]    = useState(false);
   const [errs, setErrs]   = useState({});
   const [rows, setRows]   = useState(
-    editSession ? editSession.entries.map(e=>({player:e.player, buy:e.buyInChips, sell:e.cashOutChips, bluffWin:e.bluffWin||0, bluffLose:e.bluffLose||0, catchBluff:e.catchBluff||0, gotBluffed:e.gotBluffed||0}))
-                : data.players.map(p=>({player:p, buy:0, sell:0, bluffWin:0, bluffLose:0, catchBluff:0, gotBluffed:0}))
+    editSession ? editSession.entries.map(e=>({player:e.player, buy:e.buyInChips, sell:e.cashOutChips, bluffWin:e.bluffWin||0, bluffLose:e.bluffLose||0, catchBluff:e.catchBluff||0, gotBluffed:e.gotBluffed||0, fourCard:e.fourCard||0, straightFlush:e.straightFlush||0, royalStraightFlush:e.royalStraightFlush||0}))
+                : data.players.map(p=>({player:p, buy:0, sell:0, bluffWin:0, bluffLose:0, catchBluff:0, gotBluffed:0, fourCard:0, straightFlush:0, royalStraightFlush:0}))
   );
 
   const {year, season} = useMemo(() => date ? dateToSeason(date) : {year:null,season:null}, [date]);
@@ -1153,7 +1153,8 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
         player:r.player, buyInChips:r.buy, cashOutChips:r.sell,
         buyInBaht:c2b(r.buy,rate), cashOutBaht:c2b(r.sell,rate),
         profitBaht:profit(r.buy,r.sell,rate),
-        bluffWin:r.bluffWin||0, bluffLose:r.bluffLose||0, catchBluff:r.catchBluff||0, gotBluffed:r.gotBluffed||0
+        bluffWin:r.bluffWin||0, bluffLose:r.bluffLose||0, catchBluff:r.catchBluff||0, gotBluffed:r.gotBluffed||0,
+        fourCard:r.fourCard||0, straightFlush:r.straightFlush||0, royalStraightFlush:r.royalStraightFlush||0
       }))
     });
   }
@@ -1360,6 +1361,23 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
                         <button onClick={() => { const n=[...rows]; n[i]={...n[i],[field]:(n[i][field]||0)+1}; setRows(n); }}
                           className="w-6 h-6 rounded-md text-zinc-400 hover:text-white text-sm flex items-center justify-center border border-zinc-700/30"
                           style={{background:"rgba(255,255,255,0.05)"}}>+</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {/* Luck fields */}
+                <div className="flex gap-2 px-4 pb-3">
+                  {[
+                    ["fourCard",           "🃏 4 Card",           "text-sky-400"],
+                    ["straightFlush",      "♠️ Str.Flush",        "text-violet-400"],
+                    ["royalStraightFlush", "👑 Royal",            "text-amber-400"],
+                  ].map(([field, label, color]) => (
+                    <div key={field} className="flex-1">
+                      <label className={"text-[10px] font-semibold " + color}>{label}</label>
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <button onClick={() => { const n=[...rows]; n[i]={...n[i],[field]:Math.max(0,(n[i][field]||0)-1)}; setRows(n); }} className="w-6 h-6 rounded-md text-zinc-400 hover:text-white text-sm flex items-center justify-center border border-zinc-700/30" style={{background:"rgba(255,255,255,0.05)"}}>−</button>
+                        <span className={"flex-1 text-center font-mono font-bold text-sm " + color}>{r[field]||0}</span>
+                        <button onClick={() => { const n=[...rows]; n[i]={...n[i],[field]:(n[i][field]||0)+1}; setRows(n); }} className="w-6 h-6 rounded-md text-zinc-400 hover:text-white text-sm flex items-center justify-center border border-zinc-700/30" style={{background:"rgba(255,255,255,0.05)"}}>+</button>
                       </div>
                     </div>
                   ))}
@@ -1705,126 +1723,120 @@ function StreakView() {
         </button>
       </div>
 
-      {/* 2-column layout: จับคู่ groups ทีละ 2 */}
-      {[
-        [groups[0], groups[1]],
-        [groups[2], groups[3]],
-      ].map((pair, pairIdx) => (
-        <div key={pairIdx} className="space-y-2">
-          {/* Row header */}
-          <div className="grid grid-cols-2 gap-2">
-            {pair.map(group => group ? (
-              <div key={group} className="text-amber-400 text-xs font-bold px-1">{group}</div>
-            ) : <div key="empty"/>)}
-          </div>
-          {/* Rows ของ items เรียงตาม index (flop/turn/river/5ใบ) */}
-          {Array.from({length: Math.max(...pair.filter(Boolean).map(g => STREAK_ITEMS.filter(i=>i.group===g).length))}).map((_, rowIdx) => (
-            <div key={rowIdx} className="grid grid-cols-2 gap-2">
-              {pair.map(group => {
-                if (!group) return <div key="empty"/>;
-                const item = STREAK_ITEMS.filter(i => i.group === group)[rowIdx];
-                if (!item) return <div key={group+rowIdx}/>;
-                const count = counts[item.id];
-                const over  = count > item.avgEvery;
-                const ratio = item.avgEvery > 0 ? (count / item.avgEvery) : 0;
-                const pct   = Math.min(ratio * 100, 100);
-                return (
-                  <div key={item.id} className={"rounded-xl border p-2 " + (
-                    count === 0 ? "border-zinc-700/25" :
-                    over ? "border-red-500/30" : "border-emerald-500/20"
-                  )} style={{background: count === 0 ? "rgba(255,255,255,0.03)" :
-                    over ? "rgba(30,5,5,0.25)" : "rgba(5,20,10,0.25)"}}>
-                    {/* Header */}
-                    <div className="flex items-start justify-between mb-1.5">
-                      <div className="flex-1 min-w-0">
-                        <div className="text-xs font-semibold text-white leading-tight">{item.label}</div>
-                        <div className="text-zinc-600 text-[9px] mt-0.5">~{item.prob}% · 1/{item.avgEvery}</div>
+      {groups.map(group => (
+        <div key={group}>
+          <div className="text-amber-400 text-xs font-bold mb-2 px-1">{group}</div>
+          <div className="space-y-2">
+            {STREAK_ITEMS.filter(i => i.group === group).map(item => {
+              const count = counts[item.id];
+              const over  = count > item.avgEvery;
+              const ratio = item.avgEvery > 0 ? (count / item.avgEvery) : 0;
+              const pct   = Math.min(ratio * 100, 100);
+              return (
+                <div key={item.id} className={"rounded-xl border px-3 py-2.5 " + (
+                  count === 0 ? "border-zinc-700/25" :
+                  over ? "border-red-500/30" : "border-emerald-500/20"
+                )} style={{background: count === 0 ? "rgba(255,255,255,0.03)" :
+                  over ? "rgba(30,5,5,0.25)" : "rgba(5,20,10,0.25)"}}>
+                  {/* Header */}
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex-1">
+                      <div className="text-sm font-semibold text-white">{item.label}</div>
+                      <div className="text-zinc-600 text-[10px] mt-0.5">
+                        โอกาส {item.prob}% · ควรเกิด 1 ใน ~{item.avgEvery} ครั้ง
                       </div>
-                      <div className="text-right flex-shrink-0 ml-1">
-                        <div className={"font-mono font-black text-xl leading-none " + (
+                    </div>
+                    {/* Counter */}
+                    <div className="flex items-center gap-2 flex-shrink-0 ml-3">
+                      <div className="text-right">
+                        <div className={"font-mono font-black text-2xl leading-none " + (
                           count === 0 ? "text-zinc-600" :
                           over ? "text-red-400" : "text-emerald-400"
                         )}>{count}</div>
                         <div className="text-zinc-600 text-[9px]">ครั้ง</div>
                       </div>
                     </div>
+                  </div>
 
-                    {/* Progress bar */}
-                    {count > 0 && (
-                      <div className="mb-1.5">
-                        <div className="h-1 rounded-full overflow-hidden" style={{background:"rgba(255,255,255,0.06)"}}>
-                          <div className={"h-full rounded-full transition-all " + (over ? "bg-red-500" : "bg-emerald-500")}
-                            style={{width: pct + "%"}}/>
-                        </div>
-                        <div className="text-[9px] mt-0.5 text-center" style={{color: over?"#ef4444":"#52525b"}}>
-                          {over ? `⚠️ เกิน ${count - item.avgEvery}` : `อีก ${item.avgEvery - count} ครั้ง`}
-                        </div>
+                  {/* Progress bar */}
+                  {count > 0 && (
+                    <div className="mb-2">
+                      <div className="h-1.5 rounded-full overflow-hidden" style={{background:"rgba(255,255,255,0.06)"}}>
+                        <div className={"h-full rounded-full transition-all " + (over ? "bg-red-500" : "bg-emerald-500")}
+                          style={{width: pct + "%"}}/>
                       </div>
-                    )}
-
-                    {/* Buttons */}
-                    <div className="flex gap-1">
-                      <button onClick={() => tick(item.id)}
-                        className="flex-1 py-1.5 rounded-lg text-[10px] font-bold border border-zinc-700/30 text-zinc-300 hover:text-white transition-colors"
-                        style={{background:"rgba(255,255,255,0.06)"}}>
-                        ☐ +1
-                      </button>
-                      <button onClick={() => hit(item.id)}
-                        className="flex-1 py-1.5 rounded-lg text-[10px] font-bold border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 transition-colors"
-                        style={{background:"rgba(5,30,15,0.3)"}}>
-                        ✅ ติด!
-                      </button>
-                      {count > 0 && (
-                        <button onClick={() => reset(item.id)}
-                          className="px-2 py-1.5 rounded-lg text-[10px] text-zinc-600 hover:text-red-400 border border-zinc-700/20 transition-colors"
-                          style={{background:"rgba(255,255,255,0.03)"}}>
-                          ↺
-                        </button>
-                      )}
+                      <div className="flex justify-between text-[9px] text-zinc-700 mt-0.5">
+                        <span>0</span>
+                        <span className={over ? "text-red-500" : "text-zinc-600"}>
+                          {over ? `เกินค่าเฉลี่ย ${count - item.avgEvery} ครั้ง ⚠️` : `${item.avgEvery - count} ครั้งจะถึงค่าเฉลี่ย`}
+                        </span>
+                        <span>~{item.avgEvery}</span>
+                      </div>
                     </div>
+                  )}
 
-                    {/* History */}
-                    {history[item.id].length > 0 && (
-                      <div className="mt-1.5">
-                        <button onClick={() => setOpenHist(openHist === item.id ? null : item.id)}
-                          className="w-full flex items-center justify-between text-[9px] text-zinc-600 hover:text-zinc-400 transition-colors py-0.5">
-                          <span>📋 {history[item.id].length} ครั้ง · เฉลี่ย {(history[item.id].reduce((s,h)=>s+h.count,0)/history[item.id].length).toFixed(1)}</span>
-                          <span>{openHist === item.id ? "▲" : "▼"}</span>
-                        </button>
-                        {openHist === item.id && (
-                          <div className="mt-1 rounded-lg overflow-hidden" style={{background:"rgba(255,255,255,0.03)"}}>
-                            <div className="flex text-[9px] text-zinc-700 px-2 py-1 border-b border-white/5">
-                              <span className="w-5">#</span>
-                              <span className="flex-1">ครั้ง</span>
-                              <span className="w-10 text-right">เวลา</span>
-                              <span className="w-8 text-right">diff</span>
-                            </div>
-                            {history[item.id].map((h, i) => {
-                              const diff = h.count - item.avgEvery;
-                              return (
-                                <div key={i} className="flex items-center text-[10px] px-2 py-1 border-b border-white/5 last:border-0">
-                                  <span className="w-5 text-zinc-600">{i+1}</span>
-                                  <span className="flex-1 font-mono font-bold text-white">{h.count}</span>
-                                  <span className="w-10 text-right text-zinc-600">{h.time}</span>
-                                  <span className={"w-8 text-right font-mono " + (diff > 0 ? "text-red-400" : "text-emerald-400")}>
-                                    {diff > 0 ? "+" : ""}{diff}
-                                  </span>
-                                </div>
-                              );
-                            })}
-                            <button onClick={() => clearHistory(item.id)}
-                              className="w-full text-[9px] text-zinc-700 hover:text-red-400 py-1 transition-colors border-t border-white/5">
-                              🗑 ล้างประวัติ
-                            </button>
-                          </div>
-                        )}
-                      </div>
+                  {/* Buttons */}
+                  <div className="flex gap-2">
+                    <button onClick={() => tick(item.id)}
+                      className="flex-1 py-2 rounded-lg text-xs font-bold border border-zinc-700/30 text-zinc-300 hover:text-white hover:border-amber-500/40 transition-colors"
+                      style={{background:"rgba(255,255,255,0.06)"}}>
+                      ☐ ยังไม่ติด +1
+                    </button>
+                    <button onClick={() => hit(item.id)}
+                      className="flex-1 py-2 rounded-lg text-xs font-bold border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 transition-colors"
+                      style={{background:"rgba(5,30,15,0.3)"}}>
+                      ✅ ติดแล้ว! บันทึก
+                    </button>
+                    {count > 0 && (
+                      <button onClick={() => reset(item.id)}
+                        className="px-3 py-2 rounded-lg text-xs text-zinc-600 hover:text-red-400 border border-zinc-700/20 transition-colors"
+                        style={{background:"rgba(255,255,255,0.03)"}}>
+                        ↺
+                      </button>
                     )}
                   </div>
-                );
-              })}
-            </div>
-          ))}
+
+                  {/* History */}
+                  {history[item.id].length > 0 && (
+                    <div className="mt-2">
+                      <button onClick={() => setOpenHist(openHist === item.id ? null : item.id)}
+                        className="w-full flex items-center justify-between text-[10px] text-zinc-600 hover:text-zinc-400 transition-colors py-1">
+                        <span>📋 ประวัติ ({history[item.id].length} ครั้ง) · เฉลี่ย {(history[item.id].reduce((s,h)=>s+h.count,0)/history[item.id].length).toFixed(1)} ครั้ง/ติด</span>
+                        <span>{openHist === item.id ? "▲" : "▼"}</span>
+                      </button>
+                      {openHist === item.id && (
+                        <div className="mt-1 rounded-lg overflow-hidden" style={{background:"rgba(255,255,255,0.03)"}}>
+                          <div className="flex text-[9px] text-zinc-700 px-3 py-1 border-b border-white/5">
+                            <span className="w-6">#</span>
+                            <span className="flex-1">ใช้ไปกี่ครั้ง</span>
+                            <span className="w-12 text-right">เวลา</span>
+                            <span className="w-12 text-right">vs เฉลี่ย</span>
+                          </div>
+                          {history[item.id].map((h, i) => {
+                            const diff = h.count - item.avgEvery;
+                            return (
+                              <div key={i} className="flex items-center text-xs px-3 py-1.5 border-b border-white/5 last:border-0">
+                                <span className="w-6 text-zinc-600 text-[10px]">{i+1}</span>
+                                <span className="flex-1 font-mono font-bold text-white">{h.count} ครั้ง</span>
+                                <span className="w-12 text-right text-zinc-600 text-[10px]">{h.time}</span>
+                                <span className={"w-12 text-right text-[10px] font-mono " + (diff > 0 ? "text-red-400" : "text-emerald-400")}>
+                                  {diff > 0 ? "+" : ""}{diff}
+                                </span>
+                              </div>
+                            );
+                          })}
+                          <button onClick={() => clearHistory(item.id)}
+                            className="w-full text-[10px] text-zinc-700 hover:text-red-400 py-1.5 transition-colors border-t border-white/5">
+                            🗑 ล้างประวัติ
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       ))}
     </div>
