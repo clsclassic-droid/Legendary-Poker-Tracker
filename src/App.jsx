@@ -1016,7 +1016,7 @@ function LeaderboardView({ data }) {
 // ─────────────────────────────────────────────────────────────────
 function SessionsView({ data, onEdit, onDelete, initialOpen=null }) {
   const [open, setOpen] = useState(initialOpen);
-  const [openStat, setOpenStat] = useState(null); // "sessionId__player"
+  const [openStats, setOpenStats] = useState(new Set());
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-bold text-white">📋 ประวัติเซสชั่น</h2>
@@ -1063,14 +1063,15 @@ function SessionsView({ data, onEdit, onDelete, initialOpen=null }) {
                     </tr></thead>
                     <tbody>{r.map(e => {
                       const statKey = s.internalId + "__" + e.player;
-                      const statOpen = openStat === statKey;
+                      const statOpen = openStats.has(statKey);
                       const hasStats = (e.bluffWin||0)+(e.bluffLose||0)+(e.catchBluff||0)+(e.gotBluffed||0)+(e.fourCard||0)+(e.straightFlush||0)+(e.royalStraightFlush||0) > 0;
-                      const STAT_FIELDS = [
+                      const BLUFF_FIELDS = [
                         ["bluffWin","🎭","text-emerald-400","บลัฟผ่าน"],
                         ["bluffLose","❌","text-red-400","บลัฟไม่ผ่าน"],
                         ["catchBluff","🔍","text-amber-400","จับบลัฟได้"],
                         ["gotBluffed","😵","text-purple-400","โดนบลัฟ"],
-                        null,
+                      ];
+                      const SET_FIELDS = [
                         ["fourCard","🃏","text-sky-400","4 Card"],
                         ["straightFlush","♠️","text-violet-400","Str.Flush"],
                         ["royalStraightFlush","👑","text-amber-300","Royal SF"],
@@ -1082,7 +1083,7 @@ function SessionsView({ data, onEdit, onDelete, initialOpen=null }) {
                             <td className="py-2">
                               <div className="flex items-center gap-2">
                                 <span className="font-medium text-white"><PlayerName player={e.player} nicknames={data.nicknames}/></span>
-                                <button onClick={() => setOpenStat(statOpen ? null : statKey)}
+                                <button onClick={() => setOpenStats(prev => { const n = new Set(prev); n.has(statKey) ? n.delete(statKey) : n.add(statKey); return n; })}
                                   className={"text-[10px] px-1.5 py-0.5 rounded border transition-colors " + (statOpen ? "border-amber-500/50 text-amber-400 bg-amber-500/10" : hasStats ? "border-emerald-500/30 text-emerald-400 bg-emerald-500/10" : "border-zinc-700/30 text-zinc-600 hover:text-zinc-400")}>
                                   {statOpen ? "▲ Stats" : hasStats ? "✦ Stats" : "Stats"}
                                 </button>
@@ -1098,15 +1099,19 @@ function SessionsView({ data, onEdit, onDelete, initialOpen=null }) {
                             <tr className="border-b border-zinc-800/30">
                               <td colSpan={7}>
                                 <div className="flex items-center gap-1.5 flex-wrap px-8 py-2" style={{background:"rgba(255,255,255,0.02)"}}>
-                                  {STAT_FIELDS.map((f, fi) => f === null
-                                    ? <div key={"d"+fi} className="w-px h-8 flex-shrink-0" style={{background:"rgba(255,255,255,0.1)"}}/>
-                                    : (
-                                      <div key={f[0]} className="flex flex-col items-center gap-1 rounded-md border border-zinc-700/20 px-2 py-1.5" style={{background:"rgba(255,255,255,0.04)"}}>
-                                        <span className={"text-[11px] whitespace-nowrap " + f[2]}>{f[1]} {f[3]}</span>
-                                        <span className={"font-mono font-bold text-sm " + f[2]}>{e[f[0]]||0}</span>
-                                      </div>
-                                    )
-                                  )}
+                                  {BLUFF_FIELDS.filter(f => (e[f[0]]||0) > 0).map(f => (
+                                    <div key={f[0]} className="flex flex-col items-center gap-1 rounded-md border border-zinc-700/20 px-2 py-1.5" style={{background:"rgba(255,255,255,0.04)"}}>
+                                      <span className={"text-[11px] whitespace-nowrap " + f[2]}>{f[1]} {f[3]}</span>
+                                      <span className={"font-mono font-bold text-sm " + f[2]}>{e[f[0]]}</span>
+                                    </div>
+                                  ))}
+                                  <div className="w-px h-8 flex-shrink-0" style={{background:"rgba(255,255,255,0.1)"}}/>
+                                  {SET_FIELDS.filter(f => (e[f[0]]||0) > 0).map(f => (
+                                    <div key={f[0]} className="flex flex-col items-center gap-1 rounded-md border border-zinc-700/20 px-2 py-1.5" style={{background:"rgba(255,255,255,0.04)"}}>
+                                      <span className={"text-[11px] whitespace-nowrap " + f[2]}>{f[1]} {f[3]}</span>
+                                      <span className={"font-mono font-bold text-sm " + f[2]}>{e[f[0]]}</span>
+                                    </div>
+                                  ))}
                                 </div>
                               </td>
                             </tr>
