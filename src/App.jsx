@@ -1317,14 +1317,14 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
             const act = r.buy>0 || r.sell>0;
             const hasStats = (r.bluffWin||0)+(r.bluffLose||0)+(r.catchBluff||0)+(r.gotBluffed||0)+(r.fourCard||0)+(r.straightFlush||0)+(r.royalStraightFlush||0) > 0;
             const ALL_STAT_FIELDS = [
-              ["bluffWin",   "🎭",  "text-emerald-400"],
-              ["bluffLose",  "❌",  "text-red-400"],
-              ["catchBluff", "🔍",  "text-amber-400"],
-              ["gotBluffed", "😵",  "text-purple-400"],
+              ["bluffWin",   "🎭",  "text-emerald-400", "บลัฟผ่าน"],
+              ["bluffLose",  "❌",  "text-red-400",      "บลัฟไม่ผ่าน"],
+              ["catchBluff", "🔍",  "text-amber-400",    "จับบลัฟได้"],
+              ["gotBluffed", "😵",  "text-purple-400",   "โดนบลัฟ"],
               null, // divider
-              ["fourCard",           "🃏", "text-sky-400"],
-              ["straightFlush",      "♠️", "text-violet-400"],
-              ["royalStraightFlush", "👑", "text-amber-300"],
+              ["fourCard",           "🃏", "text-sky-400",    "4 Card"],
+              ["straightFlush",      "♠️", "text-violet-400", "Str.Flush"],
+              ["royalStraightFlush", "👑", "text-amber-300",  "Royal SF"],
             ];
             return (
               <div key={r.player} className={"border-b border-zinc-800/30 " + (act?"":"opacity-50")}>
@@ -1368,7 +1368,7 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
                       if (f === null) return (
                         <div key={"div"+fi} className="w-px h-8 mx-1 flex-shrink-0" style={{background:"rgba(255,255,255,0.1)"}}/>
                       );
-                      const [field, emoji, color] = f;
+                      const [field, emoji, color, label] = f;
                       return (
                         <div key={field} className="flex flex-col items-center gap-0.5 flex-shrink-0">
                           <span className={"text-[10px] font-semibold " + color}>{emoji}</span>
@@ -1381,6 +1381,7 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
                               className="w-5 h-5 rounded text-zinc-400 hover:text-white text-xs flex items-center justify-center border border-zinc-700/30"
                               style={{background:"rgba(255,255,255,0.05)"}}>+</button>
                           </div>
+                          <span className="text-[9px] text-zinc-600 whitespace-nowrap">{label}</span>
                         </div>
                       );
                     })}
