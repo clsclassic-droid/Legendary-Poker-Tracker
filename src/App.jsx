@@ -1102,14 +1102,14 @@ function SessionsView({ data, onEdit, onDelete, initialOpen=null }) {
                                   {BLUFF_FIELDS.map(f => (
                                     <div key={f[0]} className="flex flex-col items-center gap-1 rounded-md border border-zinc-700/20 px-2 py-1.5" style={{background:"rgba(255,255,255,0.04)"}}>
                                       <span className={"text-[11px] whitespace-nowrap " + f[2]}>{f[1]} {f[3]}</span>
-                                      <span className={"font-mono font-bold text-sm " + ((e[f[0]]||0) > 0 ? f[2] : "text-zinc-600")}>{e[f[0]]||0}</span>
+                                      <span className={"font-mono font-bold text-sm " + ((e[f[0]]||0) > 0 ? f[2] : "text-zinc-600")}>{(e[f[0]]||0) > 0 ? e[f[0]] : "—"}</span>
                                     </div>
                                   ))}
                                   <div className="w-px h-8 flex-shrink-0" style={{background:"rgba(255,255,255,0.1)"}}/>
                                   {SET_FIELDS.map(f => (
                                     <div key={f[0]} className="flex flex-col items-center gap-1 rounded-md border border-zinc-700/20 px-2 py-1.5" style={{background:"rgba(255,255,255,0.04)"}}>
                                       <span className={"text-[11px] whitespace-nowrap " + f[2]}>{f[1]} {f[3]}</span>
-                                      <span className={"font-mono font-bold text-sm " + ((e[f[0]]||0) > 0 ? f[2] : "text-zinc-600")}>{e[f[0]]||0}</span>
+                                      <span className={"font-mono font-bold text-sm " + ((e[f[0]]||0) > 0 ? f[2] : "text-zinc-600")}>{(e[f[0]]||0) > 0 ? e[f[0]] : "—"}</span>
                                     </div>
                                   ))}
                                 </div>
