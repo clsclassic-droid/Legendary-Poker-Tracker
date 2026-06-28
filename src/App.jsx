@@ -28,6 +28,10 @@ async function apiGet() {
     if (av && typeof av === 'string') {
       d.avatars = Object.fromEntries(av.split(',').map(p => p.split('|').map(s=>s.trim())).filter(p=>p.length===2 && p[0]));
     }
+    // parse avatarOverflow
+    if (d.settings?.avatarOverflow !== undefined) {
+      d.avatarOverflow = d.settings.avatarOverflow !== false && d.settings.avatarOverflow !== "false";
+    }
   }
   if (d.sessions) {
     d.sessions = d.sessions.map(s => {
