@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, Fragment } from "react";
 
 // ─────────────────────────────────────────────────────────────────
 // CONFIG
@@ -1076,7 +1076,7 @@ function SessionsView({ data, onEdit, onDelete, initialOpen=null }) {
                         ["royalStraightFlush","👑","text-amber-300","Royal SF"],
                       ];
                       return (
-                        <React.Fragment key={e.player}>
+                        <Fragment key={e.player}>
                           <tr className="border-b border-zinc-800/30">
                             <td className="py-2 text-zinc-500">{e.rank}</td>
                             <td className="py-2">
@@ -1111,7 +1111,7 @@ function SessionsView({ data, onEdit, onDelete, initialOpen=null }) {
                               </td>
                             </tr>
                           )}
-                        </React.Fragment>
+                        </Fragment>
                       );
                     })}</tbody>
                   </table>
