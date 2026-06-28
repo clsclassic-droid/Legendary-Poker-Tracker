@@ -1329,34 +1329,35 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
             return (
               <div key={r.player} className={"border-b border-zinc-800/30 " + (act?"":"opacity-50")}>
                 {/* Main row */}
-                <div className="px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-                  <div className="flex flex-col gap-1 min-w-[80px]">
-                    <div className="flex items-center gap-2">
+                <div className="px-4 py-2.5 grid gap-2 items-center" style={{gridTemplateColumns:"100px 1fr 1fr 100px"}}>
+                  {/* col 1: ชื่อ + Stats */}
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-1.5">
                       <span className={"w-2 h-2 rounded-full flex-shrink-0 "+(pb>0?"bg-emerald-400":pb<0?"bg-red-400":"")}/>
-                      <span className="text-white font-medium"><PlayerName player={r.player} nicknames={data.nicknames}/></span>
+                      <span className="text-white font-medium text-sm truncate"><PlayerName player={r.player} nicknames={data.nicknames}/></span>
                       <button onClick={() => setRows(prev => prev.filter(x => x.player !== r.player))}
-                        className="ml-auto text-zinc-600 hover:text-red-400 text-xs transition-colors">✕</button>
+                        className="ml-auto text-zinc-600 hover:text-red-400 text-xs transition-colors flex-shrink-0">✕</button>
                     </div>
-                    {/* ปุ่ม Stats toggle — ใต้ชื่อ */}
                     <button
                       onClick={() => setRows(prev => prev.map((x,j) => j===i ? {...x, _statsOpen: !x._statsOpen} : x))}
                       className={"text-[10px] px-1.5 py-0.5 rounded border transition-colors w-fit " + (r._statsOpen ? "border-amber-500/50 text-amber-400 bg-amber-500/10" : hasStats ? "border-emerald-500/30 text-emerald-400 bg-emerald-500/10" : "border-zinc-700/30 text-zinc-600 hover:text-zinc-400")}>
                       {r._statsOpen ? "▲ Stats" : (hasStats ? "✦ Stats" : "Stats")}
                     </button>
                   </div>
-                  <div className="flex gap-2 flex-1">
-                    <div className="flex-1">
-                      <label className="text-zinc-600 text-xs">ซื้อ {mode==="baht"?"(฿)":"(ชิป)"}</label>
-                      <NInput value={dv(r.buy)} onChange={v=>upd(i,"buy",v)}/>
-                      {r.buy>0 && <div className="text-zinc-600 text-xs mt-0.5 font-mono">= {mode==="chips"?fmt(c2b(r.buy,rate))+" ฿":fmt(r.buy)+" ชิป"}</div>}
-                    </div>
-                    <div className="flex-1">
-                      <label className="text-zinc-600 text-xs">แลก {mode==="baht"?"(฿)":"(ชิป)"}</label>
-                      <NInput value={dv(r.sell)} onChange={v=>upd(i,"sell",v)}/>
-                      {r.sell>0 && <div className="text-zinc-600 text-xs mt-0.5 font-mono">= {mode==="chips"?fmt(c2b(r.sell,rate))+" ฿":fmt(r.sell)+" ชิป"}</div>}
-                    </div>
+                  {/* col 2: ซื้อ */}
+                  <div>
+                    <label className="text-zinc-600 text-xs">ซื้อ {mode==="baht"?"(฿)":"(ชิป)"}</label>
+                    <NInput value={dv(r.buy)} onChange={v=>upd(i,"buy",v)}/>
+                    {r.buy>0 && <div className="text-zinc-600 text-xs mt-0.5 font-mono">= {mode==="chips"?fmt(c2b(r.buy,rate))+" ฿":fmt(r.buy)+" ชิป"}</div>}
                   </div>
-                  <div className="text-right min-w-[90px]">
+                  {/* col 3: แลก */}
+                  <div>
+                    <label className="text-zinc-600 text-xs">แลก {mode==="baht"?"(฿)":"(ชิป)"}</label>
+                    <NInput value={dv(r.sell)} onChange={v=>upd(i,"sell",v)}/>
+                    {r.sell>0 && <div className="text-zinc-600 text-xs mt-0.5 font-mono">= {mode==="chips"?fmt(c2b(r.sell,rate))+" ฿":fmt(r.sell)+" ชิป"}</div>}
+                  </div>
+                  {/* col 4: กำไร */}
+                  <div className="text-right">
                     <div className="text-xs text-zinc-600">กำไร/ขาดทุน</div>
                     <Profit v={pb} sx=" ฿"/>
                     {act && <div className="text-purple-400 text-xs font-mono">-{fmt(fee)} ฿ ส่วนกลาง</div>}
