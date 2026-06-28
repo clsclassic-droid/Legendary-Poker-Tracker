@@ -478,12 +478,18 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
         {/* Total + รูป profile */}
         <div className="border border-zinc-700/25 rounded-2xl pt-2 pb-4 px-4 text-center" style={{background:"rgba(15,10,3,0.05)",backdropFilter:"blur(6px)"}}>
           {/* รูปตัวละคร กึ่งกลาง บนสุด */}
-          <div className="flex justify-center mb-2">
+          <div className="flex justify-center mb-2" style={{overflow: (data.avatarOverflows||{})[sel] !== false ? "visible" : "hidden"}}>
             <img
               src={(data.avatars||{})[sel] || "https://raw.githubusercontent.com/clsclassic-droid/Legendary-Poker-Tracker/main/src/default-player.png"}
               alt={sel}
-              className="object-contain"
-              style={{width:"200px", height:"260px", objectPosition:"top center", filter:"drop-shadow(0 4px 16px rgba(0,0,0,0.8))", marginTop:"-20px"}}
+              className="object-cover"
+              style={{
+                width:"200px", height:"200px",
+                borderRadius:"12px",
+                objectPosition:"top center",
+                filter:"drop-shadow(0 4px 16px rgba(0,0,0,0.8))",
+                marginTop: (data.avatarOverflows||{})[sel] !== false ? "-20px" : "0px",
+              }}
             />
           </div>
           <div className="text-zinc-500 text-sm mb-1">กำไร / ขาดทุนรวม</div>
