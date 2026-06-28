@@ -29,9 +29,19 @@ async function apiGet() {
       d.avatars = Object.fromEntries(av.split(',').map(p => p.split('|').map(s=>s.trim())).filter(p=>p.length===2 && p[0]));
     }
   }
-  // parse avatarOverflow — ตรวจทั้ง top-level และ settings
-  const rawOverflow = d.avatarOverflow ?? d.settings?.avatarOverflow;
-  d.avatarOverflow = rawOverflow === undefined ? true : (rawOverflow !== false && rawOverflow !== "false");
+  // parse avatarOverflows per-player
+  const rawOverflow = d.avatarOverflows ?? d.settings?.avatarOverflows;
+  if (rawOverflow && typeof rawOverflow === 'string') {
+    d.avatarOverflows = Object.fromEntries(
+      rawOverflow.split(',').map(p => p.split('|').map(s => s.trim()))
+        .filter(p => p.length === 2 && p[0])
+        .map(([k, v]) => [k, v !== "false"])
+    );
+  } else if (rawOverflow && typeof rawOverflow === 'object') {
+    d.avatarOverflows = rawOverflow;
+  } else {
+    d.avatarOverflows = {};
+  }
   if (d.sessions) {
     d.sessions = d.sessions.map(s => {
       // date: strip time component
@@ -544,7 +554,7 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
 
   // Player list
   const DEFAULT_AVATAR = "https://raw.githubusercontent.com/clsclassic-droid/Legendary-Poker-Tracker/main/src/default-player.png";
-  const avatarOverflow = data.avatarOverflow !== false;
+  const avatarOverflows = data.avatarOverflows || {};
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-bold text-white">👤 Player Profiles</h2>
@@ -569,6 +579,7 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
                   ? "1.5px solid rgba(201,162,39,0.45)"
                   : "1px solid rgba(255,255,255,0.08)",
                 backdropFilter: "blur(6px)",
+                overflow: avatarOverflow ? "visible" : "hidden",
               }}>
               <div className="flex items-stretch">
                 {/* เลขอันดับ — กึ่งกลาง card */}
@@ -581,13 +592,13 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
                   }}>{rankNum}</span>
                 </div>
                 {/* รูป */}
-                <div className="flex-shrink-0 flex items-end pb-3" style={{overflow: avatarOverflow ? "visible" : "hidden"}}>
+                <div className="flex-shrink-0 flex items-end pb-3" style={{overflow: avatarOverflows[p.name] !== false ? "visible" : "hidden"}}>
                   <img src={avatar} alt={p.name}
                     className="object-contain"
                     style={{
                       width: isSel ? "88px" : "68px",
                       height: isSel ? "110px" : "84px",
-                      marginTop: avatarOverflow ? (isSel ? "-28px" : "-16px") : "0px",
+                      marginTop: avatarOverflows[p.name] !== false ? (isSel ? "-28px" : "-16px") : "0px",
                       objectPosition: "top center",
                       filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.7))",
                       transition: "all 0.2s ease",
@@ -1536,18 +1547,19 @@ function SettingsView({ data, onUpdate, saving }) {
   const [rate,          setRate]          = useState({...data.chipRate});
   const [fee,           setFee]           = useState(data.defaultFee);
   const [nicknames,     setNicknames]     = useState({...( data.nicknames||{} )});
-  const [avatars,       setAvatars]       = useState({...( data.avatars||{} )});
-  const [avatarOverflow, setAvatarOverflow] = useState(data.avatarOverflow !== false);
-  const [adminPassword, setAdminPassword] = useState(data.adminPassword || "");
-  const [showPw,        setShowPw]        = useState(false);
-  const [saved,         setSaved]         = useState(false);
+  const [avatars,          setAvatars]          = useState({...( data.avatars||{} )});
+  const [avatarOverflows,  setAvatarOverflows]  = useState({...( data.avatarOverflows||{} )});
+  const [adminPassword,    setAdminPassword]    = useState(data.adminPassword || "");
+  const [showPw,           setShowPw]           = useState(false);
+  const [saved,            setSaved]            = useState(false);
 
   function addPlayer() { const n=newName.trim(); if(!n||players.includes(n)) return; setPlayers([...players,n]); setNewName(""); }
   function rmPlayer(n) { setPlayers(players.filter(p=>p!==n)); const nn={...nicknames}; delete nn[n]; setNicknames(nn); const aa={...avatars}; delete aa[n]; setAvatars(aa); }
   function setNick(player, val) { setNicknames(prev=>({...prev, [player]: val})); }
   function setAvatar(player, val) { setAvatars(prev=>({...prev, [player]: val})); }
+  function setOverflow(player, val) { setAvatarOverflows(prev=>({...prev, [player]: val})); }
   async function save() {
-    await onUpdate({players, chipRate:rate, defaultFee:fee, nicknames, avatars, avatarOverflow, adminPassword});
+    await onUpdate({players, chipRate:rate, defaultFee:fee, nicknames, avatars, avatarOverflows, adminPassword});
     setSaved(true); setTimeout(()=>setSaved(false),2000);
   }
 
@@ -1569,19 +1581,6 @@ function SettingsView({ data, onUpdate, saving }) {
         <div className="bg-purple-900/20 border border-purple-700/30 rounded-xl px-4 py-2 text-purple-300 text-sm font-mono">ทุกคนจ่าย {fmt(fee)} ฿/เซสชั่น</div>
       </Box>
       <Box className="space-y-3">
-        <div className="text-zinc-300 font-semibold text-sm">🖼️ ตำแหน่งรูป Avatar</div>
-        <div className="flex gap-3">
-          <button onClick={() => setAvatarOverflow(true)}
-            className={"flex-1 py-2 rounded-xl border text-sm font-medium transition-colors " + (avatarOverflow ? "border-amber-500/60 text-amber-400 bg-amber-500/10" : "border-zinc-700/30 text-zinc-500 hover:text-zinc-300")}>
-            ทะลุกรอบ
-          </button>
-          <button onClick={() => setAvatarOverflow(false)}
-            className={"flex-1 py-2 rounded-xl border text-sm font-medium transition-colors " + (!avatarOverflow ? "border-amber-500/60 text-amber-400 bg-amber-500/10" : "border-zinc-700/30 text-zinc-500 hover:text-zinc-300")}>
-            ไม่ทะลุกรอบ
-          </button>
-        </div>
-      </Box>
-      <Box className="space-y-3">
         <div className="text-zinc-300 font-semibold text-sm">👥 ผู้เล่น</div>
         <div className="flex gap-2">
           <input value={newName} onChange={e=>setNewName(e.target.value)} onKeyDown={e=>e.key==="Enter"&&addPlayer()} placeholder="ชื่อผู้เล่นใหม่..."
@@ -1589,7 +1588,9 @@ function SettingsView({ data, onUpdate, saving }) {
           <button onClick={addPlayer} className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold">เพิ่ม</button>
         </div>
         <div className="space-y-2">
-          {players.map(p => (
+          {players.map(p => {
+            const isOverflow = avatarOverflows[p] !== false;
+            return (
             <div key={p} className="border border-zinc-700/30 rounded-xl px-3 py-2 space-y-1.5" style={{background:"rgba(255,255,255,0.06)"}}>
               <div className="flex items-center gap-2">
                 <img src={avatars[p] || "https://raw.githubusercontent.com/clsclassic-droid/Legendary-Poker-Tracker/main/src/default-player.png"} alt={p}
@@ -1601,6 +1602,17 @@ function SettingsView({ data, onUpdate, saving }) {
                   placeholder="Nickname..."
                   className="flex-1 border border-zinc-600/60 rounded-lg px-3 py-1.5 text-zinc-300 text-xs placeholder-zinc-600 focus:border-amber-500 focus:outline-none" style={{background:"rgba(255,255,255,0.06)"}}
                 />
+                {/* toggle ทะลุกรอบ per player */}
+                <div className="flex flex-shrink-0 rounded-lg overflow-hidden border border-zinc-700/30">
+                  <button onClick={() => setOverflow(p, true)}
+                    className={"text-[10px] px-2 py-1 transition-colors " + (isOverflow ? "bg-amber-500/20 text-amber-400" : "text-zinc-600 hover:text-zinc-400")}>
+                    ทะลุ
+                  </button>
+                  <button onClick={() => setOverflow(p, false)}
+                    className={"text-[10px] px-2 py-1 transition-colors " + (!isOverflow ? "bg-amber-500/20 text-amber-400" : "text-zinc-600 hover:text-zinc-400")}>
+                    ใน
+                  </button>
+                </div>
                 <button onClick={()=>rmPlayer(p)} className="text-zinc-600 hover:text-red-400 text-xs flex-shrink-0">✕</button>
               </div>
               <input
@@ -1610,7 +1622,7 @@ function SettingsView({ data, onUpdate, saving }) {
                 className="w-full border border-zinc-600/60 rounded-lg px-3 py-1.5 text-zinc-300 text-xs placeholder-zinc-600 focus:border-amber-500 focus:outline-none" style={{background:"rgba(255,255,255,0.04)"}}
               />
             </div>
-          ))}
+          );})}
         </div>
       </Box>
       <Box className="space-y-2">
@@ -2626,7 +2638,7 @@ export default function App() {
         nextInternalId: data.nextInternalId,
         nicknames: cfg.nicknames||{},
         avatars: cfg.avatars||{},
-        avatarOverflow: cfg.avatarOverflow !== false,
+        avatarOverflows: cfg.avatarOverflows||{},
         adminPassword: cfg.adminPassword !== undefined ? cfg.adminPassword : (data.adminPassword || ""),
       }});
       await refresh();
