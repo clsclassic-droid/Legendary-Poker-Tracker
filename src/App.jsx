@@ -31,6 +31,10 @@ async function apiGet() {
     // parse avatarOverflow
     if (d.settings?.avatarOverflow !== undefined) {
       d.avatarOverflow = d.settings.avatarOverflow !== false && d.settings.avatarOverflow !== "false";
+    } else if (d.avatarOverflow !== undefined) {
+      d.avatarOverflow = d.avatarOverflow !== false && d.avatarOverflow !== "false";
+    } else {
+      d.avatarOverflow = true; // default ทะลุกรอบ
     }
   }
   if (d.sessions) {
