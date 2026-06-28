@@ -592,14 +592,15 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
                   }}>{rankNum}</span>
                 </div>
                 {/* รูป */}
-                <div className="flex-shrink-0 flex items-end pb-3" style={{overflow: avatarOverflows[p.name] !== false ? "visible" : "hidden"}}>
+                <div className="flex-shrink-0 flex items-center py-2" style={{overflow: avatarOverflows[p.name] !== false ? "visible" : "hidden"}}>
                   <img src={avatar} alt={p.name}
-                    className="object-contain"
+                    className="object-cover"
                     style={{
-                      width: isSel ? "88px" : "68px",
-                      height: isSel ? "110px" : "84px",
-                      marginTop: avatarOverflows[p.name] !== false ? (isSel ? "-28px" : "-16px") : "0px",
+                      width: isSel ? "80px" : "64px",
+                      height: isSel ? "80px" : "64px",
+                      marginTop: avatarOverflows[p.name] !== false ? (isSel ? "-16px" : "-10px") : "0px",
                       objectPosition: "top center",
+                      borderRadius: "8px",
                       filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.7))",
                       transition: "all 0.2s ease",
                     }}
