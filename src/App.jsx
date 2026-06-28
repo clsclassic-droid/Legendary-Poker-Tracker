@@ -653,7 +653,7 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
 // ─────────────────────────────────────────────────────────────────
 // RACING BAR CHART
 // ─────────────────────────────────────────────────────────────────
-function RacingBarChart({ sessions, players, nicknames }) {
+function RacingBarChart({ sessions, players, nicknames, avatars }) {
   const [curSes, setCurSes] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState(1);
@@ -821,19 +821,33 @@ function RacingBarChart({ sessions, players, nicknames }) {
                 {s.nick && <div className="text-[9px] text-zinc-600 truncate">"{s.nick}"</div>}
               </div>
               {/* Bar */}
-              <div className="flex-1 rounded-lg overflow-hidden relative" style={{background:"rgba(255,255,255,0.06)",height:'30px'}}>
+              <div className="flex-1 rounded-lg overflow-visible relative" style={{background:"rgba(255,255,255,0.06)",height:'30px'}}>
                 <div
-                  className="h-full rounded-lg flex items-center justify-end pr-2" 
+                  className="h-full rounded-lg flex items-center justify-end pr-2 overflow-visible" 
                   style={{
                     width: pct + '%',
                     background: isPos ? s.color : 'rgba(248,113,113,0.6)',
                     transition: `width ${dur} ease`,
                     minWidth: '4px',
+                    position: 'relative',
                   }}>
                   <span className="text-[10px] font-bold font-mono whitespace-nowrap"
                     style={{color: isPos ? 'rgba(0,0,0,0.75)' : 'rgba(255,255,255,0.9)'}}>
                     {(displayVals[s.name] ?? 0) >= 0 ? '+' : ''}{fmt(displayVals[s.name] ?? 0)} ฿
                   </span>
+                  {/* Avatar at tip */}
+                  <div style={{
+                    position:'absolute', right:'-18px', top:'50%', transform:'translateY(-50%)',
+                    width:'34px', height:'34px', borderRadius:'50%',
+                    border: `2px solid ${isPos ? s.color : '#f87171'}`,
+                    overflow:'hidden', flexShrink:0, background:'#111', zIndex:10,
+                  }}>
+                    <img
+                      src={(avatars||{})[s.name] || "https://raw.githubusercontent.com/clsclassic-droid/Legendary-Poker-Tracker/main/src/default-player.png"}
+                      alt={s.name}
+                      style={{width:'100%',height:'100%',objectFit:'cover',objectPosition:'top center'}}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -869,7 +883,7 @@ function RaceView({ data }) {
       <h2 className="text-xl font-bold text-white">🏎️ Ranking Race</h2>
       <p className="text-zinc-500 text-sm">กำไรสะสมแต่ละเซสชั่น</p>
       {data.sessions.length > 1
-        ? <RacingBarChart sessions={data.sessions} players={data.players} nicknames={data.nicknames}/>
+        ? <RacingBarChart sessions={data.sessions} players={data.players} nicknames={data.nicknames} avatars={data.avatars||{}}/>
         : <Box><div className="text-center py-12 text-zinc-600"><div className="text-4xl mb-3">🏎️</div>ต้องมีอย่างน้อย 2 เซสชั่นขึ้นไป</div></Box>
       }
     </div>
