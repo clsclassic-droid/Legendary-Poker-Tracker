@@ -579,7 +579,7 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
                   ? "1.5px solid rgba(201,162,39,0.45)"
                   : "1px solid rgba(255,255,255,0.08)",
                 backdropFilter: "blur(6px)",
-                overflow: avatarOverflow ? "visible" : "hidden",
+                overflow: avatarOverflows[p.name] !== false ? "visible" : "hidden",
               }}>
               <div className="flex items-stretch">
                 {/* เลขอันดับ — กึ่งกลาง card */}
