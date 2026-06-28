@@ -478,20 +478,25 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
         {/* Total + รูป profile */}
         <div className="border border-zinc-700/25 rounded-2xl pt-2 pb-4 px-4 text-center" style={{background:"rgba(15,10,3,0.05)",backdropFilter:"blur(6px)"}}>
           {/* รูปตัวละคร กึ่งกลาง บนสุด */}
-          <div className="flex justify-center mb-2" style={{overflow: (data.avatarOverflows||{})[sel] !== false ? "visible" : "hidden"}}>
-            <img
-              src={(data.avatars||{})[sel] || "https://raw.githubusercontent.com/clsclassic-droid/Legendary-Poker-Tracker/main/src/default-player.png"}
-              alt={sel}
-              className="object-cover"
-              style={{
-                width:"200px", height:"200px",
-                borderRadius:"12px",
-                objectPosition:"top center",
-                filter:"drop-shadow(0 4px 16px rgba(0,0,0,0.8))",
-                marginTop: (data.avatarOverflows||{})[sel] !== false ? "-20px" : "0px",
-              }}
-            />
-          </div>
+          {(() => {
+            const customAv = (data.avatars||{})[sel];
+            const avatarSrc = customAv || "https://raw.githubusercontent.com/clsclassic-droid/Legendary-Poker-Tracker/main/src/default-player.png";
+            const doOv = !customAv ? true : (data.avatarOverflows||{})[sel] !== false;
+            return (
+              <div className="flex justify-center mb-2" style={{overflow: doOv ? "visible" : "hidden"}}>
+                <img src={avatarSrc} alt={sel}
+                  className={doOv ? "object-contain" : "object-cover"}
+                  style={{
+                    width:"200px", height:"200px",
+                    borderRadius: doOv ? "0px" : "12px",
+                    objectPosition:"top center",
+                    filter:"drop-shadow(0 4px 16px rgba(0,0,0,0.8))",
+                    marginTop: doOv ? "-20px" : "0px",
+                  }}
+                />
+              </div>
+            );
+          })()}
           <div className="text-zinc-500 text-sm mb-1">กำไร / ขาดทุนรวม</div>
           <div className={"font-mono font-black text-4xl "+(stats.total>=0?"text-emerald-400":"text-red-400")}>
             {stats.total>0?"+":""}{fmt(stats.total)} ฿
@@ -567,9 +572,13 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
       <p className="text-zinc-500 text-sm">กดเพื่อ select · กดอีกครั้งเพื่อดู profile</p>
       <div className="space-y-2">
         {summary.map((p, idx) => {
-          const isSel   = hovSel === p.name;
-          const avatar  = (data.avatars||{})[p.name] || DEFAULT_AVATAR;
-          const rankNum = idx + 1;
+          const isSel      = hovSel === p.name;
+          const customAvatar = (data.avatars||{})[p.name];
+          const avatar     = customAvatar || DEFAULT_AVATAR;
+          const isDefault  = !customAvatar;
+          // default avatar → ทะลุกรอบเสมอ, รูปจริง → ดูตาม setting (default ทะลุ)
+          const doOverflow = isDefault ? true : avatarOverflows[p.name] !== false;
+          const rankNum    = idx + 1;
           return (
             <button key={p.name}
               onClick={() => {
@@ -585,7 +594,7 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
                   ? "1.5px solid rgba(201,162,39,0.45)"
                   : "1px solid rgba(255,255,255,0.08)",
                 backdropFilter: "blur(6px)",
-                overflow: avatarOverflows[p.name] !== false ? "visible" : "hidden",
+                overflow: doOverflow ? "visible" : "hidden",
               }}>
               <div className="flex items-stretch">
                 {/* เลขอันดับ — กึ่งกลาง card */}
@@ -598,15 +607,15 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
                   }}>{rankNum}</span>
                 </div>
                 {/* รูป */}
-                <div className="flex-shrink-0 flex items-center py-2" style={{overflow: avatarOverflows[p.name] !== false ? "visible" : "hidden"}}>
+                <div className="flex-shrink-0 flex items-center py-2" style={{overflow: doOverflow ? "visible" : "hidden"}}>
                   <img src={avatar} alt={p.name}
-                    className="object-cover"
+                    className={doOverflow ? "object-contain" : "object-cover"}
                     style={{
                       width: isSel ? "80px" : "64px",
                       height: isSel ? "80px" : "64px",
-                      marginTop: avatarOverflows[p.name] !== false ? (isSel ? "-16px" : "-10px") : "0px",
+                      marginTop: doOverflow ? (isSel ? "-16px" : "-10px") : "0px",
                       objectPosition: "top center",
-                      borderRadius: "8px",
+                      borderRadius: doOverflow ? "0px" : "8px",
                       filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.7))",
                       transition: "all 0.2s ease",
                     }}
