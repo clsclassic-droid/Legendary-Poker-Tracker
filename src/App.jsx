@@ -541,6 +541,7 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
 
   // Player list
   const DEFAULT_AVATAR = "https://raw.githubusercontent.com/clsclassic-droid/Legendary-Poker-Tracker/main/src/default-player.png";
+  const avatarOverflow = data.avatarOverflow !== false;
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-bold text-white">👤 Player Profiles</h2>
@@ -576,14 +577,14 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
                     lineHeight: 1,
                   }}>{rankNum}</span>
                 </div>
-                {/* รูป overflow ด้านบน */}
-                <div className="flex-shrink-0 flex items-end pb-3">
+                {/* รูป */}
+                <div className="flex-shrink-0 flex items-end pb-3" style={{overflow: avatarOverflow ? "visible" : "hidden"}}>
                   <img src={avatar} alt={p.name}
                     className="object-contain"
                     style={{
                       width: isSel ? "88px" : "68px",
                       height: isSel ? "110px" : "84px",
-                      marginTop: isSel ? "-28px" : "-16px",
+                      marginTop: avatarOverflow ? (isSel ? "-28px" : "-16px") : "0px",
                       objectPosition: "top center",
                       filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.7))",
                       transition: "all 0.2s ease",
@@ -1533,6 +1534,7 @@ function SettingsView({ data, onUpdate, saving }) {
   const [fee,           setFee]           = useState(data.defaultFee);
   const [nicknames,     setNicknames]     = useState({...( data.nicknames||{} )});
   const [avatars,       setAvatars]       = useState({...( data.avatars||{} )});
+  const [avatarOverflow, setAvatarOverflow] = useState(data.avatarOverflow !== false);
   const [adminPassword, setAdminPassword] = useState(data.adminPassword || "");
   const [showPw,        setShowPw]        = useState(false);
   const [saved,         setSaved]         = useState(false);
@@ -1542,7 +1544,7 @@ function SettingsView({ data, onUpdate, saving }) {
   function setNick(player, val) { setNicknames(prev=>({...prev, [player]: val})); }
   function setAvatar(player, val) { setAvatars(prev=>({...prev, [player]: val})); }
   async function save() {
-    await onUpdate({players, chipRate:rate, defaultFee:fee, nicknames, avatars, adminPassword});
+    await onUpdate({players, chipRate:rate, defaultFee:fee, nicknames, avatars, avatarOverflow, adminPassword});
     setSaved(true); setTimeout(()=>setSaved(false),2000);
   }
 
@@ -1562,6 +1564,19 @@ function SettingsView({ data, onUpdate, saving }) {
         <div className="text-purple-400 font-semibold text-sm">📦 ค่าส่วนกลางต่อคน (ค่าเริ่มต้น)</div>
         <NInput value={fee} onChange={setFee}/>
         <div className="bg-purple-900/20 border border-purple-700/30 rounded-xl px-4 py-2 text-purple-300 text-sm font-mono">ทุกคนจ่าย {fmt(fee)} ฿/เซสชั่น</div>
+      </Box>
+      <Box className="space-y-3">
+        <div className="text-zinc-300 font-semibold text-sm">🖼️ ตำแหน่งรูป Avatar</div>
+        <div className="flex gap-3">
+          <button onClick={() => setAvatarOverflow(true)}
+            className={"flex-1 py-2 rounded-xl border text-sm font-medium transition-colors " + (avatarOverflow ? "border-amber-500/60 text-amber-400 bg-amber-500/10" : "border-zinc-700/30 text-zinc-500 hover:text-zinc-300")}>
+            ทะลุกรอบ
+          </button>
+          <button onClick={() => setAvatarOverflow(false)}
+            className={"flex-1 py-2 rounded-xl border text-sm font-medium transition-colors " + (!avatarOverflow ? "border-amber-500/60 text-amber-400 bg-amber-500/10" : "border-zinc-700/30 text-zinc-500 hover:text-zinc-300")}>
+            ไม่ทะลุกรอบ
+          </button>
+        </div>
       </Box>
       <Box className="space-y-3">
         <div className="text-zinc-300 font-semibold text-sm">👥 ผู้เล่น</div>
@@ -2608,6 +2623,7 @@ export default function App() {
         nextInternalId: data.nextInternalId,
         nicknames: cfg.nicknames||{},
         avatars: cfg.avatars||{},
+        avatarOverflow: cfg.avatarOverflow !== false,
         adminPassword: cfg.adminPassword !== undefined ? cfg.adminPassword : (data.adminPassword || ""),
       }});
       await refresh();
