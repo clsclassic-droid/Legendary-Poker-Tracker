@@ -613,7 +613,7 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
                     style={{
                       width: isSel ? "160px" : "100px",
                       height: isSel ? "160px" : "100px",
-                      marginTop: doOverflow ? (isSel ? "-32px" : "-16px") : "0px",
+                      marginTop: doOverflow ? (isSel ? "-60px" : "-40px") : "0px",
                       objectPosition: "top center",
                       borderRadius: doOverflow ? "0px" : "8px",
                       filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.7))",
