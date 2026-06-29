@@ -337,7 +337,7 @@ function DashboardView({ data, onGoLeader, onGoLatestSes, onGoPot }) {
   const pot     = data.pot?.balance ?? 0;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       <h2 className="text-xl font-bold text-white">📊 ภาพรวม</h2>
 
       <div className="grid grid-cols-3 gap-3">
@@ -441,7 +441,7 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
     const nextPlayer = curIdx < ranked_players.length - 1 ? ranked_players[curIdx + 1] : null;
 
     return (
-      <div className="space-y-4">
+      <div className="space-y-2">
         <div className="flex items-center gap-3">
           {/* ปุ่ม back: วงกลมสีทอง */}
           <button onClick={()=>{setSel(null);}}
@@ -567,7 +567,7 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
   const DEFAULT_AVATAR = "https://raw.githubusercontent.com/clsclassic-droid/Legendary-Poker-Tracker/main/src/default-player.png";
   const avatarOverflows = data.avatarOverflows || {};
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       <h2 className="text-xl font-bold text-white">👤 Player Profiles</h2>
       <p className="text-zinc-500 text-sm">กดเพื่อ select · กดอีกครั้งเพื่อดู profile</p>
       <div className="space-y-2">
@@ -879,7 +879,7 @@ function RacingBarChart({ sessions, players, nicknames, avatars }) {
 // ─────────────────────────────────────────────────────────────────
 function RaceView({ data }) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       <h2 className="text-xl font-bold text-white">🏎️ Ranking Race</h2>
       <p className="text-zinc-500 text-sm">กำไรสะสมแต่ละเซสชั่น</p>
       {data.sessions.length > 1
@@ -1063,7 +1063,7 @@ function SessionsView({ data, onEdit, onDelete, initialOpen=null }) {
   const [open, setOpen] = useState(initialOpen);
   const [openStats, setOpenStats] = useState(new Set());
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       <h2 className="text-xl font-bold text-white">📋 ประวัติเซสชั่น</h2>
       {data.sessions.length===0 && <Box><div className="text-center py-12 text-zinc-600"><div className="text-4xl mb-3">🃏</div>ยังไม่มีเซสชั่น</div></Box>}
       {[...data.sessions].reverse().map(s => {
@@ -1826,39 +1826,39 @@ function StreakView() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       <div className="flex items-start justify-between gap-2">
         <div>
-          <h2 className="text-xl font-bold text-white">🎯 Streak</h2>
-          <p className="text-zinc-500 text-xs mt-0.5 leading-snug">
+          <h2 className="text-lg font-bold text-white">🎯 Streak</h2>
+          <p className="text-zinc-500 text-[10px] mt-0.5 leading-tight">
             กด “เล่นมือนี้” ทุกครั้งที่ลง แล้วกด Hit เมื่อติด · นับว่าแต่ละมือยังไม่ติดมากี่ครั้งแล้ว
           </p>
         </div>
         <button onClick={resetAll}
-          className="px-3 py-1.5 rounded-xl text-xs text-zinc-500 hover:text-red-400 border border-zinc-700/30 transition-colors whitespace-nowrap"
+          className="px-2.5 py-1 rounded-lg text-[10px] text-zinc-500 hover:text-red-400 border border-zinc-700/30 transition-colors whitespace-nowrap flex-shrink-0"
           style={{background:"rgba(255,255,255,0.04)"}}>
           🔄 Reset
         </button>
       </div>
 
       {STREAK_GROUPS.map(g => (
-        <div key={g.key} className="rounded-2xl border border-zinc-700/35 p-3"
+        <div key={g.key} className="rounded-xl border border-zinc-700/30 p-2"
           style={{background:"rgba(255,255,255,0.03)"}}>
           {/* หัวการ์ด */}
-          <div className="flex items-center justify-between gap-2 mb-2.5">
-            <div className="text-sm font-semibold text-amber-400 flex items-center gap-1.5 min-w-0">
-              <span className="text-[13px] flex-shrink-0">{g.icon}</span>
+          <div className="flex items-center justify-between gap-1.5 mb-2">
+            <div className="text-xs font-semibold text-amber-400 flex items-center gap-1 min-w-0">
+              <span className="text-[12px] flex-shrink-0">{g.icon}</span>
               <span className="truncate">{g.name}</span>
             </div>
             <button onClick={() => played(g.key)}
-              className="text-[11px] font-semibold text-amber-400 border border-amber-500/35 px-3 py-1.5 rounded-lg hover:bg-amber-500/20 transition-colors whitespace-nowrap flex-shrink-0"
+              className="text-[10px] font-semibold text-amber-400 border border-amber-500/30 px-2 py-1 rounded-md hover:bg-amber-500/15 transition-colors whitespace-nowrap flex-shrink-0"
               style={{background:"rgba(245,158,11,0.12)"}}>
-              + เล่นมือนี้
+              เล่น
             </button>
           </div>
 
           {/* 3 stage */}
-          <div className="grid grid-cols-3 gap-1.5">
+          <div className="grid grid-cols-3 gap-1">
             {STREAK_STAGES.map(st => {
               const id    = g.key + "_" + st;
               const odds  = g.odds[st];
@@ -1873,19 +1873,18 @@ function StreakView() {
                 <div key={id}
                   className={"rounded-xl border px-1.5 py-2 flex flex-col items-center gap-1.5 " + (on ? "border-amber-500/30" : "border-zinc-700/30")}
                   style={{background: on ? "rgba(30,20,4,0.4)" : "rgba(255,255,255,0.025)"}}>
-                  <div className="text-[10px] font-bold text-zinc-400 tracking-wide uppercase">{STAGE_LABEL[st]}</div>
-                  <div className="text-[9px] text-zinc-500">~1 ใน <b className="text-amber-300/80 font-semibold">{odds}</b></div>
-                  <div className={"font-mono font-black text-2xl leading-none " + (on ? "text-amber-400" : "text-zinc-600")}>{count}</div>
+                  <div className="flex gap-1"><span className="text-[8px] font-bold text-zinc-400 tracking-wide uppercase inline">{STAGE_LABEL[st]}</span><span className="text-[8px] text-zinc-500 inline">~1 ใน <b className="text-amber-300/80 font-semibold">{odds}</b></span></div>
+                  <div className={"font-mono font-black text-xl leading-none " + (on ? "text-amber-400" : "text-zinc-600")}>{count}</div>
                   <button onClick={() => hit(g.key, st)}
-                    className="w-full text-[10px] font-bold text-emerald-400 border border-emerald-500/30 py-1 rounded-lg hover:bg-emerald-500/15 transition-colors"
+                    className="w-full text-[9px] font-bold text-emerald-400 border border-emerald-500/30 py-0.5 rounded-md hover:bg-emerald-500/15 transition-colors"
                     style={{background:"rgba(5,30,15,0.4)"}}>
                     ✅ Hit
                   </button>
-                  <div className="w-full h-[3px] rounded-full overflow-hidden" style={{background:"rgba(255,255,255,0.06)"}}>
+                  <div className="w-full h-[2px] rounded-full overflow-hidden" style={{background:"rgba(255,255,255,0.06)"}}>
                     <div className="h-full rounded-full transition-all" style={{width: pct + "%", background: barColor(pct)}}/>
                   </div>
                   <button onClick={() => att > 0 && setOpenHist(openHist === id ? null : id)}
-                    className={"text-[9px] transition-colors " + (att > 0 ? "text-zinc-500 hover:text-zinc-300 cursor-pointer" : "text-zinc-700 cursor-default")}>
+                    className={"text-[8px] transition-colors leading-tight " + (att > 0 ? "text-zinc-500 hover:text-zinc-300 cursor-pointer" : "text-zinc-700 cursor-default")}>
                     {att > 0 ? `📋 ${att}× · เฉลี่ย ${avgStr}` : "📋 No data"}
                   </button>
                 </div>
@@ -1901,13 +1900,13 @@ function StreakView() {
             if (openHist !== id || hist.length === 0) return null;
             const avg = hist.reduce((s,h)=>s+h.count,0) / hist.length;
             return (
-              <div key={id} className="mt-2 rounded-xl border border-zinc-700/30 overflow-hidden"
+              <div key={id} className="mt-1.5 rounded-lg border border-zinc-700/25 overflow-hidden"
                 style={{background:"rgba(255,255,255,0.025)"}}>
-                <div className="flex justify-between items-center px-3 py-1.5 border-b border-white/5 text-[10px]">
+                <div className="flex justify-between items-center px-2 py-1 border-b border-white/5 text-[9px]">
                   <span className="text-zinc-400 font-semibold">ประวัติ {STAGE_LABEL[st]} ({hist.length})</span>
                   <span className="text-zinc-600">เฉลี่ย {avg >= 10 ? Math.round(avg) : avg.toFixed(1)} / ติด</span>
                 </div>
-                <div className="flex text-[9px] text-zinc-700 px-3 py-1 border-b border-white/5">
+                <div className="flex text-[8px] text-zinc-700 px-2 py-0.5 border-b border-white/5">
                   <span className="w-6">#</span>
                   <span className="flex-1">ครั้ง</span>
                   <span className="w-12 text-right">เวลา</span>
@@ -1916,7 +1915,7 @@ function StreakView() {
                 {[...hist].reverse().map((h, ri) => {
                   const diff = +(h.count - odds).toFixed(1);
                   return (
-                    <div key={ri} className="flex items-center text-xs px-3 py-1.5 border-b border-white/5 last:border-0">
+                    <div key={ri} className="flex items-center text-[10px] px-2 py-1 border-b border-white/5 last:border-0">
                       <span className="w-6 text-zinc-600 text-[10px]">{hist.length - ri}</span>
                       <span className="flex-1 font-mono font-bold text-white">{h.count} ครั้ง</span>
                       <span className="w-12 text-right text-zinc-600 text-[10px]">{h.time}</span>
@@ -1927,7 +1926,7 @@ function StreakView() {
                   );
                 })}
                 <button onClick={() => clearHistory(id)}
-                  className="w-full text-[10px] text-zinc-600 hover:text-red-400 py-1.5 transition-colors border-t border-white/5">
+                  className="w-full text-[9px] text-zinc-600 hover:text-red-400 py-1 transition-colors border-t border-white/5">
                   🗑 ล้างประวัติ {STAGE_LABEL[st]}
                 </button>
               </div>
