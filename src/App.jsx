@@ -1853,7 +1853,7 @@ function StreakView() {
 
       {STREAK_GROUPS.map(g => (
         <div key={g.key} className="rounded-xl border border-zinc-700/30 p-2"
-          style={{background:"rgba(255,255,255,0.03)"}}>
+          style={{background:"rgba(255,255,255,0.25)"}}>
           {/* หัวการ์ด */}
           <div className="flex items-center justify-between gap-1.5 mb-2">
             <div className="text-xs font-semibold text-amber-400 flex items-center gap-1 min-w-0">
@@ -2288,7 +2288,7 @@ function SkillView({ data }) {
       </div>
 
       {!hasData ? (
-        <div className="border border-zinc-700/25 rounded-2xl p-8 text-center" style={{background:"rgba(255,255,255,0.03)"}}>
+        <div className="border border-zinc-700/25 rounded-2xl p-8 text-center" style={{background:"rgba(255,255,255,0.06)"}}>
           <div className="text-4xl mb-3">🎭</div>
           <div className="text-zinc-500 text-sm">ยังไม่มีข้อมูล Bluff</div>
           <div className="text-zinc-700 text-xs mt-1">กรอกข้อมูล Bluff ตอนบันทึกเซสชั่น</div>
@@ -2442,7 +2442,7 @@ function LuckView({ data }) {
       </div>
 
       {!hasData ? (
-        <div className="border border-zinc-700/25 rounded-2xl p-8 text-center" style={{background:"rgba(255,255,255,0.03)"}}>
+        <div className="border border-zinc-700/25 rounded-2xl p-8 text-center" style={{background:"rgba(255,255,255,0.06)"}}>
           <div className="text-4xl mb-3">🍀</div>
           <div className="text-zinc-500 text-sm">ยังไม่มีข้อมูล Luck</div>
           <div className="text-zinc-700 text-xs mt-1">กรอกข้อมูลไพ่พิเศษตอนบันทึกเซสชั่น</div>
