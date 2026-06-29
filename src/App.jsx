@@ -2299,7 +2299,7 @@ function SkillView({ data }) {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {summary.slice(0,3).map((p,i) => {
               const total = p.bluffWin + p.bluffLose;
-              const GRAD  = ["border-amber-500/40","border-zinc-500/40","border-orange-700/40"];
+              const GRAD  = ["bg-gradient-to-br from-amber-900/40 to-amber-700/10 border-amber-500/40","bg-gradient-to-br from-zinc-700/40 to-zinc-600/10 border-zinc-500/40","bg-gradient-to-br from-orange-900/30 to-orange-800/10 border-orange-700/40"];
               const BG    = ["rgba(25,14,2,0.25)","rgba(20,20,20,0.25)","rgba(25,12,2,0.25)"];
               const MEDAL = ["🥇","🥈","🥉"];
               return (
@@ -2355,7 +2355,7 @@ function SkillView({ data }) {
                   {summary.map((p, i) => {
                     const total = p.bluffWin + p.bluffLose;
                     return (
-                      <tr key={p.name} className="border-b border-zinc-800/30 hover:bg-white/5 transition-colors" style={{background:"rgba(25,14,2,0.25)"}}>
+                      <tr key={p.name} className="border-b border-zinc-800/30 hover:bg-white/5 transition-colors bg-gradient-to-r from-amber-900/25 to-amber-700/5">
                         <td className="px-3 py-2.5 text-zinc-600 font-mono text-xs">{i+1}</td>
                         <td className="px-3 py-2.5 text-white font-semibold">{p.name}</td>
                         <td className="px-2 py-2.5 text-center font-mono font-bold text-emerald-400">{p.bluffWin > 0 ? p.bluffWin : <span className="text-zinc-700">—</span>}</td>
@@ -2452,7 +2452,7 @@ function LuckView({ data }) {
           {/* Top 3 cards */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {summary.slice(0,3).map((p,i) => {
-              const GRAD  = ["border-amber-500/40","border-zinc-500/40","border-orange-700/40"];
+              const GRAD  = ["bg-gradient-to-br from-amber-900/40 to-amber-700/10 border-amber-500/40","bg-gradient-to-br from-zinc-700/40 to-zinc-600/10 border-zinc-500/40","bg-gradient-to-br from-orange-900/30 to-orange-800/10 border-orange-700/40"];
               const BG    = ["rgba(25,14,2,0.25)","rgba(20,20,20,0.25)","rgba(25,12,2,0.25)"];
               const MEDAL = ["🥇","🥈","🥉"];
               return (
@@ -2500,7 +2500,7 @@ function LuckView({ data }) {
                 </thead>
                 <tbody>
                   {summary.map((p, i) => (
-                    <tr key={p.name} className="border-b border-zinc-800/30 hover:bg-white/5 transition-colors" style={{background:"rgba(25,14,2,0.25)"}}>
+                    <tr key={p.name} className="border-b border-zinc-800/30 hover:bg-white/5 transition-colors bg-gradient-to-r from-amber-900/25 to-amber-700/5">
                       <td className="px-3 py-2.5 text-zinc-600 font-mono text-xs">{i+1}</td>
                       <td className="px-3 py-2.5 text-white font-semibold">{p.name}</td>
                       <td className="px-2 py-2.5 text-center font-mono font-bold text-sky-400">{p.fourCard > 0 ? p.fourCard : <span className="text-zinc-700">—</span>}</td>
