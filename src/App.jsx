@@ -2300,7 +2300,7 @@ function SkillView({ data }) {
             {summary.slice(0,3).map((p,i) => {
               const total = p.bluffWin + p.bluffLose;
               const GRAD  = ["border-amber-500/40","border-zinc-500/40","border-orange-700/40"];
-              const BG    = ["rgba(25,14,2,0.4)","rgba(20,20,20,0.4)","rgba(25,12,2,0.4)"];
+              const BG    = ["rgba(25,14,2,0.55)","rgba(20,20,20,0.55)","rgba(25,12,2,0.55)"];
               const MEDAL = ["🥇","🥈","🥉"];
               return (
                 <div key={p.name} className={"rounded-2xl border p-4 " + GRAD[i]}
@@ -2452,7 +2452,7 @@ function LuckView({ data }) {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {summary.slice(0,3).map((p,i) => {
               const GRAD  = ["border-amber-500/40","border-zinc-500/40","border-orange-700/40"];
-              const BG    = ["rgba(25,14,2,0.4)","rgba(20,20,20,0.4)","rgba(25,12,2,0.4)"];
+              const BG    = ["rgba(25,14,2,0.55)","rgba(20,20,20,0.55)","rgba(25,12,2,0.55)"];
               const MEDAL = ["🥇","🥈","🥉"];
               return (
                 <div key={p.name} className={"rounded-2xl border p-4 " + GRAD[i]} style={{background:BG[i]}}>
