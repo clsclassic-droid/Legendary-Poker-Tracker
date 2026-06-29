@@ -170,7 +170,7 @@ function NInput({ value, onChange, ph="0" }) {
 }
 function Box({ children, className="" }) {
   return <div className={"border border-zinc-700/25 rounded-2xl p-4 " + className}
-    style={{background:'rgba(15,10,3,0.05)', backdropFilter:'blur(6px)', WebkitBackdropFilter:'blur(6px)'}}
+    style={{background:'rgba(15,10,3,0.25)', backdropFilter:'blur(6px)', WebkitBackdropFilter:'blur(6px)'}}
   >{children}</div>;
 }
 
@@ -197,7 +197,7 @@ function MiniChart({ player, sessions }) {
   }, [player, sessions]);
 
   if (pts.length < 2) return (
-    <div className="border border-zinc-700/25 rounded-2xl p-6 text-center" style={{background:"rgba(15,10,3,0.05)",backdropFilter:"blur(6px)"}}>
+    <div className="border border-zinc-700/25 rounded-2xl p-6 text-center" style={{background:"rgba(15,10,3,0.25)",backdropFilter:"blur(6px)"}}>
       <div className="text-3xl mb-2">📈</div>
       <div className="text-zinc-400 text-sm font-medium">ยังไม่มีกราฟ</div>
       <div className="text-zinc-600 text-xs mt-1">ต้องมีอย่างน้อย 2 เซสขึ้นไป<br/>ปัจจุบันเล่นไป {pts.length} เซส</div>
@@ -355,7 +355,7 @@ function DashboardView({ data, onGoLeader, onGoLatestSes, onGoPot }) {
         </button>
         {/* Latest session — กดแล้วไปหน้าเซสชั่น พร้อมเปิดเซสล่าสุด */}
         <button onClick={()=>latest&&onGoLatestSes(latest.internalId)}
-          className="border border-zinc-700/25 rounded-2xl p-3 text-left hover:border-zinc-600 transition-colors" style={{background:"rgba(15,10,3,0.05)",backdropFilter:"blur(6px)"}}>
+          className="border border-zinc-700/25 rounded-2xl p-3 text-left hover:border-zinc-600 transition-colors" style={{background:"rgba(15,10,3,0.25)",backdropFilter:"blur(6px)"}}>
           <div className="text-sky-400 text-xs font-semibold mb-1">📋 เซสล่าสุด</div>
           {latest
             ? <>
@@ -382,7 +382,7 @@ function DashboardView({ data, onGoLeader, onGoLatestSes, onGoPot }) {
           ["ซีซั่น",     latest ? "S"+latest.season+"/"+latest.year : "-",             "text-amber-300"],
           ["ปีนี้",      data.sessions.filter(s=>s.year===new Date().getFullYear()).length, "text-sky-300"],
         ].map(([label,value,color]) => (
-          <div key={label} className="border border-zinc-700/25 rounded-xl px-2 py-2 text-center" style={{background:"rgba(15,10,3,0.05)",backdropFilter:"blur(6px)"}}>
+          <div key={label} className="border border-zinc-700/25 rounded-xl px-2 py-2 text-center" style={{background:"rgba(15,10,3,0.25)",backdropFilter:"blur(6px)"}}>
             <div className={"font-mono font-black text-lg "+color}>{value}</div>
             <div className="text-zinc-600 text-[10px] mt-0.5">{label}</div>
           </div>
@@ -476,7 +476,7 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
         </div>
 
         {/* Total + รูป profile */}
-        <div className="border border-zinc-700/25 rounded-2xl pt-2 pb-4 px-4 text-center" style={{background:"rgba(15,10,3,0.05)",backdropFilter:"blur(6px)"}}>
+        <div className="border border-zinc-700/25 rounded-2xl pt-2 pb-4 px-4 text-center" style={{background:"rgba(15,10,3,0.25)",backdropFilter:"blur(6px)"}}>
           {/* รูปตัวละคร กึ่งกลาง บนสุด */}
           {(() => {
             const customAv = (data.avatars||{})[sel];
@@ -511,7 +511,7 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
             ["ดีที่สุด",  stats.best!==null  ? (stats.best>0?"+":"")+fmt(stats.best) : "-", "text-emerald-400"],
             ["แย่ที่สุด", stats.worst!==null ? fmt(stats.worst)     : "-", "text-red-400"],
           ].map(([label,value,color]) => (
-            <div key={label} className="border border-zinc-700/25 rounded-xl p-3 text-center" style={{background:"rgba(15,10,3,0.05)",backdropFilter:"blur(6px)"}}>
+            <div key={label} className="border border-zinc-700/25 rounded-xl p-3 text-center" style={{background:"rgba(15,10,3,0.25)",backdropFilter:"blur(6px)"}}>
               <div className={"font-mono font-bold text-lg "+color}>{value}</div>
               <div className="text-zinc-600 text-xs mt-0.5">{label}</div>
             </div>
@@ -545,7 +545,7 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
               const myRank  = ranked(x.s.entries).find(r => r.player === sel)?.rank ?? 0;
               const em = myRank===1?"🥇":myRank===2?"🥈":myRank===3?"🥉":myRank===lastRank?"💀":"#"+myRank;
               return (
-                <div key={i} className="flex items-center justify-between border border-zinc-700/25 rounded-xl px-3 py-2" style={{background:"rgba(15,10,3,0.05)",backdropFilter:"blur(6px)"}}>
+                <div key={i} className="flex items-center justify-between border border-zinc-700/25 rounded-xl px-3 py-2" style={{background:"rgba(15,10,3,0.25)",backdropFilter:"blur(6px)"}}>
                   <div className="flex items-center gap-2">
                     <span className="text-base">{em}</span>
                     <div>
@@ -589,7 +589,7 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
               style={{
                 background: isSel
                   ? "linear-gradient(135deg, rgba(201,162,39,0.15), rgba(201,162,39,0.05))"
-                  : "rgba(15,10,3,0.05)",
+                  : "rgba(15,10,3,0.25)",
                 border: isSel
                   ? "1.5px solid rgba(201,162,39,0.45)"
                   : "1px solid rgba(255,255,255,0.08)",
@@ -751,7 +751,7 @@ function RacingBarChart({ sessions, players, nicknames, avatars }) {
   const containerHeight = players.length * ROW_H;
 
   return (
-    <div className="border border-zinc-700/25 rounded-2xl p-4 space-y-3" style={{background:"rgba(15,10,3,0.05)",backdropFilter:"blur(6px)"}}>
+    <div className="border border-zinc-700/25 rounded-2xl p-4 space-y-3" style={{background:"rgba(15,10,3,0.25)",backdropFilter:"blur(6px)"}}>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -1072,7 +1072,7 @@ function SessionsView({ data, onEdit, onDelete, initialOpen=null }) {
         const pot = s.entries.reduce((a,e)=>a+e.buyInBaht,0);
         const fee = s.entries.length*s.fee;
         return (
-          <div key={s.internalId} className="border border-zinc-700/25 rounded-2xl overflow-hidden" style={{background:"rgba(15,10,3,0.05)",backdropFilter:"blur(6px)"}}>
+          <div key={s.internalId} className="border border-zinc-700/25 rounded-2xl overflow-hidden" style={{background:"rgba(15,10,3,0.25)",backdropFilter:"blur(6px)"}}>
             <button className="w-full flex items-center justify-between px-4 py-4 hover:bg-white/5 transition-colors text-left" onClick={()=>setOpen(isOpen?null:s.internalId)}>
               <div className="flex items-center gap-3">
                 <div className="text-center">
@@ -1562,7 +1562,7 @@ function PotView({ data, onAddTx, onDeleteTx, saving, allowPublicPotEdit, setAll
         <div className="text-zinc-500 text-xs font-semibold">ประวัติรายการ ({pot.transactions.length})</div>
         {pot.transactions.length===0 && <Box><div className="text-center py-6 text-zinc-600 text-sm">ยังไม่มีรายการ</div></Box>}
         {pot.transactions.map(tx => (
-          <div key={tx.id} className="flex items-center justify-between border border-zinc-700/25 rounded-xl px-4 py-3" style={{background:"rgba(15,10,3,0.05)",backdropFilter:"blur(6px)"}}>
+          <div key={tx.id} className="flex items-center justify-between border border-zinc-700/25 rounded-xl px-4 py-3" style={{background:"rgba(15,10,3,0.25)",backdropFilter:"blur(6px)"}}>
             <div className="flex items-center gap-3">
               <span className={"text-lg "+(tx.type==="income"?"text-emerald-400":"text-red-400")}>{tx.type==="income"?"➕":"➖"}</span>
               <div><div className="text-white text-sm font-medium">{tx.note}</div><div className="text-zinc-600 text-xs">{String(tx.date||"").slice(0,10)}</div></div>
@@ -2112,7 +2112,7 @@ function CalcView() {
         equity <= 25 ? "border-emerald-500/40" :
         equity <= 33 ? "border-amber-500/40" :
         "border-red-500/40"
-      )} style={{background: total === 0 ? "rgba(15,10,3,0.05)" :
+      )} style={{background: total === 0 ? "rgba(15,10,3,0.25)" :
         equity <= 25 ? "rgba(5,30,15,0.3)" :
         equity <= 33 ? "rgba(30,20,5,0.3)" :
         "rgba(30,5,5,0.3)"}}>
@@ -2337,7 +2337,7 @@ function SkillView({ data }) {
           </div>
 
           {/* Full table */}
-          <div className="border border-zinc-700/25 rounded-2xl overflow-hidden" style={{background:"rgba(15,10,3,0.05)"}}>
+          <div className="border border-zinc-700/25 rounded-2xl overflow-hidden" style={{background:"rgba(15,10,3,0.25)"}}>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
@@ -2484,7 +2484,7 @@ function LuckView({ data }) {
           </div>
 
           {/* Full table */}
-          <div className="border border-zinc-700/25 rounded-2xl overflow-hidden" style={{background:"rgba(15,10,3,0.05)"}}>
+          <div className="border border-zinc-700/25 rounded-2xl overflow-hidden" style={{background:"rgba(15,10,3,0.25)"}}>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
