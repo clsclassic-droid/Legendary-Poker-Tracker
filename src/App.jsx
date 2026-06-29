@@ -2337,7 +2337,7 @@ function SkillView({ data }) {
           </div>
 
           {/* Full table */}
-          <div className="border border-zinc-700/25 rounded-2xl overflow-hidden" style={{background:"rgba(15,10,3,0.40)"}}>
+          <div className="border border-zinc-700/25 rounded-2xl overflow-hidden relative" style={{background:"rgba(15,10,3,0)"}}><div style={{position:"absolute",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.35)",zIndex:10,pointerEvents:"none"}}/><div style={{position:"relative",zIndex:20}}>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
@@ -2372,6 +2372,7 @@ function SkillView({ data }) {
                   })}
                 </tbody>
               </table>
+            </div>
             </div>
           </div>
         </>
@@ -2484,7 +2485,7 @@ function LuckView({ data }) {
           </div>
 
           {/* Full table */}
-          <div className="border border-zinc-700/25 rounded-2xl overflow-hidden" style={{background:"rgba(15,10,3,0.40)"}}>
+          <div className="border border-zinc-700/25 rounded-2xl overflow-hidden relative" style={{background:"rgba(15,10,3,0)"}}><div style={{position:"absolute",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.35)",zIndex:10,pointerEvents:"none"}}/><div style={{position:"relative",zIndex:20}}>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
@@ -2514,6 +2515,7 @@ function LuckView({ data }) {
                   ))}
                 </tbody>
               </table>
+            </div>
             </div>
           </div>
         </>
