@@ -2720,22 +2720,15 @@ export default function App() {
     <style>{`
       .bg-legendary-main {
         background-image: url(${BG_SRC});
+        background-color: #0a0806;
         background-position: center;
         background-size: cover;
         background-attachment: fixed;
       }
-      /* tablet (768px - 1023px): cover + scroll */
-      @media (max-width: 1023px) {
-        .bg-legendary-main {
-          background-attachment: scroll;
-        }
-      }
-      /* mobile (<768px): contain + scroll */
+      /* mobile (<768px): cover + left center + fixed */
       @media (max-width: 767px) {
         .bg-legendary-main {
-          background-size: contain;
-          background-repeat: no-repeat;
-          background-attachment: scroll;
+          background-position: left center;
         }
       }
     `}</style>
