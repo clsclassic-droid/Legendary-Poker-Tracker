@@ -2721,13 +2721,21 @@ export default function App() {
       .bg-legendary-main {
         background-image: url(${BG_SRC});
         background-position: center;
-        background-attachment: fixed;
         background-size: cover;
+        background-attachment: fixed;
       }
-      @media (max-width: 768px) {
+      /* tablet (768px - 1023px): cover + scroll */
+      @media (max-width: 1023px) {
+        .bg-legendary-main {
+          background-attachment: scroll;
+        }
+      }
+      /* mobile (<768px): contain + scroll */
+      @media (max-width: 767px) {
         .bg-legendary-main {
           background-size: contain;
           background-repeat: no-repeat;
+          background-attachment: scroll;
         }
       }
     `}</style>
