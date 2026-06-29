@@ -1499,7 +1499,7 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
 // ─────────────────────────────────────────────────────────────────
 // POT
 // ─────────────────────────────────────────────────────────────────
-function PotView({ data, onAddTx, onDeleteTx, saving }) {
+function PotView({ data, onAddTx, onDeleteTx, saving, allowPublicPotEdit, setAllowPublicPotEdit, isAdmin }) {
   const pot = data.pot || {balance:0,transactions:[]};
   const [add,  setAdd]  = useState(false);
   const [type, setType] = useState("income");
@@ -1523,9 +1523,19 @@ function PotView({ data, onAddTx, onDeleteTx, saving }) {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <div><h2 className="text-xl font-bold text-white">💰 กองกลาง</h2><p className="text-zinc-500 text-sm">รายรับ-รายจ่ายเงินส่วนกลาง</p></div>
-        {onAddTx && <button onClick={()=>setAdd(!add)} className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold text-sm">{add?"ยกเลิก":"+ เพิ่มรายการ"}</button>}
+        <div className="flex items-center gap-2">
+          {isAdmin && (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{background:"rgba(255,255,255,0.08)"}}>
+              <span className="text-xs text-zinc-400">อนุญาตผู้เล่นแก้ไข</span>
+              <button onClick={() => setAllowPublicPotEdit(!allowPublicPotEdit)} className={"w-10 h-6 rounded-full flex items-center px-1 transition-all " + (allowPublicPotEdit ? "bg-emerald-600" : "bg-zinc-600")}>
+                <div className={"w-4 h-4 rounded-full bg-white transition-transform " + (allowPublicPotEdit ? "translate-x-4" : "translate-x-0")}/>
+              </button>
+            </div>
+          )}
+          {onAddTx && <button onClick={()=>setAdd(!add)} className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold text-sm">{add?"ยกเลิก":"+ เพิ่มรายการ"}</button>}
+        </div>
       </div>
       <div className="grid grid-cols-3 gap-3">
         <div className="bg-emerald-900/20 border border-emerald-700/30 rounded-2xl p-3 text-center"><div className="text-emerald-400 text-xs font-semibold mb-1">รายรับรวม</div><div className="text-emerald-300 font-mono font-black text-lg">{inc>0?"+":""}{fmt(inc)}</div><div className="text-zinc-600 text-xs">฿</div></div>
@@ -2586,6 +2596,13 @@ export default function App() {
   const [saving,  setSaving]  = useState(false);
   const [error,   setError]   = useState(null);
   const [isAdmin, setIsAdmin] = useState(() => localStorage.getItem("lspc_admin") === "1");
+  const [allowPublicPotEdit, setAllowPublicPotEdit] = useState(() => localStorage.getItem("lspc_allowPublicPot") === "1");
+  
+  function togglePublicPotEdit() {
+    const newVal = !allowPublicPotEdit;
+    setAllowPublicPotEdit(newVal);
+    localStorage.setItem("lspc_allowPublicPot", newVal ? "1" : "0");
+  }
   const [menuOpen, setMenuOpen] = useState(false);
 
   async function refresh() {
@@ -2839,7 +2856,7 @@ export default function App() {
           onDelete={isAdmin ? delSes : null}
           initialOpen={openSesId}/>}
         {tab === "add"         && isAdmin && <SessionForm data={data} editSession={editSes} onSave={saveSes} saving={saving} onCancel={editSes ? () => { setEditSes(null); setTab("sessions"); } : null}/>}
-        {tab === "pot"         && <PotView data={data} onAddTx={isAdmin ? addPotTx : null} onDeleteTx={isAdmin ? delPotTx : null} saving={saving}/>}
+        {tab === "pot"         && <PotView data={data} onAddTx={(isAdmin || allowPublicPotEdit) ? addPotTx : null} onDeleteTx={(isAdmin || allowPublicPotEdit) ? delPotTx : null} saving={saving} allowPublicPotEdit={allowPublicPotEdit} setAllowPublicPotEdit={setAllowPublicPotEdit} isAdmin={isAdmin}/>}
         {tab === "settings"    && isAdmin && <SettingsView data={data} onUpdate={saveSettings} saving={saving}/>}
         {tab === "login"       && <LoginView data={data} onLogin={() => { setIsAdmin(true); setTab("dashboard"); }} onCancel={() => setTab("dashboard")}/>}
       </main>
