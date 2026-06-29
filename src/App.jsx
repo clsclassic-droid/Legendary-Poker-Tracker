@@ -1853,7 +1853,8 @@ function StreakView() {
 
       {STREAK_GROUPS.map(g => (
         <div key={g.key} className="rounded-xl border border-zinc-700/30 p-2"
-          style={{background:"rgba(255,255,255,0.25)"}}>
+          style={{background:"rgba(255,255,255,0.15)"}}>
+
           {/* หัวการ์ด */}
           <div className="flex items-center justify-between gap-1.5 mb-2">
             <div className="text-xs font-semibold text-amber-400 flex items-center gap-1 min-w-0">
@@ -1881,7 +1882,8 @@ function StreakView() {
               const avgStr = avg >= 10 ? Math.round(avg) : avg.toFixed(1);
               return (
                 <div key={id}
-                  className={"rounded-xl border px-1.5 py-2 flex flex-col items-center gap-1.5 " + (on ? "border-amber-500/30" : "border-zinc-700/30")}
+                  style={{background: on ? "rgba(30,20,4,0.5)" : "rgba(255,255,255,0.025)"}}>
+
                   style={{background: on ? "rgba(30,20,4,1.0)" : "rgba(255,255,255,0.025)"}}>
                   <div className="flex gap-1"><span className="text-[8px] font-bold text-zinc-400 tracking-wide uppercase inline">{STAGE_LABEL[st]}</span><span className="text-[8px] text-zinc-500 inline">~1 ใน <b className="text-amber-300/80 font-semibold">{odds}</b></span></div>
                   <div className={"font-mono font-black text-xl leading-none " + (on ? "text-amber-400" : "text-zinc-600")}>{count}</div>
