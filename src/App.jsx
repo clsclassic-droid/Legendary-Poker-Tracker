@@ -2716,12 +2716,22 @@ export default function App() {
   const TABS = ALL_TABS.filter(t => !t.adminOnly || isAdmin);
 
   return (
-    <div className="min-h-screen text-white" style={{
-      backgroundImage: `url(${BG_SRC})`,
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-      backgroundAttachment: 'fixed',
-    }}>
+    <>
+    <style>{`
+      .bg-legendary-main {
+        background-image: url(${BG_SRC});
+        background-position: center;
+        background-attachment: fixed;
+        background-size: cover;
+      }
+      @media (max-width: 768px) {
+        .bg-legendary-main {
+          background-size: contain;
+          background-repeat: no-repeat;
+        }
+      }
+    `}</style>
+    <div className="min-h-screen text-white bg-legendary-main">
       {/* dark overlay */}
       <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.05)',zIndex:0,pointerEvents:'none'}}/>
       <div style={{position:'relative',zIndex:1,minHeight:'100vh'}}>
@@ -2834,5 +2844,6 @@ export default function App() {
       </main>
       </div>
     </div>
+    </>
   );
 }
