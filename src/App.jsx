@@ -1883,7 +1883,7 @@ function StreakView() {
               return (
                 <div key={id}
                   className={"rounded-xl border px-1.5 py-2 flex flex-col items-center gap-1.5 " + (on ? "border-amber-500/30" : "border-zinc-700/30")}
-                  style={{background: on ? "rgba(30,20,4,0.5)" : "rgba(255,255,255,0.025)"}}>
+                  style={{background: on ? "rgba(30,20,4,0.1)" : "rgba(255,255,255,0.025)"}}>
                   <div className="flex gap-1"><span className="text-[8px] font-bold text-zinc-400 tracking-wide uppercase inline">{STAGE_LABEL[st]}</span><span className="text-[8px] text-zinc-500 inline">~1 ใน <b className="text-amber-300/80 font-semibold">{odds}</b></span></div>
                   <div className={"font-mono font-black text-xl leading-none " + (on ? "text-amber-400" : "text-zinc-600")}>{count}</div>
                   <button onClick={() => hit(g.key, st)}
@@ -2301,7 +2301,7 @@ function SkillView({ data }) {
             {summary.slice(0,3).map((p,i) => {
               const total = p.bluffWin + p.bluffLose;
               const GRAD  = ["bg-gradient-to-br from-amber-900/40 to-amber-700/10 border-amber-500/40","bg-gradient-to-br from-zinc-700/40 to-zinc-600/10 border-zinc-500/40","bg-gradient-to-br from-orange-900/30 to-orange-800/10 border-orange-700/40"];
-              const BG    = ["rgba(25,14,2,0.25)","rgba(20,20,20,0.25)","rgba(25,12,2,0.25)"];
+              const BG    = ["rgba(25,14,2,0.15)","rgba(20,20,20,0.15)","rgba(25,12,2,0.15)"];
               const MEDAL = ["🥇","🥈","🥉"];
               return (
                 <div key={p.name} className={"rounded-2xl border p-4 " + GRAD[i]}
@@ -2453,7 +2453,7 @@ function LuckView({ data }) {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {summary.slice(0,3).map((p,i) => {
               const GRAD  = ["bg-gradient-to-br from-amber-900/40 to-amber-700/10 border-amber-500/40","bg-gradient-to-br from-zinc-700/40 to-zinc-600/10 border-zinc-500/40","bg-gradient-to-br from-orange-900/30 to-orange-800/10 border-orange-700/40"];
-              const BG    = ["rgba(25,14,2,0.25)","rgba(20,20,20,0.25)","rgba(25,12,2,0.25)"];
+              const BG    = ["rgba(25,14,2,0.15)","rgba(20,20,20,0.15)","rgba(25,12,2,0.15)"];
               const MEDAL = ["🥇","🥈","🥉"];
               return (
                 <div key={p.name} className={"rounded-2xl border p-4 " + GRAD[i]} style={{background:BG[i]}}>
