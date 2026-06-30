@@ -1851,7 +1851,9 @@ function StreakView() {
         </button>
       </div>
 
-      {STREAK_GROUPS.map(g => (
+      <Box className="overflow-hidden p-0">
+        <div className="space-y-2">
+          {STREAK_GROUPS.map(g => (
         <div key={g.key} className="rounded-xl border border-zinc-700/30 p-2"
           style={{background:"rgba(25,14,2,0.15)"}}>
 
@@ -1945,6 +1947,8 @@ function StreakView() {
           })}
         </div>
       ))}
+        </div>
+      </Box>
     </div>
   );
 }
