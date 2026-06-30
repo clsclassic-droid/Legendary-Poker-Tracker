@@ -1853,7 +1853,7 @@ function StreakView() {
 
       {STREAK_GROUPS.map(g => (
         <div key={g.key} className="rounded-xl border border-zinc-700/30 p-2"
-          style={{background:"rgba(255,255,255,0.15)"}}>
+          style={{background:"rgba(25,14,2,0.15)"}}>
 
           {/* หัวการ์ด */}
           <div className="flex items-center justify-between gap-1.5 mb-2">
