@@ -52,7 +52,7 @@ async function apiGet() {
       if ((!year || !season) && dateStr.length === 10) {
         const computed = (() => {
           const dt = new Date(dateStr + "T00:00:00");
-          return { year: dt.getFullYear(), season: Math.ceil((dt.getMonth()+1)/3) };
+          return { year: dt.getFullYear(), season: Math.ceil((dt.getMonth()+1)/4) };
         })();
         if (!year)   year   = computed.year;
         if (!season) season = computed.season;
@@ -96,7 +96,7 @@ const S_LABEL = ["","มกราคม–มีนาคม","เมษาย�
 
 function dateToSeason(str) {
   const d = new Date(str + "T00:00:00");
-  return { year: d.getFullYear(), season: Math.ceil((d.getMonth() + 1) / 3) };
+  return { year: d.getFullYear(), season: Math.ceil((d.getMonth() + 1) / 4) };
 }
 function sesLabel(s) { return "ปี " + s.year + " ซีซั่น " + s.season + " เซสชั่น " + s.sessionNo; }
 const c2b = (chips, r) => Math.round((chips / r.chips) * r.baht);
