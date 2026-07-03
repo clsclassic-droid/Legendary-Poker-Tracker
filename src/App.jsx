@@ -1081,7 +1081,7 @@ function SessionsView({ data, onEdit, onDelete, initialOpen=null }) {
                 </div>
                 <div>
                   <div className="text-white font-semibold text-sm">{String(s.date || "").slice(0,10)}</div>
-                  <div className="text-zinc-500 text-xs">{s.entries.length} ผู้เล่น · {fmt(pot)} ฿ · <span className="text-purple-400">ส่วนกลาง {fmt(fee)} ฿</span></div>
+                  <div className="text-zinc-500 text-xs">{s.entries.length} ผู้เล่น · Pot {fmt(pot)} ฿ · <span className="text-purple-400">ส่วนกลาง {fmt(fee)} ฿</span></div>
                 </div>
               </div>
               <div className="flex items-center gap-2">
