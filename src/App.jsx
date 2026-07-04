@@ -67,6 +67,9 @@ async function apiGet() {
   // parse allowPublicPotEdit (rองรับ boolean จริง, "TRUE"/"FALSE", "1"/"0")
   const rawAllowPot = d.settings?.allowPublicPotEdit ?? d.allowPublicPotEdit;
   d.allowPublicPotEdit = (rawAllowPot === true || rawAllowPot === "true" || rawAllowPot === "TRUE" || rawAllowPot === "1" || rawAllowPot === 1);
+  // parse allowPublicCalc (เปิดให้ผู้เล่นทั่วไปเห็นแท็บ Calc)
+  const rawAllowCalc = d.settings?.allowPublicCalc ?? d.allowPublicCalc;
+  d.allowPublicCalc = (rawAllowCalc === true || rawAllowCalc === "true" || rawAllowCalc === "TRUE" || rawAllowCalc === "1" || rawAllowCalc === 1);
   if (d.sessions) {
     d.sessions = d.sessions.map(s => {
       // date: strip time component
@@ -1978,7 +1981,7 @@ function StreakView() {
 // -----------------------------------------------------------------
 // CALCULATOR VIEW (Pot Odds)
 // -----------------------------------------------------------------
-function CalcView() {
+function CalcView({ allowPublicCalc, setAllowPublicCalc, isAdmin, saving }) {
   const [pot,     setPot]     = useState(0);
   const [call,    setCall]    = useState(0);
   const [selHand, setSelHand] = useState("");
@@ -2020,9 +2023,19 @@ function CalcView() {
 
   return (
     <div className="space-y-5">
-      <div>
-        <h2 className="text-xl font-bold text-white">🧮 Pot Odds Calculator</h2>
-        <p className="text-zinc-500 text-sm mt-0.5">คำนวณ % equity ที่ต้องการเพื่อ call คุ้ม</p>
+      <div className="flex items-center justify-between gap-2">
+        <div>
+          <h2 className="text-xl font-bold text-white">🧮 Pot Odds Calculator</h2>
+          <p className="text-zinc-500 text-sm mt-0.5">คำนวณ % equity ที่ต้องการเพื่อ call คุ้ม</p>
+        </div>
+        {isAdmin && (
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg flex-shrink-0" style={{background:"rgba(255,255,255,0.08)"}}>
+            <span className="text-xs text-zinc-400">อนุญาตผู้เล่นทั่วไปเข้าถึง</span>
+            <button onClick={() => setAllowPublicCalc()} disabled={saving} className={"w-10 h-6 rounded-full flex items-center px-1 transition-all disabled:opacity-50 " + (allowPublicCalc ? "bg-emerald-600" : "bg-zinc-600")}>
+              <div className={"w-4 h-4 rounded-full bg-white transition-transform " + (allowPublicCalc ? "translate-x-4" : "translate-x-0")}/>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Inputs */}
@@ -2698,6 +2711,7 @@ export default function App() {
         avatarOverflows: cfg.avatarOverflows||{},
         adminPassword: cfg.adminPassword !== undefined ? cfg.adminPassword : (data.adminPassword || ""),
         allowPublicPotEdit: cfg.allowPublicPotEdit !== undefined ? cfg.allowPublicPotEdit : (data.allowPublicPotEdit || false),
+        allowPublicCalc: cfg.allowPublicCalc !== undefined ? cfg.allowPublicCalc : (data.allowPublicCalc || false),
       }});
       await refresh();
     } catch(e) { alert("บันทึกไม่สำเร็จ: " + e.message); }
@@ -2717,6 +2731,27 @@ export default function App() {
         avatarOverflows: data.avatarOverflows || {},
         adminPassword: data.adminPassword || "",
         allowPublicPotEdit: !data.allowPublicPotEdit,
+        allowPublicCalc: data.allowPublicCalc || false,
+      }});
+      await refresh();
+    } catch(e) { alert("บันทึกไม่สำเร็จ: " + e.message); }
+    finally { setSaving(false); }
+  }
+
+  async function toggleAllowPublicCalc() {
+    setSaving(true);
+    try {
+      await apiPost({ action: "saveSettings", settings: {
+        players: data.players,
+        chipRate: data.chipRate,
+        defaultFee: data.defaultFee,
+        nextInternalId: data.nextInternalId,
+        nicknames: data.nicknames || {},
+        avatars: data.avatars || {},
+        avatarOverflows: data.avatarOverflows || {},
+        adminPassword: data.adminPassword || "",
+        allowPublicPotEdit: data.allowPublicPotEdit || false,
+        allowPublicCalc: !data.allowPublicCalc,
       }});
       await refresh();
     } catch(e) { alert("บันทึกไม่สำเร็จ: " + e.message); }
@@ -2771,7 +2806,7 @@ export default function App() {
     { id:"pot",         icon:"💰", label:"กองกลาง",  adminOnly: false },
     { id:"settings",    icon:"⚙️", label:"ตั้งค่า",  adminOnly: true  },
   ];
-  const TABS = ALL_TABS.filter(t => !t.adminOnly || isAdmin);
+  const TABS = ALL_TABS.filter(t => !t.adminOnly || isAdmin || (t.id === "calc" && data.allowPublicCalc));
 
   return (
     <>
@@ -2890,7 +2925,7 @@ export default function App() {
         {tab === "race"        && <RaceView data={data}/>}
         {tab === "skill"       && <SkillView data={data}/>}
         {tab === "luck"        && <LuckView data={data}/>}
-        {tab === "calc"        && <CalcView/>}
+        {tab === "calc"        && <CalcView allowPublicCalc={data.allowPublicCalc} setAllowPublicCalc={toggleAllowPublicCalc} isAdmin={isAdmin} saving={saving}/>}
         {tab === "streak"      && <StreakView/>}
         {tab === "sessions"    && !editSes && <SessionsView data={data}
           onEdit={isAdmin ? (s => { setEditSes(s); setTab("add"); }) : null}
