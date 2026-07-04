@@ -1,15 +1,15 @@
 import { useState, useEffect, useMemo, Fragment } from "react";
 
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 // CONFIG
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 const API_URL = "https://script.google.com/macros/s/AKfycbxfxhH1jGwsIJMUBHypzz5VZrKpnfDL2pgJePObM-JvXIp5CjAWaIH_4g1fJQXYjS03bA/exec";
 const LOGO_SRC = "https://raw.githubusercontent.com/clsclassic-droid/Legendary-Poker-Tracker/main/src/f512d9a54b54e5e327ac49c65c60695a.jpeg";
 const BG_SRC   = "https://github.com/clsclassic-droid/Legendary-Poker-Tracker/blob/main/sidebar-bg.jpg?raw=true";
 
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 // GOOGLE SHEETS API LAYER
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 async function apiGet() {
   const res = await fetch(API_URL + "?action=getData");
   const json = await res.json();
@@ -88,11 +88,11 @@ async function apiPost(body) {
 }
 
 
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 // HELPERS
-// ─────────────────────────────────────────────────────────────────
-const S_SHORT = ["","ม.ค.–มี.ค.","เม.ย.–มิ.ย.","ก.ค.–ก.ย.","ต.ค.–ธ.ค."];
-const S_LABEL = ["","มกราคม–มีนาคม","เมษายน–มิถุนายน","กรกฎาคม–กันยายน","ตุลาคม–ธันวาคม"];
+// -----------------------------------------------------------------
+const S_SHORT = ["","ม.ค.-มี.ค.","เม.ย.-มิ.ย.","ก.ค.-ก.ย.","ต.ค.-ธ.ค."];
+const S_LABEL = ["","มกราคม-มีนาคม","เมษายน-มิถุนายน","กรกฎาคม-กันยายน","ตุลาคม-ธันวาคม"];
 
 function dateToSeason(str) {
   const d = new Date(str + "T00:00:00");
@@ -104,7 +104,7 @@ const b2c = (baht,  r) => Math.round((baht  / r.baht)  * r.chips);
 const profit = (buy, sell, r) => c2b(sell - buy, r);
 const fmt = n => { const v = Number(n) || 0; return v === 0 ? "0" : v.toLocaleString(); };
 
-// ── Nickname helpers ──────────────────────────────────────────────
+// -- Nickname helpers ----------------------------------------------
 function getNick(player, nicknames) {
   return (nicknames || {})[player] || null;
 }
@@ -153,9 +153,9 @@ function buildSummary(players, sessions) {
     .map((p,i) => ({...p, rank: p.n > 0 ? i+1 : "-"}));
 }
 
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 // UI ATOMS
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 function Profit({ v, sx="" }) {
   const cls = v > 0 ? "text-emerald-400" : v < 0 ? "text-red-400" : "text-zinc-500";
   const txt = v > 0 ? "+" + fmt(v) : fmt(v);
@@ -174,9 +174,9 @@ function Box({ children, className="" }) {
   >{children}</div>;
 }
 
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 // MINI CHART (กำไรสะสม + อันดับ)
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 function MiniChart({ player, sessions }) {
   const [mode, setMode] = useState("profit");
   const [hov,  setHov]  = useState(null);
@@ -204,7 +204,7 @@ function MiniChart({ player, sessions }) {
     </div>
   );
 
-  // ── ขยายกราฟ ──────────────────────────────────────────────
+  // -- ขยายกราฟ ----------------------------------------------
   const W=400, H=200, PL=44, PR=12, PT=16, PB=28;
   const cW=W-PL-PR, cH=H-PT-PB;
 
@@ -236,7 +236,7 @@ function MiniChart({ player, sessions }) {
   const fc = mode==="profit" ? (up?"rgba(52,211,153,.07)":"rgba(248,113,113,.07)") : "none";
 
   const h = hov!==null ? pts[hov] : null;
-  // ซ่อน dots เมื่อเซสเยอะ — hover ยังแสดงเสมอ
+  // ซ่อน dots เมื่อเซสเยอะ - hover ยังแสดงเสมอ
   const showDots = pts.length <= 40;
   // strokeWidth บางลงเมื่อเซสเยอะ
   const sw = pts.length > 50 ? "1" : "1.5";
@@ -327,9 +327,9 @@ function MiniChart({ player, sessions }) {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 // DASHBOARD
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 function DashboardView({ data, onGoLeader, onGoLatestSes, onGoPot }) {
   const latest  = data.sessions[data.sessions.length-1] ?? null;
   const summary = useMemo(() => buildSummary(data.players, data.sessions), [data]);
@@ -341,7 +341,7 @@ function DashboardView({ data, onGoLeader, onGoLatestSes, onGoPot }) {
       <h2 className="text-xl font-bold text-white">📊 ภาพรวม</h2>
 
       <div className="grid grid-cols-3 gap-3">
-        {/* Leader — กดแล้วไปหน้า profile ผู้นำ */}
+        {/* Leader - กดแล้วไปหน้า profile ผู้นำ */}
         <button onClick={()=>leader&&onGoLeader(leader.name)}
           className="border border-amber-500/40 rounded-2xl p-3 text-left hover:border-amber-400/70 transition-colors" style={{background:"rgba(25,14,2,0.06)",backdropFilter:"blur(6px)"}}>
           <div className="text-amber-400 text-xs font-semibold mb-1">🏆 นำอยู่</div>
@@ -353,7 +353,7 @@ function DashboardView({ data, onGoLeader, onGoLatestSes, onGoPot }) {
               </>
             : <div className="text-zinc-600 text-xs">ยังไม่มีข้อมูล</div>}
         </button>
-        {/* Latest session — กดแล้วไปหน้าเซสชั่น พร้อมเปิดเซสล่าสุด */}
+        {/* Latest session - กดแล้วไปหน้าเซสชั่น พร้อมเปิดเซสล่าสุด */}
         <button onClick={()=>latest&&onGoLatestSes(latest.internalId)}
           className="border border-zinc-700/25 rounded-2xl p-3 text-left hover:border-zinc-600 transition-colors" style={{background:"rgba(15,10,3,0.05)",backdropFilter:"blur(6px)"}}>
           <div className="text-sky-400 text-xs font-semibold mb-1">📋 เซสล่าสุด</div>
@@ -365,7 +365,7 @@ function DashboardView({ data, onGoLeader, onGoLatestSes, onGoPot }) {
               </>
             : <div className="text-zinc-600 text-xs">ยังไม่มีเซส</div>}
         </button>
-        {/* Pot — กดแล้วไปหน้ากองกลาง */}
+        {/* Pot - กดแล้วไปหน้ากองกลาง */}
         <button onClick={onGoPot}
           className="border border-purple-500/30 rounded-2xl p-3 text-left hover:border-purple-400/60 transition-colors" style={{background:"rgba(15,8,25,0.06)",backdropFilter:"blur(6px)"}}>
           <div className="text-purple-400 text-xs font-semibold mb-1">💰 กองกลาง</div>
@@ -413,9 +413,9 @@ function DashboardView({ data, onGoLeader, onGoLatestSes, onGoPot }) {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 // PLAYER PROFILES
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
   const [sel, setSel] = useState(initialSel);
   const [hovSel, setHovSel] = useState(null);
@@ -597,7 +597,7 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
                 overflow: doOverflow ? "visible" : "hidden",
               }}>
               <div className="flex items-stretch">
-                {/* เลขอันดับ — กึ่งกลาง card */}
+                {/* เลขอันดับ - กึ่งกลาง card */}
                 <div className="flex-shrink-0 flex items-center justify-center" style={{width: isSel?"48px":"40px"}}>
                   <span style={{
                     color: isSel ? "#c9a227" : "#555",
@@ -647,12 +647,12 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 // LEADERBOARD
-// ─────────────────────────────────────────────────────────────────
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
+// -----------------------------------------------------------------
 // RACING BAR CHART
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 function RacingBarChart({ sessions, players, nicknames, avatars }) {
   const [curSes, setCurSes] = useState(0);
   const [playing, setPlaying] = useState(false);
@@ -704,7 +704,7 @@ function RacingBarChart({ sessions, players, nicknames, avatars }) {
   const scores = getScores(curSes);
   const maxAbs = Math.max(...scores.map(s => Math.abs(s.profit)), 1);
 
-  // ── Animated display values (วิ่งทีละ 10) ──
+  // -- Animated display values (วิ่งทีละ 10) --
   const [displayVals, setDisplayVals] = useState(() => {
     const m = {};
     players.forEach(p => { m[p] = 0; });
@@ -793,7 +793,7 @@ function RacingBarChart({ sessions, players, nicknames, avatars }) {
         <span className="text-zinc-600 text-[10px] font-mono flex-shrink-0">เซสชั่น {total}</span>
       </div>
 
-      {/* Animated Bars — absolute positioned so rows animate up/down */}
+      {/* Animated Bars - absolute positioned so rows animate up/down */}
       <div className="relative w-full" style={{ height: containerHeight + 'px' }}>
         {scores.map((s, rankIdx) => {
           const pct = Math.max(2, (Math.abs(s.profit) / maxAbs) * 94);
@@ -874,9 +874,9 @@ function RacingBarChart({ sessions, players, nicknames, avatars }) {
 }
 
 
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 // RACE VIEW (standalone page)
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 function RaceView({ data }) {
   return (
     <div className="space-y-2">
@@ -912,7 +912,7 @@ function LeaderboardView({ data }) {
   const GRAD  = ["bg-gradient-to-br from-amber-900/40 to-amber-700/10 border-amber-500/40","bg-gradient-to-br from-zinc-700/40 to-zinc-600/10 border-zinc-500/40","bg-gradient-to-br from-orange-900/30 to-orange-800/10 border-orange-700/40"];
 
   const filterLabel = filter==="all" ? "ทั้งหมด ("+data.sessions.length+" เซส)"
-    : filter==="latest" && latest ? "เซสล่าสุด — "+sesLabel(latest)
+    : filter==="latest" && latest ? "เซสล่าสุด - "+sesLabel(latest)
     : filter.startsWith("sea:") ? (()=>{const[y,s]=filter.slice(4).split("-");return "ปี "+y+" ซีซั่น "+s;})()
     : filter.startsWith("yr:")  ? "ปี "+filter.slice(3)
     : filter.startsWith("sid:") ? (()=>{const id=Number(filter.slice(4));const s=data.sessions.find(x=>x.internalId===id);return s?sesLabel(s):"-";})()
@@ -925,7 +925,7 @@ function LeaderboardView({ data }) {
         <p className="text-zinc-500 text-sm mt-0.5">แสดงผล: <span className="text-amber-300">{filterLabel}</span></p>
       </div>
 
-      {/* Filter — minimal */}
+      {/* Filter - minimal */}
       <div className="space-y-2">
         {/* Chips row */}
         <div className="flex gap-2 overflow-x-auto pb-1">
@@ -944,7 +944,7 @@ function LeaderboardView({ data }) {
             </button>
           ))}
         </div>
-        {/* 2 dropdowns — filtered by selected year/season */}
+        {/* 2 dropdowns - filtered by selected year/season */}
         <div className="flex gap-2">
           {/* Season dropdown: show only seasons of selected year */}
           <select
@@ -1000,7 +1000,7 @@ function LeaderboardView({ data }) {
                     <div>
                       <div className="text-white font-bold text-lg leading-tight">{p.name}</div>
                       <div className="text-xs font-normal" style={{color:"rgba(255,255,255,0.4)"}}>
-                        {(data.nicknames||{})[p.name] ? `"${(data.nicknames||{})[p.name]}"` : "—"}
+                        {(data.nicknames||{})[p.name] ? `"${(data.nicknames||{})[p.name]}"` : "-"}
                       </div>
                     </div>
                   </div>
@@ -1056,9 +1056,9 @@ function LeaderboardView({ data }) {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 // SESSIONS
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 function SessionsView({ data, onEdit, onDelete, initialOpen=null }) {
   const [open, setOpen] = useState(initialOpen);
   const [openStats, setOpenStats] = useState(new Set());
@@ -1147,14 +1147,14 @@ function SessionsView({ data, onEdit, onDelete, initialOpen=null }) {
                                   {BLUFF_FIELDS.map(f => (
                                     <div key={f[0]} className="flex flex-col items-center gap-1 rounded-md border border-zinc-700/20 px-2 py-1.5" style={{background:"rgba(255,255,255,0.04)"}}>
                                       <span className={"text-[11px] whitespace-nowrap " + f[2]}>{f[1]} {f[3]}</span>
-                                      <span className={"font-mono font-bold text-sm " + ((e[f[0]]||0) > 0 ? f[2] : "text-zinc-600")}>{(e[f[0]]||0) > 0 ? e[f[0]] : "—"}</span>
+                                      <span className={"font-mono font-bold text-sm " + ((e[f[0]]||0) > 0 ? f[2] : "text-zinc-600")}>{(e[f[0]]||0) > 0 ? e[f[0]] : "-"}</span>
                                     </div>
                                   ))}
                                   <div className="w-px h-8 flex-shrink-0" style={{background:"rgba(255,255,255,0.1)"}}/>
                                   {SET_FIELDS.map(f => (
                                     <div key={f[0]} className="flex flex-col items-center gap-1 rounded-md border border-zinc-700/20 px-2 py-1.5" style={{background:"rgba(255,255,255,0.04)"}}>
                                       <span className={"text-[11px] whitespace-nowrap " + f[2]}>{f[1]} {f[3]}</span>
-                                      <span className={"font-mono font-bold text-sm " + ((e[f[0]]||0) > 0 ? f[2] : "text-zinc-600")}>{(e[f[0]]||0) > 0 ? e[f[0]] : "—"}</span>
+                                      <span className={"font-mono font-bold text-sm " + ((e[f[0]]||0) > 0 ? f[2] : "text-zinc-600")}>{(e[f[0]]||0) > 0 ? e[f[0]] : "-"}</span>
                                     </div>
                                   ))}
                                 </div>
@@ -1182,9 +1182,9 @@ function SessionsView({ data, onEdit, onDelete, initialOpen=null }) {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 // SESSION FORM
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 function SessionForm({ data, editSession, onSave, onCancel, saving }) {
   const today = new Date().toISOString().slice(0,10);
   const [date, setDate]   = useState(editSession?.date ?? today);
@@ -1381,7 +1381,7 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
           <span>บันทึกชิปแต่ละคน ({mode==="chips"?"ชิป":"บาท"})</span>
           <div className="flex items-center gap-2">
             <span className="text-xs text-zinc-600">{active}/{rows.length} คน</span>
-            {/* ปุ่มเพิ่มผู้เล่น — แสดงเฉพาะตอนแก้ไข และมีคนที่ยังไม่ได้อยู่ในรายการ */}
+            {/* ปุ่มเพิ่มผู้เล่น - แสดงเฉพาะตอนแก้ไข และมีคนที่ยังไม่ได้อยู่ในรายการ */}
             {(() => {
               const inRows = rows.map(r => r.player);
               const available = data.players.filter(p => !inRows.includes(p));
@@ -1457,7 +1457,7 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
                     {act && <Profit v={pb-fee} sx=" ฿ สุทธิ"/>}
                   </div>
                 </div>
-                {/* Stats row — collapsible */}
+                {/* Stats row - collapsible */}
                 {r._statsOpen && (
                   <div className="flex items-center gap-1 px-4 pb-3 flex-wrap" style={{background:"rgba(255,255,255,0.02)"}}>
                     {ALL_STAT_FIELDS.map((f, fi) => {
@@ -1496,9 +1496,9 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 // POT
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 function PotView({ data, onAddTx, onDeleteTx, saving, allowPublicPotEdit, setAllowPublicPotEdit, isAdmin }) {
   const pot = data.pot || {balance:0,transactions:[]};
   const [add,  setAdd]  = useState(false);
@@ -1578,9 +1578,9 @@ function PotView({ data, onAddTx, onDeleteTx, saving, allowPublicPotEdit, setAll
   );
 }
 
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 // SETTINGS
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 function SettingsView({ data, onUpdate, saving }) {
   const [players,       setPlayers]       = useState(data.players);
   const [newName,       setNewName]       = useState("");
@@ -1698,7 +1698,7 @@ function SettingsView({ data, onUpdate, saving }) {
   );
 }
 
-// ─── StreetOutCard — dropdown table of hands ───────────────────
+// --- StreetOutCard - dropdown table of hands -------------------
 function StreetOutCard({ street, desc, mult, outsNeeded, isOk, validHands, allHands }) {
   const [open, setOpen] = useState(false);
   const failHands = allHands.filter(h => h.out < outsNeeded);
@@ -1706,7 +1706,7 @@ function StreetOutCard({ street, desc, mult, outsNeeded, isOk, validHands, allHa
   return (
     <div className={"rounded-xl border overflow-hidden " + (isOk ? "border-emerald-500/25" : "border-red-500/25")}
       style={{background: isOk ? "rgba(5,30,15,0.2)" : "rgba(30,5,5,0.2)"}}>
-      {/* Header row — always visible */}
+      {/* Header row - always visible */}
       <button className="w-full flex items-center justify-between px-3 py-2.5 text-left"
         onClick={() => setOpen(o => !o)}>
         <div>
@@ -1733,7 +1733,7 @@ function StreetOutCard({ street, desc, mult, outsNeeded, isOk, validHands, allHa
             <span className="flex-1">Hand / Draw</span>
             <span className="w-8 text-right">Out</span>
           </div>
-          {/* fail hands — faded */}
+          {/* fail hands - faded */}
           {failHands.map((h, i) => (
             <div key={i} className="flex items-center gap-2 px-1 py-1 opacity-30">
               <span className="w-6 text-center text-xs">{"♠♥♦♣"[i%4]}</span>
@@ -1749,7 +1749,7 @@ function StreetOutCard({ street, desc, mult, outsNeeded, isOk, validHands, allHa
                 style={{background:"rgba(0,0,0,0.5)"}}>≥ {outsNeeded} out ✓</span>
             </div>
           )}
-          {/* valid hands — highlighted */}
+          {/* valid hands - highlighted */}
           {validHands.length === 0
             ? <div className="text-center text-zinc-600 text-xs py-2">ต้องการ out มากเกินไป</div>
             : validHands.map((h, i) => (
@@ -1766,9 +1766,9 @@ function StreetOutCard({ street, desc, mult, outsNeeded, isOk, validHands, allHa
   );
 }
 
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 // STREAK VIEW
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 const STREAK_GROUPS = [
   { key:"hc_pair",    icon:"🃏", name:"High Card → Pair",     odds:{ flop:3,   turn:2.2, river:1.5 } },
   { key:"hc_2pair",   icon:"🃏", name:"High Card → 2 Pair",   odds:{ flop:49,  turn:20,  river:12  } },
@@ -1955,16 +1955,16 @@ function StreakView({ isAdmin=false, allowPublicStreak=false, setAllowPublicStre
             );
           })}
         </div>
-      ))}
+          ))}
         </div>
       </Box>
     </div>
   );
 }
 
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 // CALCULATOR VIEW (Pot Odds)
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 function CalcView({ isAdmin=false, allowPublicCalc=false, setAllowPublicCalc=()=>{} }) {
   const [pot,     setPot]     = useState(0);
   const [call,    setCall]    = useState(0);
@@ -1972,7 +1972,7 @@ function CalcView({ isAdmin=false, allowPublicCalc=false, setAllowPublicCalc=()=
 
   const total  = pot + call;
   const equity = total > 0 ? (call / total) * 100 : 0;
-  const ratio  = call > 0 ? (pot / call).toFixed(2) : "—";
+  const ratio  = call > 0 ? (pot / call).toFixed(2) : "-";
 
   function reset() { setPot(0); setCall(0); setSelHand(""); }
 
@@ -2086,7 +2086,7 @@ function CalcView({ isAdmin=false, allowPublicCalc=false, setAllowPublicCalc=()=
           </div>
         </div>
 
-        {/* Hand result — แสดงเมื่อเลือก hand */}
+        {/* Hand result - แสดงเมื่อเลือก hand */}
         {hand && call > 0 && (
           <div className={"rounded-xl px-4 py-3 border " + (handOk ? "border-emerald-500/30" : handOk === false ? "border-red-500/30" : "border-zinc-700/30")}
             style={{background: handOk ? "rgba(5,30,15,0.35)" : handOk === false ? "rgba(30,5,5,0.35)" : "rgba(255,255,255,0.04)"}}>
@@ -2103,12 +2103,12 @@ function CalcView({ isAdmin=false, allowPublicCalc=false, setAllowPublicCalc=()=
                 <div className="flex justify-between">
                   <span>Pot ปัจจุบัน</span>
                   <span className={"font-mono font-bold " + (handOk ? "text-emerald-400" : "text-red-400")}>
-                    {pot > 0 ? pot.toLocaleString() : "—"}
+                    {pot > 0 ? pot.toLocaleString() : "-"}
                   </span>
                 </div>
                 {pot > 0 && (
                   <div className={"mt-1 pt-1 border-t border-white/5 font-semibold " + (handOk ? "text-emerald-400" : "text-red-400")}>
-                    {handOk ? "✅ Pot ถึงแล้ว — call คุ้ม" : "❌ Pot ยังไม่ถึง — ควร fold"}
+                    {handOk ? "✅ Pot ถึงแล้ว - call คุ้ม" : "❌ Pot ยังไม่ถึง - ควร fold"}
                   </div>
                 )}
               </div>
@@ -2165,15 +2165,15 @@ function CalcView({ isAdmin=false, allowPublicCalc=false, setAllowPublicCalc=()=
               equity <= 33 ? "text-amber-300" :
               "text-red-300"
             )}>
-              {equity <= 25 ? "✅ Call คุ้มมาก — ต้องการ equity น้อย" :
-               equity <= 33 ? "⚠️ Call พอได้ — ต้องมี hand ที่ดีพอสมควร" :
-               "❌ Call ไม่คุ้ม — ต้องการ equity สูงมาก"}
+              {equity <= 25 ? "✅ Call คุ้มมาก - ต้องการ equity น้อย" :
+               equity <= 33 ? "⚠️ Call พอได้ - ต้องมี hand ที่ดีพอสมควร" :
+               "❌ Call ไม่คุ้ม - ต้องการ equity สูงมาก"}
             </div>
           </>
         )}
       </div>
 
-      {/* Guide — Outs */}
+      {/* Guide - Outs */}
       <Box>
         <div className="text-zinc-400 text-xs font-semibold mb-3">🃏 จำนวน Out ที่ต้องการ (Rule of 2 & 4)</div>
         <div className="space-y-2">
@@ -2205,7 +2205,7 @@ function CalcView({ isAdmin=false, allowPublicCalc=false, setAllowPublicCalc=()=
                 { out: 21, name: "Flush draw + open-ended + two overcards" },
               ];
               const validHands = outsNeeded <= 0 ? [] : allHands.filter(h => h.out >= outsNeeded);
-              const exampleText = validHands.length === 0 ? (outsNeeded > 15 ? "แทบทุก draw รวมกัน" : "—")
+              const exampleText = validHands.length === 0 ? (outsNeeded > 15 ? "แทบทุก draw รวมกัน" : "-")
                 : validHands.map(h => h.name).join(", ");
               return (
                 <StreetOutCard key={street}
@@ -2253,9 +2253,9 @@ function CalcView({ isAdmin=false, allowPublicCalc=false, setAllowPublicCalc=()=
   );
 }
 
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 // SKILL VIEW
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 function buildSkillSummary(players, sessions) {
   const map = {};
   players.forEach(p => {
@@ -2384,10 +2384,10 @@ function SkillView({ data }) {
                       <tr key={p.name} className="border-b border-zinc-800/50 hover:bg-white/5 transition-colors">
                         <td className="px-3 py-2.5 text-zinc-600 font-mono text-xs">{i+1}</td>
                         <td className="px-3 py-2.5 text-white font-semibold">{p.name}</td>
-                        <td className="px-2 py-2.5 text-center font-mono font-bold text-emerald-400">{p.bluffWin > 0 ? p.bluffWin : <span className="text-zinc-700">—</span>}</td>
-                        <td className="px-2 py-2.5 text-center font-mono font-bold text-red-400">{p.bluffLose > 0 ? p.bluffLose : <span className="text-zinc-700">—</span>}</td>
-                        <td className="px-2 py-2.5 text-center font-mono font-bold text-amber-400">{p.catchBluff > 0 ? p.catchBluff : <span className="text-zinc-700">—</span>}</td>
-                        <td className="px-2 py-2.5 text-center font-mono font-bold text-purple-400">{p.gotBluffed > 0 ? p.gotBluffed : <span className="text-zinc-700">—</span>}</td>
+                        <td className="px-2 py-2.5 text-center font-mono font-bold text-emerald-400">{p.bluffWin > 0 ? p.bluffWin : <span className="text-zinc-700">-</span>}</td>
+                        <td className="px-2 py-2.5 text-center font-mono font-bold text-red-400">{p.bluffLose > 0 ? p.bluffLose : <span className="text-zinc-700">-</span>}</td>
+                        <td className="px-2 py-2.5 text-center font-mono font-bold text-amber-400">{p.catchBluff > 0 ? p.catchBluff : <span className="text-zinc-700">-</span>}</td>
+                        <td className="px-2 py-2.5 text-center font-mono font-bold text-purple-400">{p.gotBluffed > 0 ? p.gotBluffed : <span className="text-zinc-700">-</span>}</td>
                         <td className="px-2 py-2.5 text-center">
                           <span className={"text-xs font-bold font-mono " + (p.score>0?"text-emerald-400":p.score<0?"text-red-400":"text-zinc-500")}>
                             {p.score>0?"+":""}{p.score}
@@ -2407,9 +2407,9 @@ function SkillView({ data }) {
 }
 
 
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 // LUCK VIEW
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 function buildLuckSummary(players, sessions) {
   const map = {};
   players.forEach(p => {
@@ -2528,9 +2528,9 @@ function LuckView({ data }) {
                     <tr key={p.name} className="border-b border-zinc-800/50 hover:bg-white/5 transition-colors">
                       <td className="px-3 py-2.5 text-zinc-600 font-mono text-xs">{i+1}</td>
                       <td className="px-3 py-2.5 text-white font-semibold">{p.name}</td>
-                      <td className="px-2 py-2.5 text-center font-mono font-bold text-sky-400">{p.fourCard > 0 ? p.fourCard : <span className="text-zinc-700">—</span>}</td>
-                      <td className="px-2 py-2.5 text-center font-mono font-bold text-violet-400">{p.straightFlush > 0 ? p.straightFlush : <span className="text-zinc-700">—</span>}</td>
-                      <td className="px-2 py-2.5 text-center font-mono font-bold text-amber-400">{p.royalStraightFlush > 0 ? p.royalStraightFlush : <span className="text-zinc-700">—</span>}</td>
+                      <td className="px-2 py-2.5 text-center font-mono font-bold text-sky-400">{p.fourCard > 0 ? p.fourCard : <span className="text-zinc-700">-</span>}</td>
+                      <td className="px-2 py-2.5 text-center font-mono font-bold text-violet-400">{p.straightFlush > 0 ? p.straightFlush : <span className="text-zinc-700">-</span>}</td>
+                      <td className="px-2 py-2.5 text-center font-mono font-bold text-amber-400">{p.royalStraightFlush > 0 ? p.royalStraightFlush : <span className="text-zinc-700">-</span>}</td>
                       <td className="px-2 py-2.5 text-center">
                         <span className={"text-xs font-bold font-mono " + (p.score>0?"text-emerald-400":p.score===0?"text-zinc-500":"text-red-400")}>
                           {p.score>0?"+":""}{p.score}
@@ -2548,17 +2548,17 @@ function LuckView({ data }) {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 // APP
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 function Spinner() {
   return <div className="inline-block w-4 h-4 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />;
 }
 
 
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 // LOGIN VIEW
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 function LoginView({ data, onLogin, onCancel }) {
   const [pw,  setPw]  = useState("");
   const [err, setErr] = useState("");
@@ -2781,7 +2781,7 @@ export default function App() {
       {/* dark overlay */}
       <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.05)',zIndex:0,pointerEvents:'none'}}/>
       <div style={{position:'relative',zIndex:1,minHeight:'100vh'}}>
-      {/* ── DESKTOP header (sm ขึ้นไป) ── */}
+      {/* -- DESKTOP header (sm ขึ้นไป) -- */}
       <header className="hidden sm:block border-b border-zinc-800/60 sticky top-0 z-40" style={{background:"rgba(8,5,1,0.8)",backdropFilter:"blur(16px)"}}>
         <div className="max-w-3xl mx-auto px-3 flex items-center gap-2">
           <img src={LOGO_SRC} alt="Legendary Secrets Poker Club" className="h-14 w-14 rounded-xl object-cover flex-shrink-0 my-1"/>
@@ -2814,7 +2814,7 @@ export default function App() {
         </div>
       </header>
 
-      {/* ── MOBILE header (< sm) ── */}
+      {/* -- MOBILE header (< sm) -- */}
       <div className="sm:hidden sticky top-0 z-40" style={{background:"rgba(8,5,1,0.85)",backdropFilter:"blur(16px)"}}>
         {/* Top bar */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800/60">
@@ -2839,7 +2839,7 @@ export default function App() {
             💰 {fmt(potBal)} ฿
           </button>
         </div>
-        {/* Dropdown — อยู่ใน flow ไม่ทับ content */}
+        {/* Dropdown - อยู่ใน flow ไม่ทับ content */}
         {menuOpen && (
           <div className="border-b border-amber-900/30" style={{background:"rgba(20,12,2,0.92)",backdropFilter:"blur(20px)"}}>
             <div className="py-1">
