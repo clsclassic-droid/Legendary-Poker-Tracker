@@ -8,6 +8,28 @@ const LOGO_SRC = "https://raw.githubusercontent.com/clsclassic-droid/Legendary-P
 const BG_SRC   = "https://github.com/clsclassic-droid/Legendary-Poker-Tracker/blob/main/sidebar-bg.jpg?raw=true";
 
 // -----------------------------------------------------------------
+// AVATAR HELPERS
+// -----------------------------------------------------------------
+const AVATAR_BASE        = "https://raw.githubusercontent.com/clsclassic-droid/Legendary-Poker-Tracker/main/avatars/";
+const DEFAULT_AVATAR_SRC = "https://raw.githubusercontent.com/clsclassic-droid/Legendary-Poker-Tracker/main/src/default-player.png";
+
+// สร้าง URL รูปจากชื่อผู้เล่นอัตโนมัติ: custom ใน settings มาก่อน, ถ้าไม่มีก็สร้างจากชื่อ (encode ภาษาไทย)
+function avatarUrl(name, avatars) {
+  const custom = (avatars || {})[name];
+  if (custom) return custom;
+  if (!name) return DEFAULT_AVATAR_SRC;
+  return AVATAR_BASE + encodeURIComponent(name) + ".jpg";
+}
+
+// ถ้ารูปโหลดไม่ได้ (ไม่มีไฟล์ในโฟลเดอร์) → ตกไป default ทีละคน (กันลูปด้วยการเช็คก่อน)
+function onAvatarError(e) {
+  if (e.target.src !== DEFAULT_AVATAR_SRC) {
+    e.target.onerror = null;
+    e.target.src = DEFAULT_AVATAR_SRC;
+  }
+}
+
+// -----------------------------------------------------------------
 // GOOGLE SHEETS API LAYER
 // -----------------------------------------------------------------
 async function apiGet() {
@@ -479,12 +501,11 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
         <div className="border border-zinc-700/25 rounded-2xl pt-2 pb-4 px-4 text-center" style={{background:"rgba(15,10,3,0.40)",backdropFilter:"blur(6px)"}}>
           {/* รูปตัวละคร กึ่งกลาง บนสุด */}
           {(() => {
-            const customAv = (data.avatars||{})[sel];
-            const avatarSrc = customAv || "https://raw.githubusercontent.com/clsclassic-droid/Legendary-Poker-Tracker/main/src/default-player.png";
-            const doOv = !customAv ? true : (data.avatarOverflows||{})[sel] !== false;
+            const avatarSrc = avatarUrl(sel, data.avatars);
+            const doOv = (data.avatarOverflows||{})[sel] !== false;
             return (
               <div className="flex justify-center mb-2" style={{overflow: doOv ? "visible" : "hidden"}}>
-                <img src={avatarSrc} alt={sel}
+                <img src={avatarSrc} alt={sel} onError={onAvatarError}
                   className={doOv ? "object-contain" : "object-cover"}
                   style={{
                     width:"200px", height:"200px",
@@ -564,7 +585,6 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
   }
 
   // Player list
-  const DEFAULT_AVATAR = "https://raw.githubusercontent.com/clsclassic-droid/Legendary-Poker-Tracker/main/src/default-player.png";
   const avatarOverflows = data.avatarOverflows || {};
   return (
     <div className="space-y-2">
@@ -573,11 +593,9 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
       <div className="space-y-2">
         {summary.map((p, idx) => {
           const isSel      = hovSel === p.name;
-          const customAvatar = (data.avatars||{})[p.name];
-          const avatar     = customAvatar || DEFAULT_AVATAR;
-          const isDefault  = !customAvatar;
-          // default avatar → ทะลุกรอบเสมอ, รูปจริง → ดูตาม setting (default ทะลุ)
-          const doOverflow = isDefault ? true : avatarOverflows[p.name] !== false;
+          const avatar     = avatarUrl(p.name, data.avatars);
+          // ดูตาม setting (default = ทะลุ) ; ถ้ารูปไม่มีจริง onError จะตกไป default ให้เอง
+          const doOverflow = avatarOverflows[p.name] !== false;
           const rankNum    = idx + 1;
           return (
             <button key={p.name}
@@ -608,7 +626,7 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
                 </div>
                 {/* รูป */}
                 <div className="flex-shrink-0 flex items-center py-2" style={{overflow: doOverflow ? "visible" : "hidden"}}>
-                  <img src={avatar} alt={p.name}
+                  <img src={avatar} alt={p.name} onError={onAvatarError}
                     className={doOverflow ? "object-contain" : "object-cover"}
                     style={{
                       width: isSel ? "160px" : "100px",
@@ -843,7 +861,8 @@ function RacingBarChart({ sessions, players, nicknames, avatars }) {
                     overflow:'hidden', flexShrink:0, background:'#111', zIndex:10,
                   }}>
                     <img
-                      src={(avatars||{})[s.name] || "https://raw.githubusercontent.com/clsclassic-droid/Legendary-Poker-Tracker/main/src/default-player.png"}
+                      src={avatarUrl(s.name, avatars)}
+                      onError={onAvatarError}
                       alt={s.name}
                       style={{width:'100%',height:'100%',objectFit:'cover',objectPosition:'top center'}}
                     />
@@ -1633,7 +1652,7 @@ function SettingsView({ data, onUpdate, saving }) {
             return (
             <div key={p} className="border border-zinc-700/30 rounded-xl px-3 py-2 space-y-1.5" style={{background:"rgba(255,255,255,0.06)"}}>
               <div className="flex items-center gap-2">
-                <img src={avatars[p] || "https://raw.githubusercontent.com/clsclassic-droid/Legendary-Poker-Tracker/main/src/default-player.png"} alt={p}
+                <img src={avatarUrl(p, avatars)} onError={onAvatarError} alt={p}
                   className="w-8 h-8 rounded-lg object-cover flex-shrink-0" style={{objectPosition:"top"}}/>
                 <span className="text-white font-medium text-sm w-16 flex-shrink-0">{p}</span>
                 <input
