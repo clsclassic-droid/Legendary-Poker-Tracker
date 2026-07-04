@@ -1857,8 +1857,8 @@ function StreakView({ isAdmin=false, allowPublicStreak=false, setAllowPublicStre
             className="px-2.5 py-1 rounded-lg text-[10px] text-zinc-500 hover:text-red-400 border border-zinc-700/30 transition-colors whitespace-nowrap flex-shrink-0"
             style={{background:"rgba(255,255,255,0.04)"}}>
             🔄 Reset
-        </button>
-      </div>
+          </button>
+        </div>
 
       <Box className="overflow-hidden p-0">
         <div className="space-y-2">
