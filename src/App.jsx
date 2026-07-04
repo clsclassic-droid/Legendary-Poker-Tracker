@@ -1789,7 +1789,7 @@ function barColor(pct) {
   return "#52525b";                // zinc
 }
 
-function StreakView() {
+function StreakView({ isAdmin=false, allowPublicStreak=false, setAllowPublicStreak=()=>{} }) {
   const initCounts = () => {
     const s = {};
     STREAK_CELLS.forEach(id => { s[id] = 0; });
@@ -1844,10 +1844,19 @@ function StreakView() {
             กด “เล่นมือนี้” ทุกครั้งที่ลง แล้วกด Hit เมื่อติด · นับว่าแต่ละมือยังไม่ติดมากี่ครั้งแล้ว
           </p>
         </div>
-        <button onClick={resetAll}
-          className="px-2.5 py-1 rounded-lg text-[10px] text-zinc-500 hover:text-red-400 border border-zinc-700/30 transition-colors whitespace-nowrap flex-shrink-0"
-          style={{background:"rgba(255,255,255,0.04)"}}>
-          🔄 Reset
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {isAdmin && (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{background:"rgba(255,255,255,0.08)"}}>
+              <span className="text-xs text-zinc-400">ผู้เล่นเห็น</span>
+              <button onClick={() => setAllowPublicStreak(!allowPublicStreak)} className={"w-10 h-6 rounded-full flex items-center px-1 transition-all " + (allowPublicStreak ? "bg-emerald-600" : "bg-zinc-600")}>
+                <div className={"w-4 h-4 rounded-full bg-white transition-transform " + (allowPublicStreak ? "translate-x-4" : "translate-x-0")}/>
+              </button>
+            </div>
+          )}
+          <button onClick={resetAll}
+            className="px-2.5 py-1 rounded-lg text-[10px] text-zinc-500 hover:text-red-400 border border-zinc-700/30 transition-colors whitespace-nowrap flex-shrink-0"
+            style={{background:"rgba(255,255,255,0.04)"}}>
+            🔄 Reset
         </button>
       </div>
 
@@ -1956,7 +1965,7 @@ function StreakView() {
 // ─────────────────────────────────────────────────────────────────
 // CALCULATOR VIEW (Pot Odds)
 // ─────────────────────────────────────────────────────────────────
-function CalcView() {
+function CalcView({ isAdmin=false, allowPublicCalc=false, setAllowPublicCalc=()=>{} }) {
   const [pot,     setPot]     = useState(0);
   const [call,    setCall]    = useState(0);
   const [selHand, setSelHand] = useState("");
@@ -1999,8 +2008,20 @@ function CalcView() {
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-xl font-bold text-white">🧮 Pot Odds Calculator</h2>
-        <p className="text-zinc-500 text-sm mt-0.5">คำนวณ % equity ที่ต้องการเพื่อ call คุ้ม</p>
+        <div className="flex items-start justify-between gap-2">
+          <div>
+            <h2 className="text-xl font-bold text-white">🧮 Pot Odds Calculator</h2>
+            <p className="text-zinc-500 text-sm mt-0.5">คำนวณ % equity ที่ต้องการเพื่อ call คุ้ม</p>
+          </div>
+          {isAdmin && (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg flex-shrink-0" style={{background:"rgba(255,255,255,0.08)"}}>
+              <span className="text-xs text-zinc-400">ผู้เล่นเห็น</span>
+              <button onClick={() => setAllowPublicCalc(!allowPublicCalc)} className={"w-10 h-6 rounded-full flex items-center px-1 transition-all " + (allowPublicCalc ? "bg-emerald-600" : "bg-zinc-600")}>
+                <div className={"w-4 h-4 rounded-full bg-white transition-transform " + (allowPublicCalc ? "translate-x-4" : "translate-x-0")}/>
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Inputs */}
@@ -2602,6 +2623,8 @@ export default function App() {
   const [error,   setError]   = useState(null);
   const [isAdmin, setIsAdmin] = useState(() => localStorage.getItem("lspc_admin") === "1");
   const [allowPublicPotEdit, setAllowPublicPotEdit] = useState(() => localStorage.getItem("lspc_allowPublicPot") === "1");
+  const [allowPublicCalc,    setAllowPublicCalc]    = useState(() => localStorage.getItem("lspc_allowPublicCalc") === "1");
+  const [allowPublicStreak,  setAllowPublicStreak]  = useState(() => localStorage.getItem("lspc_allowPublicStreak") === "1");
   
   function togglePublicPotEdit() {
     const newVal = !allowPublicPotEdit;
@@ -2728,14 +2751,14 @@ export default function App() {
     { id:"race",        icon:"🏎️", label:"Race",      adminOnly: false },
     { id:"skill",       icon:"🎭", label:"Skill",     adminOnly: false },
     { id:"luck",        icon:"🍀", label:"Luck",      adminOnly: false },
-    { id:"calc",        icon:"🧮", label:"Calc",      adminOnly: true },
-    { id:"streak",      icon:"🎯", label:"Streak",    adminOnly: true },
+    { id:"calc",        icon:"🧮", label:"Calc",      adminOnly: true, publicToggle: "calc" },
+    { id:"streak",      icon:"🎯", label:"Streak",    adminOnly: true, publicToggle: "streak" },
     { id:"sessions",    icon:"📋", label:"เซสชั่น",  adminOnly: false },
     { id:"add",         icon:"➕", label:"บันทึก",   adminOnly: true  },
     { id:"pot",         icon:"💰", label:"กองกลาง",  adminOnly: false },
     { id:"settings",    icon:"⚙️", label:"ตั้งค่า",  adminOnly: true  },
   ];
-  const TABS = ALL_TABS.filter(t => !t.adminOnly || isAdmin);
+  const TABS = ALL_TABS.filter(t => !t.adminOnly || isAdmin || (t.id==="calc" && allowPublicCalc) || (t.id==="streak" && allowPublicStreak));
 
   return (
     <>
@@ -2854,8 +2877,8 @@ export default function App() {
         {tab === "race"        && <RaceView data={data}/>}
         {tab === "skill"       && <SkillView data={data}/>}
         {tab === "luck"        && <LuckView data={data}/>}
-        {tab === "calc"        && <CalcView/>}
-        {tab === "streak"      && <StreakView/>}
+        {tab === "calc"        && <CalcView isAdmin={isAdmin} allowPublicCalc={allowPublicCalc} setAllowPublicCalc={v => { setAllowPublicCalc(v); localStorage.setItem("lspc_allowPublicCalc", v?"1":"0"); }}/>}
+        {tab === "streak"      && <StreakView isAdmin={isAdmin} allowPublicStreak={allowPublicStreak} setAllowPublicStreak={v => { setAllowPublicStreak(v); localStorage.setItem("lspc_allowPublicStreak", v?"1":"0"); }}/>}
         {tab === "sessions"    && !editSes && <SessionsView data={data}
           onEdit={isAdmin ? (s => { setEditSes(s); setTab("add"); }) : null}
           onDelete={isAdmin ? delSes : null}
