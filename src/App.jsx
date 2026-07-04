@@ -1849,6 +1849,7 @@ function StreakView() {
           style={{background:"rgba(255,255,255,0.04)"}}>
           🔄 Reset
         </button>
+        </div>
 
       <Box className="overflow-hidden p-0">
         <div className="space-y-2">
