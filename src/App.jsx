@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, Fragment } from "react";
 
-// ─────────────────────────────────────────────────────────────────ปปปปปปปปปปป
+// ─────────────────────────────────────────────────────────────────
 // CONFIG
 // ─────────────────────────────────────────────────────────────────
 const API_URL = "https://script.google.com/macros/s/AKfycbxfxhH1jGwsIJMUBHypzz5VZrKpnfDL2pgJePObM-JvXIp5CjAWaIH_4g1fJQXYjS03bA/exec";
