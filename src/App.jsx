@@ -64,6 +64,9 @@ async function apiGet() {
   } else {
     d.avatarOverflows = {};
   }
+  // parse allowPublicPotEdit (rองรับ boolean จริง, "TRUE"/"FALSE", "1"/"0")
+  const rawAllowPot = d.settings?.allowPublicPotEdit ?? d.allowPublicPotEdit;
+  d.allowPublicPotEdit = (rawAllowPot === true || rawAllowPot === "true" || rawAllowPot === "TRUE" || rawAllowPot === "1" || rawAllowPot === 1);
   if (d.sessions) {
     d.sessions = d.sessions.map(s => {
       // date: strip time component
@@ -1548,7 +1551,7 @@ function PotView({ data, onAddTx, onDeleteTx, saving, allowPublicPotEdit, setAll
           {isAdmin && (
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{background:"rgba(255,255,255,0.08)"}}>
               <span className="text-xs text-zinc-400">อนุญาตผู้เล่นแก้ไข</span>
-              <button onClick={() => setAllowPublicPotEdit(!allowPublicPotEdit)} className={"w-10 h-6 rounded-full flex items-center px-1 transition-all " + (allowPublicPotEdit ? "bg-emerald-600" : "bg-zinc-600")}>
+              <button onClick={() => setAllowPublicPotEdit()} disabled={saving} className={"w-10 h-6 rounded-full flex items-center px-1 transition-all disabled:opacity-50 " + (allowPublicPotEdit ? "bg-emerald-600" : "bg-zinc-600")}>
                 <div className={"w-4 h-4 rounded-full bg-white transition-transform " + (allowPublicPotEdit ? "translate-x-4" : "translate-x-0")}/>
               </button>
             </div>
@@ -2620,14 +2623,7 @@ export default function App() {
   const [saving,  setSaving]  = useState(false);
   const [error,   setError]   = useState(null);
   const [isAdmin, setIsAdmin] = useState(() => localStorage.getItem("lspc_admin") === "1");
-  const [allowPublicPotEdit, setAllowPublicPotEdit] = useState(() => localStorage.getItem("lspc_allowPublicPot") === "1");
 
-  
-  function togglePublicPotEdit() {
-    const newVal = !allowPublicPotEdit;
-    setAllowPublicPotEdit(newVal);
-    localStorage.setItem("lspc_allowPublicPot", newVal ? "1" : "0");
-  }
   const [menuOpen, setMenuOpen] = useState(false);
 
   async function refresh() {
@@ -2701,6 +2697,26 @@ export default function App() {
         avatars: cfg.avatars||{},
         avatarOverflows: cfg.avatarOverflows||{},
         adminPassword: cfg.adminPassword !== undefined ? cfg.adminPassword : (data.adminPassword || ""),
+        allowPublicPotEdit: cfg.allowPublicPotEdit !== undefined ? cfg.allowPublicPotEdit : (data.allowPublicPotEdit || false),
+      }});
+      await refresh();
+    } catch(e) { alert("บันทึกไม่สำเร็จ: " + e.message); }
+    finally { setSaving(false); }
+  }
+
+  async function toggleAllowPublicPotEdit() {
+    setSaving(true);
+    try {
+      await apiPost({ action: "saveSettings", settings: {
+        players: data.players,
+        chipRate: data.chipRate,
+        defaultFee: data.defaultFee,
+        nextInternalId: data.nextInternalId,
+        nicknames: data.nicknames || {},
+        avatars: data.avatars || {},
+        avatarOverflows: data.avatarOverflows || {},
+        adminPassword: data.adminPassword || "",
+        allowPublicPotEdit: !data.allowPublicPotEdit,
       }});
       await refresh();
     } catch(e) { alert("บันทึกไม่สำเร็จ: " + e.message); }
@@ -2881,7 +2897,7 @@ export default function App() {
           onDelete={isAdmin ? delSes : null}
           initialOpen={openSesId}/>}
         {tab === "add"         && isAdmin && <SessionForm data={data} editSession={editSes} onSave={saveSes} saving={saving} onCancel={editSes ? () => { setEditSes(null); setTab("sessions"); } : null}/>}
-        {tab === "pot"         && <PotView data={data} onAddTx={(isAdmin || allowPublicPotEdit) ? addPotTx : null} onDeleteTx={(isAdmin || allowPublicPotEdit) ? delPotTx : null} saving={saving} allowPublicPotEdit={allowPublicPotEdit} setAllowPublicPotEdit={setAllowPublicPotEdit} isAdmin={isAdmin}/>}
+        {tab === "pot"         && <PotView data={data} onAddTx={(isAdmin || data.allowPublicPotEdit) ? addPotTx : null} onDeleteTx={(isAdmin || data.allowPublicPotEdit) ? delPotTx : null} saving={saving} allowPublicPotEdit={data.allowPublicPotEdit} setAllowPublicPotEdit={toggleAllowPublicPotEdit} isAdmin={isAdmin}/>}
         {tab === "settings"    && isAdmin && <SettingsView data={data} onUpdate={saveSettings} saving={saving}/>}
         {tab === "login"       && <LoginView data={data} onLogin={() => { setIsAdmin(true); setTab("dashboard"); }} onCancel={() => setTab("dashboard")}/>}
       </main>
