@@ -70,6 +70,12 @@ async function apiGet() {
   // parse allowPublicCalc (เปิดให้ผู้เล่นทั่วไปเห็นแท็บ Calc)
   const rawAllowCalc = d.settings?.allowPublicCalc ?? d.allowPublicCalc;
   d.allowPublicCalc = (rawAllowCalc === true || rawAllowCalc === "true" || rawAllowCalc === "TRUE" || rawAllowCalc === "1" || rawAllowCalc === 1);
+  // parse allowPublicStreak (เปิดให้ผู้เล่นทั่วไปเห็นแท็บ Streak)
+  const rawAllowStreak = d.settings?.allowPublicStreak ?? d.allowPublicStreak;
+  d.allowPublicStreak = (rawAllowStreak === true || rawAllowStreak === "true" || rawAllowStreak === "TRUE" || rawAllowStreak === "1" || rawAllowStreak === 1);
+  // parse allowPublicAdd (เปิดให้ผู้เล่นทั่วไปเห็นแท็บ บันทึก)
+  const rawAllowAdd = d.settings?.allowPublicAdd ?? d.allowPublicAdd;
+  d.allowPublicAdd = (rawAllowAdd === true || rawAllowAdd === "true" || rawAllowAdd === "TRUE" || rawAllowAdd === "1" || rawAllowAdd === 1);
   if (d.sessions) {
     d.sessions = d.sessions.map(s => {
       // date: strip time component
@@ -1210,7 +1216,7 @@ function SessionsView({ data, onEdit, onDelete, initialOpen=null }) {
 // -----------------------------------------------------------------
 // SESSION FORM
 // -----------------------------------------------------------------
-function SessionForm({ data, editSession, onSave, onCancel, saving }) {
+function SessionForm({ data, editSession, onSave, onCancel, saving, isAdmin, allowPublicAdd, setAllowPublicAdd }) {
   const today = new Date().toISOString().slice(0,10);
   const [date, setDate]   = useState(editSession?.date ?? today);
   const [note, setNote]   = useState(editSession?.note ?? "");
@@ -1279,9 +1285,19 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <h2 className="text-xl font-bold text-white">{editSession?"✏️ แก้ไขเซสชั่น":"➕ บันทึกเซสชั่นใหม่"}</h2>
-        {onCancel && <button onClick={onCancel} className="text-zinc-500 hover:text-white text-sm">ยกเลิก ✕</button>}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {isAdmin && !editSession && (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{background:"rgba(255,255,255,0.08)"}}>
+              <span className="text-xs text-zinc-400 whitespace-nowrap">อนุญาตผู้เล่นทั่วไปเพิ่มเอง</span>
+              <button onClick={() => setAllowPublicAdd()} disabled={saving} className={"w-10 h-6 rounded-full flex items-center px-1 transition-all disabled:opacity-50 " + (allowPublicAdd ? "bg-emerald-600" : "bg-zinc-600")}>
+                <div className={"w-4 h-4 rounded-full bg-white transition-transform " + (allowPublicAdd ? "translate-x-4" : "translate-x-0")}/>
+              </button>
+            </div>
+          )}
+          {onCancel && <button onClick={onCancel} className="text-zinc-500 hover:text-white text-sm">ยกเลิก ✕</button>}
+        </div>
       </div>
 
       {/* Date + Note */}
@@ -1814,7 +1830,7 @@ function barColor(pct) {
   return "#52525b";                // zinc
 }
 
-function StreakView() {
+function StreakView({ allowPublicStreak, setAllowPublicStreak, isAdmin, saving }) {
   const initCounts = () => {
     const s = {};
     STREAK_CELLS.forEach(id => { s[id] = 0; });
@@ -1869,11 +1885,21 @@ function StreakView() {
             กด “เล่นมือนี้” ทุกครั้งที่ลง แล้วกด Hit เมื่อติด · นับว่าแต่ละมือยังไม่ติดมากี่ครั้งแล้ว
           </p>
         </div>
-        <button onClick={resetAll}
-          className="px-2.5 py-1 rounded-lg text-[10px] text-zinc-500 hover:text-red-400 border border-zinc-700/30 transition-colors whitespace-nowrap flex-shrink-0"
-          style={{background:"rgba(255,255,255,0.04)"}}>
-          🔄 Reset
-        </button>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {isAdmin && (
+            <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg" style={{background:"rgba(255,255,255,0.08)"}}>
+              <span className="text-[10px] text-zinc-400 whitespace-nowrap">อนุญาตผู้เล่นทั่วไป</span>
+              <button onClick={() => setAllowPublicStreak()} disabled={saving} className={"w-9 h-5 rounded-full flex items-center px-0.5 transition-all disabled:opacity-50 " + (allowPublicStreak ? "bg-emerald-600" : "bg-zinc-600")}>
+                <div className={"w-3.5 h-3.5 rounded-full bg-white transition-transform " + (allowPublicStreak ? "translate-x-4" : "translate-x-0")}/>
+              </button>
+            </div>
+          )}
+          <button onClick={resetAll}
+            className="px-2.5 py-1 rounded-lg text-[10px] text-zinc-500 hover:text-red-400 border border-zinc-700/30 transition-colors whitespace-nowrap flex-shrink-0"
+            style={{background:"rgba(255,255,255,0.04)"}}>
+            🔄 Reset
+          </button>
+        </div>
       </div>
 
       <Box className="overflow-hidden p-0">
@@ -2712,6 +2738,8 @@ export default function App() {
         adminPassword: cfg.adminPassword !== undefined ? cfg.adminPassword : (data.adminPassword || ""),
         allowPublicPotEdit: cfg.allowPublicPotEdit !== undefined ? cfg.allowPublicPotEdit : (data.allowPublicPotEdit || false),
         allowPublicCalc: cfg.allowPublicCalc !== undefined ? cfg.allowPublicCalc : (data.allowPublicCalc || false),
+        allowPublicStreak: cfg.allowPublicStreak !== undefined ? cfg.allowPublicStreak : (data.allowPublicStreak || false),
+        allowPublicAdd: cfg.allowPublicAdd !== undefined ? cfg.allowPublicAdd : (data.allowPublicAdd || false),
       }});
       await refresh();
     } catch(e) { alert("บันทึกไม่สำเร็จ: " + e.message); }
@@ -2732,6 +2760,8 @@ export default function App() {
         adminPassword: data.adminPassword || "",
         allowPublicPotEdit: !data.allowPublicPotEdit,
         allowPublicCalc: data.allowPublicCalc || false,
+        allowPublicStreak: data.allowPublicStreak || false,
+        allowPublicAdd: data.allowPublicAdd || false,
       }});
       await refresh();
     } catch(e) { alert("บันทึกไม่สำเร็จ: " + e.message); }
@@ -2752,6 +2782,52 @@ export default function App() {
         adminPassword: data.adminPassword || "",
         allowPublicPotEdit: data.allowPublicPotEdit || false,
         allowPublicCalc: !data.allowPublicCalc,
+        allowPublicStreak: data.allowPublicStreak || false,
+        allowPublicAdd: data.allowPublicAdd || false,
+      }});
+      await refresh();
+    } catch(e) { alert("บันทึกไม่สำเร็จ: " + e.message); }
+    finally { setSaving(false); }
+  }
+
+  async function toggleAllowPublicStreak() {
+    setSaving(true);
+    try {
+      await apiPost({ action: "saveSettings", settings: {
+        players: data.players,
+        chipRate: data.chipRate,
+        defaultFee: data.defaultFee,
+        nextInternalId: data.nextInternalId,
+        nicknames: data.nicknames || {},
+        avatars: data.avatars || {},
+        avatarOverflows: data.avatarOverflows || {},
+        adminPassword: data.adminPassword || "",
+        allowPublicPotEdit: data.allowPublicPotEdit || false,
+        allowPublicCalc: data.allowPublicCalc || false,
+        allowPublicStreak: !data.allowPublicStreak,
+        allowPublicAdd: data.allowPublicAdd || false,
+      }});
+      await refresh();
+    } catch(e) { alert("บันทึกไม่สำเร็จ: " + e.message); }
+    finally { setSaving(false); }
+  }
+
+  async function toggleAllowPublicAdd() {
+    setSaving(true);
+    try {
+      await apiPost({ action: "saveSettings", settings: {
+        players: data.players,
+        chipRate: data.chipRate,
+        defaultFee: data.defaultFee,
+        nextInternalId: data.nextInternalId,
+        nicknames: data.nicknames || {},
+        avatars: data.avatars || {},
+        avatarOverflows: data.avatarOverflows || {},
+        adminPassword: data.adminPassword || "",
+        allowPublicPotEdit: data.allowPublicPotEdit || false,
+        allowPublicCalc: data.allowPublicCalc || false,
+        allowPublicStreak: data.allowPublicStreak || false,
+        allowPublicAdd: !data.allowPublicAdd,
       }});
       await refresh();
     } catch(e) { alert("บันทึกไม่สำเร็จ: " + e.message); }
@@ -2806,7 +2882,12 @@ export default function App() {
     { id:"pot",         icon:"💰", label:"กองกลาง",  adminOnly: false },
     { id:"settings",    icon:"⚙️", label:"ตั้งค่า",  adminOnly: true  },
   ];
-  const TABS = ALL_TABS.filter(t => !t.adminOnly || isAdmin || (t.id === "calc" && data.allowPublicCalc));
+  const TABS = ALL_TABS.filter(t =>
+    !t.adminOnly || isAdmin ||
+    (t.id === "calc"   && data.allowPublicCalc) ||
+    (t.id === "streak" && data.allowPublicStreak) ||
+    (t.id === "add"    && data.allowPublicAdd)
+  );
 
   return (
     <>
@@ -2926,12 +3007,12 @@ export default function App() {
         {tab === "skill"       && <SkillView data={data}/>}
         {tab === "luck"        && <LuckView data={data}/>}
         {tab === "calc"        && <CalcView allowPublicCalc={data.allowPublicCalc} setAllowPublicCalc={toggleAllowPublicCalc} isAdmin={isAdmin} saving={saving}/>}
-        {tab === "streak"      && <StreakView/>}
+        {tab === "streak"      && <StreakView allowPublicStreak={data.allowPublicStreak} setAllowPublicStreak={toggleAllowPublicStreak} isAdmin={isAdmin} saving={saving}/>}
         {tab === "sessions"    && !editSes && <SessionsView data={data}
           onEdit={isAdmin ? (s => { setEditSes(s); setTab("add"); }) : null}
           onDelete={isAdmin ? delSes : null}
           initialOpen={openSesId}/>}
-        {tab === "add"         && isAdmin && <SessionForm data={data} editSession={editSes} onSave={saveSes} saving={saving} onCancel={editSes ? () => { setEditSes(null); setTab("sessions"); } : null}/>}
+        {tab === "add"         && (isAdmin || data.allowPublicAdd) && <SessionForm data={data} editSession={editSes} onSave={saveSes} saving={saving} onCancel={editSes ? () => { setEditSes(null); setTab("sessions"); } : null} isAdmin={isAdmin} allowPublicAdd={data.allowPublicAdd} setAllowPublicAdd={toggleAllowPublicAdd}/>}
         {tab === "pot"         && <PotView data={data} onAddTx={(isAdmin || data.allowPublicPotEdit) ? addPotTx : null} onDeleteTx={(isAdmin || data.allowPublicPotEdit) ? delPotTx : null} saving={saving} allowPublicPotEdit={data.allowPublicPotEdit} setAllowPublicPotEdit={toggleAllowPublicPotEdit} isAdmin={isAdmin}/>}
         {tab === "settings"    && isAdmin && <SettingsView data={data} onUpdate={saveSettings} saving={saving}/>}
         {tab === "login"       && <LoginView data={data} onLogin={() => { setIsAdmin(true); setTab("dashboard"); }} onCancel={() => setTab("dashboard")}/>}
