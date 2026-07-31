@@ -1602,7 +1602,7 @@ function PotView({ data, onAddTx, onDeleteTx, saving, allowPublicPotEdit, setAll
       <div className="space-y-2">
         <div className="text-zinc-500 text-xs font-semibold">ประวัติรายการ ({pot.transactions.length})</div>
         {pot.transactions.length===0 && <Box><div className="text-center py-6 text-zinc-600 text-sm">ยังไม่มีรายการ</div></Box>}
-        {pot.transactions.map(tx => (
+        {[...pot.transactions].reverse().map(tx => (
           <div key={tx.id} className="flex items-center justify-between border border-zinc-700/25 rounded-xl px-4 py-3" style={{background:"rgba(15,10,3,0.40)",backdropFilter:"blur(6px)"}}>
             <div className="flex items-center gap-3">
               <span className={"text-lg "+(tx.type==="income"?"text-emerald-400":"text-red-400")}>{tx.type==="income"?"➕":"➖"}</span>
@@ -1940,7 +1940,7 @@ function StreakView({ allowPublicStreak, setAllowPublicStreak, isAdmin, saving }
                   <div className="flex gap-1"><span className="text-[8px] font-bold text-zinc-400 tracking-wide uppercase inline">{STAGE_LABEL[st]}</span><span className="text-[8px] text-zinc-500 inline">~1 ใน <b className="text-amber-300/80 font-semibold">{odds}</b></span></div>
                   <div className={"font-mono font-black text-xl leading-none " + (on ? "text-amber-400" : "text-zinc-600")}>{count}</div>
                   <button onClick={() => hit(g.key, st)}
-                    className="w-full text-[9px] font-bold text-emerald-400 border border-emerald-500/30 py-0.5 rounded-md hover:bg-emerald-500/15 transition-colors"
+                    className="w-full text-[9px] font-bold text-emerald-400 border border-emerald-500/30 py-1.5 rounded-md hover:bg-emerald-500/15 transition-colors"
                     style={{background:"rgba(5,30,15,0.4)"}}>
                     ✅ Hit
                   </button>
