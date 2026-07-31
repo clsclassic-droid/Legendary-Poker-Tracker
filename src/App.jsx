@@ -1468,7 +1468,7 @@ function SessionForm({ data, editSession, onSave, onCancel, saving, isAdmin, all
                   <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-1.5">
                       <span className={"w-2 h-2 rounded-full flex-shrink-0 "+(pb>0?"bg-emerald-400":pb<0?"bg-red-400":"")}/>
-                      <span className="text-white font-medium text-sm truncate"><PlayerName player={r.player} nicknames={data.nicknames}/></span>
+                      <span className="text-amber-300 font-medium text-sm truncate"><PlayerName player={r.player} nicknames={data.nicknames}/></span>
                       <button onClick={() => setRows(prev => prev.filter(x => x.player !== r.player))}
                         className="ml-auto text-zinc-600 hover:text-red-400 text-xs transition-colors flex-shrink-0">✕</button>
                     </div>
