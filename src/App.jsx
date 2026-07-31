@@ -1468,7 +1468,7 @@ function SessionForm({ data, editSession, onSave, onCancel, saving, isAdmin, all
                   <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-1.5">
                       <span className={"w-2 h-2 rounded-full flex-shrink-0 "+(pb>0?"bg-emerald-400":pb<0?"bg-red-400":"")}/>
-                      <span className="text-amber-300 font-medium text-sm truncate"><PlayerName player={r.player} nicknames={data.nicknames}/></span>
+                      <span className="text-white font-medium text-sm truncate"><PlayerName player={r.player} nicknames={data.nicknames}/></span>
                       <button onClick={() => setRows(prev => prev.filter(x => x.player !== r.player))}
                         className="ml-auto text-zinc-600 hover:text-red-400 text-xs transition-colors flex-shrink-0">✕</button>
                     </div>
@@ -1594,7 +1594,7 @@ function PotView({ data, onAddTx, onDeleteTx, saving, allowPublicPotEdit, setAll
             <div><label className="text-zinc-500 text-xs">วันที่</label><input type="date" value={dt} onChange={e=>setDt(e.target.value)} className="w-full border border-zinc-600/60 rounded-lg px-3 py-2 text-white text-sm focus:border-amber-500 focus:outline-none" style={{background:"rgba(255,255,255,0.06)"}}/></div>
             <div><label className="text-zinc-500 text-xs">จำนวนเงิน (฿)</label><NInput value={amt} onChange={setAmt}/></div>
           </div>
-          <div><label className="text-zinc-500 text-xs">รายการ</label><input type="text" value={txt} onChange={e=>setTxt(e.target.value)} placeholder="เช่น ค่าอาหาร..." className="w-full border border-zinc-600/60 rounded-lg px-3 py-2 text-white text-sm placeholder-zinc-600 focus:border-amber-500 focus:outline-none"/></div>
+          <div><label className="text-zinc-500 text-xs">รายการ</label><input type="text" value={txt} onChange={e=>setTxt(e.target.value)} placeholder="เช่น ค่าอาหาร..." className="w-full border border-zinc-600/60 rounded-lg px-3 py-2 text-black text-sm placeholder-zinc-600 focus:border-amber-500 focus:outline-none"/></div>
           {err && <p className="text-red-400 text-xs">{err}</p>}
           <button onClick={submit} className={"w-full py-2.5 rounded-xl font-bold text-sm text-white transition-colors "+(type==="income"?"bg-emerald-600 hover:bg-emerald-500":"bg-red-600 hover:bg-red-500")}>บันทึกรายการ</button>
         </Box>
