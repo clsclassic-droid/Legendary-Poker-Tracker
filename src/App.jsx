@@ -1,24 +1,37 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, Fragment } from "react";
 
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 // CONFIG
-// ─────────────────────────────────────────────────────────────────
-const API_URL = "https://script.google.com/macros/s/AKfycbxfxhH1jGwsIJMUBHypzz5VZrKpnfDL2pgJePObM-JvXIp5CjAWaIH_4g1fJQXYjS03bA/exec";
+// -----------------------------------------------------------------
+const API_URL = process.env.REACT_APP_APPS_SCRIPT_URL || "https://script.google.com/macros/s/AKfycbxfxhH1jGwsIJMUBHypzz5VZrKpnfDL2pgJePObM-JvXIp5CjAWaIH_4g1fJQXYjS03bA/exec";
 const LOGO_SRC = "https://raw.githubusercontent.com/clsclassic-droid/Legendary-Poker-Tracker/main/src/f512d9a54b54e5e327ac49c65c60695a.jpeg";
 const BG_SRC   = "https://github.com/clsclassic-droid/Legendary-Poker-Tracker/blob/main/sidebar-bg.jpg?raw=true";
 
-// ─────────────────────────────────────────────────────────────────
-// THEME (ธีม)
-// ─────────────────────────────────────────────────────────────────
-// "gold"   = ธีมเดิม (พื้นหลังรูป + โทนทอง-ดำ)
-// "pastel" = ธีมใหม่ (มินิมอล พาสเทล ไม่มีรูปพื้นหลัง)
-function getTheme(themeName) {
-  return themeName === "pastel" ? "pastel" : "gold";
+// -----------------------------------------------------------------
+// AVATAR HELPERS
+// -----------------------------------------------------------------
+const AVATAR_BASE        = "https://raw.githubusercontent.com/clsclassic-droid/Legendary-Poker-Tracker/main/avatars/";
+const DEFAULT_AVATAR_SRC = "https://raw.githubusercontent.com/clsclassic-droid/Legendary-Poker-Tracker/main/src/default-player.png";
+
+// สร้าง URL รูปจากชื่อผู้เล่นอัตโนมัติ: custom ใน settings มาก่อน, ถ้าไม่มีก็สร้างจากชื่อ (encode ภาษาไทย)
+function avatarUrl(name, avatars) {
+  const custom = (avatars || {})[name];
+  if (custom) return custom;
+  if (!name) return DEFAULT_AVATAR_SRC;
+  return AVATAR_BASE + encodeURIComponent(name) + ".jpg";
 }
 
-// ─────────────────────────────────────────────────────────────────
+// ถ้ารูปโหลดไม่ได้ (ไม่มีไฟล์ในโฟลเดอร์) → ตกไป default ทีละคน (กันลูปด้วยการเช็คก่อน)
+function onAvatarError(e) {
+  if (e.target.src !== DEFAULT_AVATAR_SRC) {
+    e.target.onerror = null;
+    e.target.src = DEFAULT_AVATAR_SRC;
+  }
+}
+
+// -----------------------------------------------------------------
 // GOOGLE SHEETS API LAYER
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 async function apiGet() {
   const res = await fetch(API_URL + "?action=getData");
   const json = await res.json();
@@ -38,6 +51,31 @@ async function apiGet() {
       d.avatars = Object.fromEntries(av.split(',').map(p => p.split('|').map(s=>s.trim())).filter(p=>p.length===2 && p[0]));
     }
   }
+  // parse avatarOverflows per-player
+  const rawOverflow = d.avatarOverflows ?? d.settings?.avatarOverflows;
+  if (rawOverflow && typeof rawOverflow === 'string') {
+    d.avatarOverflows = Object.fromEntries(
+      rawOverflow.split(',').map(p => p.split('|').map(s => s.trim()))
+        .filter(p => p.length === 2 && p[0])
+        .map(([k, v]) => [k, v !== "false"])
+    );
+  } else if (rawOverflow && typeof rawOverflow === 'object') {
+    d.avatarOverflows = rawOverflow;
+  } else {
+    d.avatarOverflows = {};
+  }
+  // parse allowPublicPotEdit (rองรับ boolean จริง, "TRUE"/"FALSE", "1"/"0")
+  const rawAllowPot = d.settings?.allowPublicPotEdit ?? d.allowPublicPotEdit;
+  d.allowPublicPotEdit = (rawAllowPot === true || rawAllowPot === "true" || rawAllowPot === "TRUE" || rawAllowPot === "1" || rawAllowPot === 1);
+  // parse allowPublicCalc (เปิดให้ผู้เล่นทั่วไปเห็นแท็บ Calc)
+  const rawAllowCalc = d.settings?.allowPublicCalc ?? d.allowPublicCalc;
+  d.allowPublicCalc = (rawAllowCalc === true || rawAllowCalc === "true" || rawAllowCalc === "TRUE" || rawAllowCalc === "1" || rawAllowCalc === 1);
+  // parse allowPublicStreak (เปิดให้ผู้เล่นทั่วไปเห็นแท็บ Streak)
+  const rawAllowStreak = d.settings?.allowPublicStreak ?? d.allowPublicStreak;
+  d.allowPublicStreak = (rawAllowStreak === true || rawAllowStreak === "true" || rawAllowStreak === "TRUE" || rawAllowStreak === "1" || rawAllowStreak === 1);
+  // parse allowPublicAdd (เปิดให้ผู้เล่นทั่วไปเห็นแท็บ บันทึก)
+  const rawAllowAdd = d.settings?.allowPublicAdd ?? d.allowPublicAdd;
+  d.allowPublicAdd = (rawAllowAdd === true || rawAllowAdd === "true" || rawAllowAdd === "TRUE" || rawAllowAdd === "1" || rawAllowAdd === 1);
   if (d.sessions) {
     d.sessions = d.sessions.map(s => {
       // date: strip time component
@@ -48,7 +86,7 @@ async function apiGet() {
       if ((!year || !season) && dateStr.length === 10) {
         const computed = (() => {
           const dt = new Date(dateStr + "T00:00:00");
-          return { year: dt.getFullYear(), season: Math.ceil((dt.getMonth()+1)/3) };
+          return { year: dt.getFullYear(), season: Math.ceil((dt.getMonth()+1)/4) };
         })();
         if (!year)   year   = computed.year;
         if (!season) season = computed.season;
@@ -84,15 +122,15 @@ async function apiPost(body) {
 }
 
 
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 // HELPERS
-// ─────────────────────────────────────────────────────────────────
-const S_SHORT = ["","ม.ค.–มี.ค.","เม.ย.–มิ.ย.","ก.ค.–ก.ย.","ต.ค.–ธ.ค."];
-const S_LABEL = ["","มกราคม–มีนาคม","เมษายน–มิถุนายน","กรกฎาคม–กันยายน","ตุลาคม–ธันวาคม"];
+// -----------------------------------------------------------------
+const S_SHORT = ["","ม.ค.-มี.ค.","เม.ย.-มิ.ย.","ก.ค.-ก.ย.","ต.ค.-ธ.ค."];
+const S_LABEL = ["","มกราคม-มีนาคม","เมษายน-มิถุนายน","กรกฎาคม-กันยายน","ตุลาคม-ธันวาคม"];
 
 function dateToSeason(str) {
   const d = new Date(str + "T00:00:00");
-  return { year: d.getFullYear(), season: Math.ceil((d.getMonth() + 1) / 3) };
+  return { year: d.getFullYear(), season: Math.ceil((d.getMonth() + 1) / 4) };
 }
 function sesLabel(s) { return "ปี " + s.year + " ซีซั่น " + s.season + " เซสชั่น " + s.sessionNo; }
 const c2b = (chips, r) => Math.round((chips / r.chips) * r.baht);
@@ -100,7 +138,7 @@ const b2c = (baht,  r) => Math.round((baht  / r.baht)  * r.chips);
 const profit = (buy, sell, r) => c2b(sell - buy, r);
 const fmt = n => { const v = Number(n) || 0; return v === 0 ? "0" : v.toLocaleString(); };
 
-// ── Nickname helpers ──────────────────────────────────────────────
+// -- Nickname helpers ----------------------------------------------
 function getNick(player, nicknames) {
   return (nicknames || {})[player] || null;
 }
@@ -149,9 +187,9 @@ function buildSummary(players, sessions) {
     .map((p,i) => ({...p, rank: p.n > 0 ? i+1 : "-"}));
 }
 
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 // UI ATOMS
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 function Profit({ v, sx="" }) {
   const cls = v > 0 ? "text-emerald-400" : v < 0 ? "text-red-400" : "text-zinc-500";
   const txt = v > 0 ? "+" + fmt(v) : fmt(v);
@@ -164,15 +202,15 @@ function NInput({ value, onChange, ph="0" }) {
       className="w-full border border-zinc-700/40 rounded-lg px-3 py-1.5 text-white font-mono text-sm focus:border-amber-500 focus:outline-none" style={{background:"rgba(255,255,255,0.06)"}} />
   );
 }
-function Box({ children, className="", style=null }) {
-  const base = style ? "rounded-2xl p-4 " : "border border-zinc-700/25 rounded-2xl p-4 ";
-  const defaultStyle = {background:'rgba(15,10,3,0.05)', backdropFilter:'blur(6px)', WebkitBackdropFilter:'blur(6px)'};
-  return <div className={base + className} style={style || defaultStyle}>{children}</div>;
+function Box({ children, className="" }) {
+  return <div className={"border border-zinc-700/25 rounded-2xl p-4 " + className}
+    style={{background:'rgba(15,10,3,0.40)', backdropFilter:'blur(6px)', WebkitBackdropFilter:'blur(6px)'}}
+  >{children}</div>;
 }
 
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 // MINI CHART (กำไรสะสม + อันดับ)
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 function MiniChart({ player, sessions }) {
   const [mode, setMode] = useState("profit");
   const [hov,  setHov]  = useState(null);
@@ -193,14 +231,14 @@ function MiniChart({ player, sessions }) {
   }, [player, sessions]);
 
   if (pts.length < 2) return (
-    <div className="border border-zinc-700/25 rounded-2xl p-6 text-center" style={{background:"rgba(15,10,3,0.05)",backdropFilter:"blur(6px)"}}>
+    <div className="border border-zinc-700/25 rounded-2xl p-6 text-center" style={{background:"rgba(15,10,3,0.40)",backdropFilter:"blur(6px)"}}>
       <div className="text-3xl mb-2">📈</div>
       <div className="text-zinc-400 text-sm font-medium">ยังไม่มีกราฟ</div>
       <div className="text-zinc-600 text-xs mt-1">ต้องมีอย่างน้อย 2 เซสขึ้นไป<br/>ปัจจุบันเล่นไป {pts.length} เซส</div>
     </div>
   );
 
-  // ── ขยายกราฟ ──────────────────────────────────────────────
+  // -- ขยายกราฟ ----------------------------------------------
   const W=400, H=200, PL=44, PR=12, PT=16, PB=28;
   const cW=W-PL-PR, cH=H-PT-PB;
 
@@ -232,7 +270,7 @@ function MiniChart({ player, sessions }) {
   const fc = mode==="profit" ? (up?"rgba(52,211,153,.07)":"rgba(248,113,113,.07)") : "none";
 
   const h = hov!==null ? pts[hov] : null;
-  // ซ่อน dots เมื่อเซสเยอะ — hover ยังแสดงเสมอ
+  // ซ่อน dots เมื่อเซสเยอะ - hover ยังแสดงเสมอ
   const showDots = pts.length <= 40;
   // strokeWidth บางลงเมื่อเซสเยอะ
   const sw = pts.length > 50 ? "1" : "1.5";
@@ -323,128 +361,81 @@ function MiniChart({ player, sessions }) {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 // DASHBOARD
-// ─────────────────────────────────────────────────────────────────
-function DashboardView({ data, onGoLeader, onGoLatestSes, onGoPot, theme="gold" }) {
+// -----------------------------------------------------------------
+function DashboardView({ data, onGoLeader, onGoLatestSes, onGoPot }) {
   const latest  = data.sessions[data.sessions.length-1] ?? null;
   const summary = useMemo(() => buildSummary(data.players, data.sessions), [data]);
   const leader  = summary.find(p => p.n > 0) ?? null;
   const pot     = data.pot?.balance ?? 0;
-  const isPastel = theme === "pastel";
-
-  // สีสำหรับแต่ละธีม
-  const T = isPastel
-    ? {
-        heading: "text-zinc-800",
-        cardLeader:  "border-[#AFA9EC] hover:border-[#7F77DD] bg-[#EEEDFE]",
-        cardLatest:  "border-[#9FE1CB] hover:border-[#5DCAA5] bg-[#E1F5EE]",
-        cardPot:     "border-[#F0997B] hover:border-[#D85A30] bg-[#FAECE7]",
-        labelLeader: "text-[#3C3489]",
-        labelLatest: "text-[#085041]",
-        labelPot:    "text-[#712B13]",
-        textStrong:  "text-zinc-800",
-        textSub:     "text-zinc-500",
-        textDim:     "text-zinc-400",
-        potPos: "text-[#3C3489]", potNeg: "text-[#D85A30]",
-        statBg: "bg-white border border-zinc-200",
-        statAccent1: "text-zinc-800",
-        statAccent2: "text-[#D85A30]",
-        statAccent3: "text-[#0F6E56]",
-        boxBg: "bg-white border border-zinc-200",
-        boxLabel: "text-zinc-500",
-        gold: "text-[#BA7517]", silver: "text-zinc-400", skull: "text-[#D85A30]",
-      }
-    : {
-        heading: "text-white",
-        cardLeader:  "border-amber-500/40 hover:border-amber-400/70",
-        cardLatest:  "border-zinc-700/25 hover:border-zinc-600",
-        cardPot:     "border-purple-500/30 hover:border-purple-400/60",
-        labelLeader: "text-amber-400",
-        labelLatest: "text-sky-400",
-        labelPot:    "text-purple-400",
-        textStrong:  "text-white",
-        textSub:     "text-zinc-500",
-        textDim:     "text-zinc-600",
-        potPos: "text-purple-300", potNeg: "text-red-400",
-        statBg: "",
-        statAccent1: "text-white",
-        statAccent2: "text-amber-300",
-        statAccent3: "text-sky-300",
-        boxBg: "",
-        boxLabel: "text-zinc-400",
-        gold: "text-amber-300", silver: "text-zinc-300", skull: "text-red-400",
-      };
-  const cardStyle = isPastel ? {} : {background:"rgba(15,10,3,0.05)",backdropFilter:"blur(6px)"};
-  const leaderStyle = isPastel ? {} : {background:"rgba(25,14,2,0.06)",backdropFilter:"blur(6px)"};
-  const potStyle = isPastel ? {} : {background:"rgba(15,8,25,0.06)",backdropFilter:"blur(6px)"};
 
   return (
-    <div className="space-y-4">
-      <h2 className={"text-xl font-bold " + T.heading}>📊 ภาพรวม</h2>
+    <div className="space-y-2">
+      <h2 className="text-xl font-bold text-white">📊 ภาพรวม</h2>
 
       <div className="grid grid-cols-3 gap-3">
-        {/* Leader — กดแล้วไปหน้า profile ผู้นำ */}
+        {/* Leader - กดแล้วไปหน้า profile ผู้นำ */}
         <button onClick={()=>leader&&onGoLeader(leader.name)}
-          className={"border rounded-2xl p-3 text-left transition-colors " + T.cardLeader} style={leaderStyle}>
-          <div className={"text-xs font-semibold mb-1 " + T.labelLeader}>🏆 นำอยู่</div>
+          className="border border-amber-500/40 rounded-2xl p-3 text-left hover:border-amber-400/70 transition-colors" style={{background:"rgba(25,14,2,0.06)",backdropFilter:"blur(6px)"}}>
+          <div className="text-amber-400 text-xs font-semibold mb-1">🏆 นำอยู่</div>
           {leader
             ? <>
-                <div className={"font-black text-lg leading-none " + T.textStrong}>{leader.name}</div>
+                <div className="text-white font-black text-lg leading-none">{leader.name}</div>
                 <Profit v={leader.total} sx=" ฿"/>
-                <div className={"text-[10px] mt-1 " + T.textSub}>{leader.n} เซสชั่น · 🥇×{leader.gold}</div>
+                <div className="text-zinc-500 text-[10px] mt-1">{leader.n} เซสชั่น · 🥇×{leader.gold}</div>
               </>
-            : <div className={"text-xs " + T.textDim}>ยังไม่มีข้อมูล</div>}
+            : <div className="text-zinc-600 text-xs">ยังไม่มีข้อมูล</div>}
         </button>
-        {/* Latest session — กดแล้วไปหน้าเซสชั่น พร้อมเปิดเซสล่าสุด */}
+        {/* Latest session - กดแล้วไปหน้าเซสชั่น พร้อมเปิดเซสล่าสุด */}
         <button onClick={()=>latest&&onGoLatestSes(latest.internalId)}
-          className={"border rounded-2xl p-3 text-left transition-colors " + T.cardLatest} style={cardStyle}>
-          <div className={"text-xs font-semibold mb-1 " + T.labelLatest}>📋 เซสล่าสุด</div>
+          className="border border-zinc-700/25 rounded-2xl p-3 text-left hover:border-zinc-600 transition-colors" style={{background:"rgba(15,10,3,0.05)",backdropFilter:"blur(6px)"}}>
+          <div className="text-sky-400 text-xs font-semibold mb-1">📋 เซสล่าสุด</div>
           {latest
             ? <>
-                <div className={"font-black text-sm " + T.textStrong}>ปี {latest.year}</div>
-                <div className={"text-sm font-bold " + (isPastel ? "text-[#0F6E56]" : "text-amber-300")}>S{latest.season} เซสชั่น {latest.sessionNo}</div>
-                <div className={"text-[10px] mt-1 " + T.textSub}>{String(latest.date||"").slice(0,10)}</div>
+                <div className="text-white font-black text-sm">ปี {latest.year}</div>
+                <div className="text-amber-300 text-sm font-bold">S{latest.season} เซสชั่น {latest.sessionNo}</div>
+                <div className="text-zinc-500 text-[10px] mt-1">{String(latest.date||"").slice(0,10)}</div>
               </>
-            : <div className={"text-xs " + T.textDim}>ยังไม่มีเซส</div>}
+            : <div className="text-zinc-600 text-xs">ยังไม่มีเซส</div>}
         </button>
-        {/* Pot — กดแล้วไปหน้ากองกลาง */}
+        {/* Pot - กดแล้วไปหน้ากองกลาง */}
         <button onClick={onGoPot}
-          className={"border rounded-2xl p-3 text-left transition-colors " + T.cardPot} style={potStyle}>
-          <div className={"text-xs font-semibold mb-1 " + T.labelPot}>💰 กองกลาง</div>
-          <div className={"font-mono font-black text-lg " + (pot>=0?T.potPos:T.potNeg)}>{fmt(pot)} ฿</div>
-          <div className={"text-[10px] mt-1 " + T.textDim}>{data.sessions.length} เซสชั่น · {data.players.length} คน</div>
+          className="border border-purple-500/30 rounded-2xl p-3 text-left hover:border-purple-400/60 transition-colors" style={{background:"rgba(15,8,25,0.06)",backdropFilter:"blur(6px)"}}>
+          <div className="text-purple-400 text-xs font-semibold mb-1">💰 กองกลาง</div>
+          <div className={"font-mono font-black text-lg " + (pot>=0?"text-purple-300":"text-red-400")}>{fmt(pot)} ฿</div>
+          <div className="text-zinc-600 text-[10px] mt-1">{data.sessions.length} เซสชั่น · {data.players.length} คน</div>
         </button>
       </div>
 
       {/* Quick stats */}
       <div className="grid grid-cols-4 gap-2">
         {[
-          ["เซสทั้งหมด", data.sessions.length,                                        T.statAccent1],
-          ["ผู้เล่น",    data.players.length,                                          T.statAccent1],
-          ["ซีซั่น",     latest ? "S"+latest.season+"/"+latest.year : "-",             T.statAccent2],
-          ["ปีนี้",      data.sessions.filter(s=>s.year===new Date().getFullYear()).length, T.statAccent3],
+          ["เซสทั้งหมด", data.sessions.length,                                        "text-white"],
+          ["ผู้เล่น",    data.players.length,                                          "text-white"],
+          ["ซีซั่น",     latest ? "S"+latest.season+"/"+latest.year : "-",             "text-amber-300"],
+          ["ปีนี้",      data.sessions.filter(s=>s.year===new Date().getFullYear()).length, "text-sky-300"],
         ].map(([label,value,color]) => (
-          <div key={label} className={"rounded-xl px-2 py-2 text-center " + T.statBg} style={cardStyle}>
+          <div key={label} className="border border-zinc-700/25 rounded-xl px-2 py-2 text-center" style={{background:"rgba(15,10,3,0.05)",backdropFilter:"blur(6px)"}}>
             <div className={"font-mono font-black text-lg "+color}>{value}</div>
-            <div className={"text-[10px] mt-0.5 " + T.textDim}>{label}</div>
+            <div className="text-zinc-600 text-[10px] mt-0.5">{label}</div>
           </div>
         ))}
       </div>
 
       {/* Top 3 */}
       {summary.filter(p=>p.n>0).length > 0 && (
-        <Box className={isPastel ? "border border-zinc-200" : ""} style={isPastel ? {background:"#fff"} : null}>
-          <div className={"text-xs font-semibold mb-3 " + T.boxLabel}>🏅 Top 3 ตอนนี้</div>
+        <Box>
+          <div className="text-zinc-400 text-xs font-semibold mb-3">🏅 Top 3 ตอนนี้</div>
           <div className="space-y-2">
             {summary.filter(p=>p.n>0).slice(0,3).map((p,i) => (
               <div key={p.name} className="flex items-center gap-3">
                 <span className="text-lg">{["🥇","🥈","🥉"][i]}</span>
-                <span className={"font-semibold flex-1 " + T.textStrong}><PlayerName player={p.name} nicknames={data.nicknames}/></span>
+                <span className="text-white font-semibold flex-1"><PlayerName player={p.name} nicknames={data.nicknames}/></span>
                 <div className="flex gap-1 text-xs">
-                  {p.gold>0   && <span className={T.gold}>🥇{p.gold}</span>}
-                  {p.silver>0 && <span className={T.silver}>🥈{p.silver}</span>}
-                  {p.last>0   && <span className={T.skull}>💀{p.last}</span>}
+                  {p.gold>0   && <span className="text-amber-300">🥇{p.gold}</span>}
+                  {p.silver>0 && <span className="text-zinc-300">🥈{p.silver}</span>}
+                  {p.last>0   && <span className="text-red-400">💀{p.last}</span>}
                 </div>
                 <Profit v={p.total} sx=" ฿"/>
               </div>
@@ -456,9 +447,9 @@ function DashboardView({ data, onGoLeader, onGoLatestSes, onGoPot, theme="gold" 
   );
 }
 
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 // PLAYER PROFILES
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
   const [sel, setSel] = useState(initialSel);
   const [hovSel, setHovSel] = useState(null);
@@ -484,7 +475,7 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
     const nextPlayer = curIdx < ranked_players.length - 1 ? ranked_players[curIdx + 1] : null;
 
     return (
-      <div className="space-y-4">
+      <div className="space-y-2">
         <div className="flex items-center gap-3">
           {/* ปุ่ม back: วงกลมสีทอง */}
           <button onClick={()=>{setSel(null);}}
@@ -519,16 +510,26 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
         </div>
 
         {/* Total + รูป profile */}
-        <div className="border border-zinc-700/25 rounded-2xl pt-2 pb-4 px-4 text-center" style={{background:"rgba(15,10,3,0.05)",backdropFilter:"blur(6px)"}}>
+        <div className="border border-zinc-700/25 rounded-2xl pt-2 pb-4 px-4 text-center" style={{background:"rgba(15,10,3,0.40)",backdropFilter:"blur(6px)"}}>
           {/* รูปตัวละคร กึ่งกลาง บนสุด */}
-          <div className="flex justify-center mb-2">
-            <img
-              src={(data.avatars||{})[sel] || "https://raw.githubusercontent.com/clsclassic-droid/Legendary-Poker-Tracker/main/src/default-player.png"}
-              alt={sel}
-              className="object-contain"
-              style={{width:"100px", height:"130px", objectPosition:"top center", filter:"drop-shadow(0 4px 16px rgba(0,0,0,0.8))", marginTop:"-20px"}}
-            />
-          </div>
+          {(() => {
+            const avatarSrc = avatarUrl(sel, data.avatars);
+            const doOv = (data.avatarOverflows||{})[sel] !== false;
+            return (
+              <div className="flex justify-center mb-2" style={{overflow: doOv ? "visible" : "hidden"}}>
+                <img src={avatarSrc} alt={sel} onError={onAvatarError}
+                  className={doOv ? "object-contain" : "object-cover"}
+                  style={{
+                    width:"200px", height:"200px",
+                    borderRadius: doOv ? "0px" : "12px",
+                    objectPosition:"top center",
+                    filter:"drop-shadow(0 4px 16px rgba(0,0,0,0.8))",
+                    marginTop: doOv ? "-20px" : "0px",
+                  }}
+                />
+              </div>
+            );
+          })()}
           <div className="text-zinc-500 text-sm mb-1">กำไร / ขาดทุนรวม</div>
           <div className={"font-mono font-black text-4xl "+(stats.total>=0?"text-emerald-400":"text-red-400")}>
             {stats.total>0?"+":""}{fmt(stats.total)} ฿
@@ -543,7 +544,7 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
             ["ดีที่สุด",  stats.best!==null  ? (stats.best>0?"+":"")+fmt(stats.best) : "-", "text-emerald-400"],
             ["แย่ที่สุด", stats.worst!==null ? fmt(stats.worst)     : "-", "text-red-400"],
           ].map(([label,value,color]) => (
-            <div key={label} className="border border-zinc-700/25 rounded-xl p-3 text-center" style={{background:"rgba(15,10,3,0.05)",backdropFilter:"blur(6px)"}}>
+            <div key={label} className="border border-zinc-700/25 rounded-xl p-3 text-center" style={{background:"rgba(15,10,3,0.40)",backdropFilter:"blur(6px)"}}>
               <div className={"font-mono font-bold text-lg "+color}>{value}</div>
               <div className="text-zinc-600 text-xs mt-0.5">{label}</div>
             </div>
@@ -577,7 +578,7 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
               const myRank  = ranked(x.s.entries).find(r => r.player === sel)?.rank ?? 0;
               const em = myRank===1?"🥇":myRank===2?"🥈":myRank===3?"🥉":myRank===lastRank?"💀":"#"+myRank;
               return (
-                <div key={i} className="flex items-center justify-between border border-zinc-700/25 rounded-xl px-3 py-2" style={{background:"rgba(15,10,3,0.05)",backdropFilter:"blur(6px)"}}>
+                <div key={i} className="flex items-center justify-between border border-zinc-700/25 rounded-xl px-3 py-2" style={{background:"rgba(15,10,3,0.40)",backdropFilter:"blur(6px)"}}>
                   <div className="flex items-center gap-2">
                     <span className="text-base">{em}</span>
                     <div>
@@ -596,16 +597,18 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
   }
 
   // Player list
-  const DEFAULT_AVATAR = "https://raw.githubusercontent.com/clsclassic-droid/Legendary-Poker-Tracker/main/src/default-player.png";
+  const avatarOverflows = data.avatarOverflows || {};
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       <h2 className="text-xl font-bold text-white">👤 Player Profiles</h2>
       <p className="text-zinc-500 text-sm">กดเพื่อ select · กดอีกครั้งเพื่อดู profile</p>
       <div className="space-y-2">
         {summary.map((p, idx) => {
-          const isSel   = hovSel === p.name;
-          const avatar  = (data.avatars||{})[p.name] || DEFAULT_AVATAR;
-          const rankNum = idx + 1;
+          const isSel      = hovSel === p.name;
+          const avatar     = avatarUrl(p.name, data.avatars);
+          // ดูตาม setting (default = ทะลุ) ; ถ้ารูปไม่มีจริง onError จะตกไป default ให้เอง
+          const doOverflow = avatarOverflows[p.name] !== false;
+          const rankNum    = idx + 1;
           return (
             <button key={p.name}
               onClick={() => {
@@ -616,14 +619,15 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
               style={{
                 background: isSel
                   ? "linear-gradient(135deg, rgba(201,162,39,0.15), rgba(201,162,39,0.05))"
-                  : "rgba(15,10,3,0.05)",
+                  : "rgba(15,10,3,0.40)",
                 border: isSel
                   ? "1.5px solid rgba(201,162,39,0.45)"
                   : "1px solid rgba(255,255,255,0.08)",
                 backdropFilter: "blur(6px)",
+                overflow: doOverflow ? "visible" : "hidden",
               }}>
               <div className="flex items-stretch">
-                {/* เลขอันดับ — กึ่งกลาง card */}
+                {/* เลขอันดับ - กึ่งกลาง card */}
                 <div className="flex-shrink-0 flex items-center justify-center" style={{width: isSel?"48px":"40px"}}>
                   <span style={{
                     color: isSel ? "#c9a227" : "#555",
@@ -632,15 +636,16 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
                     lineHeight: 1,
                   }}>{rankNum}</span>
                 </div>
-                {/* รูป overflow ด้านบน */}
-                <div className="flex-shrink-0 flex items-end pb-3">
-                  <img src={avatar} alt={p.name}
-                    className="object-contain"
+                {/* รูป */}
+                <div className="flex-shrink-0 flex items-center py-2" style={{overflow: doOverflow ? "visible" : "hidden"}}>
+                  <img src={avatar} alt={p.name} onError={onAvatarError}
+                    className={doOverflow ? "object-contain" : "object-cover"}
                     style={{
-                      width: isSel ? "88px" : "68px",
-                      height: isSel ? "110px" : "84px",
-                      marginTop: isSel ? "-28px" : "-16px",
+                      width: isSel ? "160px" : "100px",
+                      height: isSel ? "160px" : "100px",
+                      marginTop: doOverflow ? (isSel ? "-60px" : "-40px") : "0px",
                       objectPosition: "top center",
+                      borderRadius: doOverflow ? "0px" : "8px",
                       filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.7))",
                       transition: "all 0.2s ease",
                     }}
@@ -672,13 +677,13 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 // LEADERBOARD
-// ─────────────────────────────────────────────────────────────────
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
+// -----------------------------------------------------------------
 // RACING BAR CHART
-// ─────────────────────────────────────────────────────────────────
-function RacingBarChart({ sessions, players, nicknames }) {
+// -----------------------------------------------------------------
+function RacingBarChart({ sessions, players, nicknames, avatars }) {
   const [curSes, setCurSes] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState(1);
@@ -729,7 +734,7 @@ function RacingBarChart({ sessions, players, nicknames }) {
   const scores = getScores(curSes);
   const maxAbs = Math.max(...scores.map(s => Math.abs(s.profit)), 1);
 
-  // ── Animated display values (วิ่งทีละ 10) ──
+  // -- Animated display values (วิ่งทีละ 10) --
   const [displayVals, setDisplayVals] = useState(() => {
     const m = {};
     players.forEach(p => { m[p] = 0; });
@@ -776,7 +781,7 @@ function RacingBarChart({ sessions, players, nicknames }) {
   const containerHeight = players.length * ROW_H;
 
   return (
-    <div className="border border-zinc-700/25 rounded-2xl p-4 space-y-3" style={{background:"rgba(15,10,3,0.05)",backdropFilter:"blur(6px)"}}>
+    <div className="border border-zinc-700/25 rounded-2xl p-4 space-y-3" style={{background:"rgba(15,10,3,0.40)",backdropFilter:"blur(6px)"}}>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -818,7 +823,7 @@ function RacingBarChart({ sessions, players, nicknames }) {
         <span className="text-zinc-600 text-[10px] font-mono flex-shrink-0">เซสชั่น {total}</span>
       </div>
 
-      {/* Animated Bars — absolute positioned so rows animate up/down */}
+      {/* Animated Bars - absolute positioned so rows animate up/down */}
       <div className="relative w-full" style={{ height: containerHeight + 'px' }}>
         {scores.map((s, rankIdx) => {
           const pct = Math.max(2, (Math.abs(s.profit) / maxAbs) * 94);
@@ -846,19 +851,34 @@ function RacingBarChart({ sessions, players, nicknames }) {
                 {s.nick && <div className="text-[9px] text-zinc-600 truncate">"{s.nick}"</div>}
               </div>
               {/* Bar */}
-              <div className="flex-1 rounded-lg overflow-hidden relative" style={{background:"rgba(255,255,255,0.06)",height:'30px'}}>
+              <div className="flex-1 rounded-lg overflow-visible relative" style={{background:"rgba(255,255,255,0.06)",height:'30px'}}>
                 <div
-                  className="h-full rounded-lg flex items-center justify-end pr-2" 
+                  className="h-full rounded-lg flex items-center justify-end pr-2 overflow-visible" 
                   style={{
                     width: pct + '%',
                     background: isPos ? s.color : 'rgba(248,113,113,0.6)',
                     transition: `width ${dur} ease`,
                     minWidth: '4px',
+                    position: 'relative',
                   }}>
                   <span className="text-[10px] font-bold font-mono whitespace-nowrap"
                     style={{color: isPos ? 'rgba(0,0,0,0.75)' : 'rgba(255,255,255,0.9)'}}>
                     {(displayVals[s.name] ?? 0) >= 0 ? '+' : ''}{fmt(displayVals[s.name] ?? 0)} ฿
                   </span>
+                  {/* Avatar at tip */}
+                  <div style={{
+                    position:'absolute', right:'-18px', top:'50%', transform:'translateY(-50%)',
+                    width:'34px', height:'34px', borderRadius:'50%',
+                    border: `2px solid ${isPos ? s.color : '#f87171'}`,
+                    overflow:'hidden', flexShrink:0, background:'#111', zIndex:10,
+                  }}>
+                    <img
+                      src={avatarUrl(s.name, avatars)}
+                      onError={onAvatarError}
+                      alt={s.name}
+                      style={{width:'100%',height:'100%',objectFit:'cover',objectPosition:'top center'}}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -885,16 +905,16 @@ function RacingBarChart({ sessions, players, nicknames }) {
 }
 
 
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 // RACE VIEW (standalone page)
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 function RaceView({ data }) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       <h2 className="text-xl font-bold text-white">🏎️ Ranking Race</h2>
       <p className="text-zinc-500 text-sm">กำไรสะสมแต่ละเซสชั่น</p>
       {data.sessions.length > 1
-        ? <RacingBarChart sessions={data.sessions} players={data.players} nicknames={data.nicknames}/>
+        ? <RacingBarChart sessions={data.sessions} players={data.players} nicknames={data.nicknames} avatars={data.avatars||{}}/>
         : <Box><div className="text-center py-12 text-zinc-600"><div className="text-4xl mb-3">🏎️</div>ต้องมีอย่างน้อย 2 เซสชั่นขึ้นไป</div></Box>
       }
     </div>
@@ -923,7 +943,7 @@ function LeaderboardView({ data }) {
   const GRAD  = ["bg-gradient-to-br from-amber-900/40 to-amber-700/10 border-amber-500/40","bg-gradient-to-br from-zinc-700/40 to-zinc-600/10 border-zinc-500/40","bg-gradient-to-br from-orange-900/30 to-orange-800/10 border-orange-700/40"];
 
   const filterLabel = filter==="all" ? "ทั้งหมด ("+data.sessions.length+" เซส)"
-    : filter==="latest" && latest ? "เซสล่าสุด — "+sesLabel(latest)
+    : filter==="latest" && latest ? "เซสล่าสุด - "+sesLabel(latest)
     : filter.startsWith("sea:") ? (()=>{const[y,s]=filter.slice(4).split("-");return "ปี "+y+" ซีซั่น "+s;})()
     : filter.startsWith("yr:")  ? "ปี "+filter.slice(3)
     : filter.startsWith("sid:") ? (()=>{const id=Number(filter.slice(4));const s=data.sessions.find(x=>x.internalId===id);return s?sesLabel(s):"-";})()
@@ -936,7 +956,7 @@ function LeaderboardView({ data }) {
         <p className="text-zinc-500 text-sm mt-0.5">แสดงผล: <span className="text-amber-300">{filterLabel}</span></p>
       </div>
 
-      {/* Filter — minimal */}
+      {/* Filter - minimal */}
       <div className="space-y-2">
         {/* Chips row */}
         <div className="flex gap-2 overflow-x-auto pb-1">
@@ -955,7 +975,7 @@ function LeaderboardView({ data }) {
             </button>
           ))}
         </div>
-        {/* 2 dropdowns — filtered by selected year/season */}
+        {/* 2 dropdowns - filtered by selected year/season */}
         <div className="flex gap-2">
           {/* Season dropdown: show only seasons of selected year */}
           <select
@@ -1011,7 +1031,7 @@ function LeaderboardView({ data }) {
                     <div>
                       <div className="text-white font-bold text-lg leading-tight">{p.name}</div>
                       <div className="text-xs font-normal" style={{color:"rgba(255,255,255,0.4)"}}>
-                        {(data.nicknames||{})[p.name] ? `"${(data.nicknames||{})[p.name]}"` : "—"}
+                        {(data.nicknames||{})[p.name] ? `"${(data.nicknames||{})[p.name]}"` : "-"}
                       </div>
                     </div>
                   </div>
@@ -1067,13 +1087,14 @@ function LeaderboardView({ data }) {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 // SESSIONS
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 function SessionsView({ data, onEdit, onDelete, initialOpen=null }) {
   const [open, setOpen] = useState(initialOpen);
+  const [openStats, setOpenStats] = useState(new Set());
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       <h2 className="text-xl font-bold text-white">📋 ประวัติเซสชั่น</h2>
       {data.sessions.length===0 && <Box><div className="text-center py-12 text-zinc-600"><div className="text-4xl mb-3">🃏</div>ยังไม่มีเซสชั่น</div></Box>}
       {[...data.sessions].reverse().map(s => {
@@ -1082,7 +1103,7 @@ function SessionsView({ data, onEdit, onDelete, initialOpen=null }) {
         const pot = s.entries.reduce((a,e)=>a+e.buyInBaht,0);
         const fee = s.entries.length*s.fee;
         return (
-          <div key={s.internalId} className="border border-zinc-700/25 rounded-2xl overflow-hidden" style={{background:"rgba(15,10,3,0.05)",backdropFilter:"blur(6px)"}}>
+          <div key={s.internalId} className="border border-zinc-700/25 rounded-2xl overflow-hidden" style={{background:"rgba(15,10,3,0.40)",backdropFilter:"blur(6px)"}}>
             <button className="w-full flex items-center justify-between px-4 py-4 hover:bg-white/5 transition-colors text-left" onClick={()=>setOpen(isOpen?null:s.internalId)}>
               <div className="flex items-center gap-3">
                 <div className="text-center">
@@ -1091,7 +1112,7 @@ function SessionsView({ data, onEdit, onDelete, initialOpen=null }) {
                 </div>
                 <div>
                   <div className="text-white font-semibold text-sm">{String(s.date || "").slice(0,10)}</div>
-                  <div className="text-zinc-500 text-xs">{s.entries.length} ผู้เล่น · {fmt(pot)} ฿ · <span className="text-purple-400">ส่วนกลาง {fmt(fee)} ฿</span></div>
+                  <div className="text-zinc-500 text-xs">{s.entries.length} ผู้เล่น · Pot {fmt(pot)} ฿ · <span className="text-purple-400">ส่วนกลาง {fmt(fee)} ฿</span></div>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -1116,17 +1137,64 @@ function SessionsView({ data, onEdit, onDelete, initialOpen=null }) {
                       <th className="py-2 text-right hidden sm:table-cell">ซื้อ(฿)</th><th className="py-2 text-right hidden sm:table-cell">แลก(฿)</th>
                       <th className="py-2 text-right">กำไร(฿)</th>
                     </tr></thead>
-                    <tbody>{r.map(e => (
-                      <tr key={e.player} className="border-b border-zinc-800/30">
-                        <td className="py-2 text-zinc-500">{e.rank}</td>
-                        <td className="py-2 font-medium text-white"><PlayerName player={e.player} nicknames={data.nicknames}/></td>
-                        <td className="py-2 text-right font-mono text-zinc-400">{fmt(e.buyInChips)}</td>
-                        <td className="py-2 text-right font-mono text-zinc-400">{fmt(e.cashOutChips)}</td>
-                        <td className="py-2 text-right font-mono text-zinc-500 hidden sm:table-cell">{fmt(e.buyInBaht)}</td>
-                        <td className="py-2 text-right font-mono text-zinc-500 hidden sm:table-cell">{fmt(e.cashOutBaht)}</td>
-                        <td className="py-2 text-right"><Profit v={e.profitBaht} sx=" ฿"/></td>
-                      </tr>
-                    ))}</tbody>
+                    <tbody>{r.map(e => {
+                      const statKey = s.internalId + "__" + e.player;
+                      const statOpen = openStats.has(statKey);
+                      const hasStats = (e.bluffWin||0)+(e.bluffLose||0)+(e.catchBluff||0)+(e.gotBluffed||0)+(e.fourCard||0)+(e.straightFlush||0)+(e.royalStraightFlush||0) > 0;
+                      const BLUFF_FIELDS = [
+                        ["bluffWin","🎭","text-emerald-400","บลัฟผ่าน"],
+                        ["bluffLose","❌","text-red-400","บลัฟไม่ผ่าน"],
+                        ["catchBluff","🔍","text-amber-400","จับบลัฟได้"],
+                        ["gotBluffed","😵","text-purple-400","โดนบลัฟ"],
+                      ];
+                      const SET_FIELDS = [
+                        ["fourCard","🃏","text-sky-400","4 Card"],
+                        ["straightFlush","♠️","text-violet-400","Str.Flush"],
+                        ["royalStraightFlush","👑","text-amber-300","Royal SF"],
+                      ];
+                      return (
+                        <Fragment key={e.player}>
+                          <tr className="border-b border-zinc-800/30">
+                            <td className="py-2 text-zinc-500">{e.rank}</td>
+                            <td className="py-2">
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium text-white"><PlayerName player={e.player} nicknames={data.nicknames}/></span>
+                                <button onClick={() => setOpenStats(prev => { const n = new Set(prev); n.has(statKey) ? n.delete(statKey) : n.add(statKey); return n; })}
+                                  className={"text-[10px] px-1.5 py-0.5 rounded border transition-colors " + (statOpen ? "border-amber-500/50 text-amber-400 bg-amber-500/10" : hasStats ? "border-emerald-500/30 text-emerald-400 bg-emerald-500/10" : "border-zinc-700/30 text-zinc-600 hover:text-zinc-400")}>
+                                  {statOpen ? "▲ Stats" : hasStats ? "✦ Stats" : "Stats"}
+                                </button>
+                              </div>
+                            </td>
+                            <td className="py-2 text-right font-mono text-zinc-400">{fmt(e.buyInChips)}</td>
+                            <td className="py-2 text-right font-mono text-zinc-400">{fmt(e.cashOutChips)}</td>
+                            <td className="py-2 text-right font-mono text-zinc-500 hidden sm:table-cell">{fmt(e.buyInBaht)}</td>
+                            <td className="py-2 text-right font-mono text-zinc-500 hidden sm:table-cell">{fmt(e.cashOutBaht)}</td>
+                            <td className="py-2 text-right"><Profit v={e.profitBaht} sx=" ฿"/></td>
+                          </tr>
+                          {statOpen && (
+                            <tr className="border-b border-zinc-800/30">
+                              <td colSpan={7}>
+                                <div className="flex items-center gap-1.5 flex-wrap px-8 py-2" style={{background:"rgba(255,255,255,0.02)"}}>
+                                  {BLUFF_FIELDS.map(f => (
+                                    <div key={f[0]} className="flex flex-col items-center gap-1 rounded-md border border-zinc-700/20 px-2 py-1.5" style={{background:"rgba(255,255,255,0.04)"}}>
+                                      <span className={"text-[11px] whitespace-nowrap " + f[2]}>{f[1]} {f[3]}</span>
+                                      <span className={"font-mono font-bold text-sm " + ((e[f[0]]||0) > 0 ? f[2] : "text-zinc-600")}>{(e[f[0]]||0) > 0 ? e[f[0]] : "-"}</span>
+                                    </div>
+                                  ))}
+                                  <div className="w-px h-8 flex-shrink-0" style={{background:"rgba(255,255,255,0.1)"}}/>
+                                  {SET_FIELDS.map(f => (
+                                    <div key={f[0]} className="flex flex-col items-center gap-1 rounded-md border border-zinc-700/20 px-2 py-1.5" style={{background:"rgba(255,255,255,0.04)"}}>
+                                      <span className={"text-[11px] whitespace-nowrap " + f[2]}>{f[1]} {f[3]}</span>
+                                      <span className={"font-mono font-bold text-sm " + ((e[f[0]]||0) > 0 ? f[2] : "text-zinc-600")}>{(e[f[0]]||0) > 0 ? e[f[0]] : "-"}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </Fragment>
+                      );
+                    })}</tbody>
                   </table>
                 </div>
                 {s.note && <p className="mt-3 text-zinc-500 text-sm rounded-lg px-3 py-2" style={{background:"rgba(255,255,255,0.06)"}}>📝 {s.note}</p>}
@@ -1145,10 +1213,10 @@ function SessionsView({ data, onEdit, onDelete, initialOpen=null }) {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 // SESSION FORM
-// ─────────────────────────────────────────────────────────────────
-function SessionForm({ data, editSession, onSave, onCancel, saving }) {
+// -----------------------------------------------------------------
+function SessionForm({ data, editSession, onSave, onCancel, saving, isAdmin, allowPublicAdd, setAllowPublicAdd }) {
   const today = new Date().toISOString().slice(0,10);
   const [date, setDate]   = useState(editSession?.date ?? today);
   const [note, setNote]   = useState(editSession?.note ?? "");
@@ -1159,8 +1227,8 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
   const [qok,  setQok]    = useState(false);
   const [errs, setErrs]   = useState({});
   const [rows, setRows]   = useState(
-    editSession ? editSession.entries.map(e=>({player:e.player, buy:e.buyInChips, sell:e.cashOutChips, bluffWin:e.bluffWin||0, bluffLose:e.bluffLose||0, catchBluff:e.catchBluff||0, gotBluffed:e.gotBluffed||0}))
-                : data.players.map(p=>({player:p, buy:0, sell:0, bluffWin:0, bluffLose:0, catchBluff:0, gotBluffed:0}))
+    editSession ? editSession.entries.map(e=>({player:e.player, buy:e.buyInChips, sell:e.cashOutChips, bluffWin:e.bluffWin||0, bluffLose:e.bluffLose||0, catchBluff:e.catchBluff||0, gotBluffed:e.gotBluffed||0, fourCard:e.fourCard||0, straightFlush:e.straightFlush||0, royalStraightFlush:e.royalStraightFlush||0}))
+                : data.players.map(p=>({player:p, buy:0, sell:0, bluffWin:0, bluffLose:0, catchBluff:0, gotBluffed:0, fourCard:0, straightFlush:0, royalStraightFlush:0}))
   );
 
   const {year, season} = useMemo(() => date ? dateToSeason(date) : {year:null,season:null}, [date]);
@@ -1209,16 +1277,27 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
         player:r.player, buyInChips:r.buy, cashOutChips:r.sell,
         buyInBaht:c2b(r.buy,rate), cashOutBaht:c2b(r.sell,rate),
         profitBaht:profit(r.buy,r.sell,rate),
-        bluffWin:r.bluffWin||0, bluffLose:r.bluffLose||0, catchBluff:r.catchBluff||0, gotBluffed:r.gotBluffed||0
+        bluffWin:r.bluffWin||0, bluffLose:r.bluffLose||0, catchBluff:r.catchBluff||0, gotBluffed:r.gotBluffed||0,
+        fourCard:r.fourCard||0, straightFlush:r.straightFlush||0, royalStraightFlush:r.royalStraightFlush||0
       }))
     });
   }
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <h2 className="text-xl font-bold text-white">{editSession?"✏️ แก้ไขเซสชั่น":"➕ บันทึกเซสชั่นใหม่"}</h2>
-        {onCancel && <button onClick={onCancel} className="text-zinc-500 hover:text-white text-sm">ยกเลิก ✕</button>}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {isAdmin && !editSession && (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{background:"rgba(255,255,255,0.08)"}}>
+              <span className="text-xs text-zinc-400 whitespace-nowrap">อนุญาตผู้เล่นทั่วไปเพิ่มเอง</span>
+              <button onClick={() => setAllowPublicAdd()} disabled={saving} className={"w-10 h-6 rounded-full flex items-center px-1 transition-all disabled:opacity-50 " + (allowPublicAdd ? "bg-emerald-600" : "bg-zinc-600")}>
+                <div className={"w-4 h-4 rounded-full bg-white transition-transform " + (allowPublicAdd ? "translate-x-4" : "translate-x-0")}/>
+              </button>
+            </div>
+          )}
+          {onCancel && <button onClick={onCancel} className="text-zinc-500 hover:text-white text-sm">ยกเลิก ✕</button>}
+        </div>
       </div>
 
       {/* Date + Note */}
@@ -1343,7 +1422,7 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
           <span>บันทึกชิปแต่ละคน ({mode==="chips"?"ชิป":"บาท"})</span>
           <div className="flex items-center gap-2">
             <span className="text-xs text-zinc-600">{active}/{rows.length} คน</span>
-            {/* ปุ่มเพิ่มผู้เล่น — แสดงเฉพาะตอนแก้ไข และมีคนที่ยังไม่ได้อยู่ในรายการ */}
+            {/* ปุ่มเพิ่มผู้เล่น - แสดงเฉพาะตอนแก้ไข และมีคนที่ยังไม่ได้อยู่ในรายการ */}
             {(() => {
               const inRows = rows.map(r => r.player);
               const available = data.players.filter(p => !inRows.includes(p));
@@ -1370,56 +1449,80 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
           {rows.map((r,i) => {
             const pb  = profit(r.buy, r.sell, rate);
             const act = r.buy>0 || r.sell>0;
+            const hasStats = (r.bluffWin||0)+(r.bluffLose||0)+(r.catchBluff||0)+(r.gotBluffed||0)+(r.fourCard||0)+(r.straightFlush||0)+(r.royalStraightFlush||0) > 0;
+            const ALL_STAT_FIELDS = [
+              ["bluffWin",   "🎭",  "text-emerald-400", "บลัฟผ่าน"],
+              ["bluffLose",  "❌",  "text-red-400",      "บลัฟไม่ผ่าน"],
+              ["catchBluff", "🔍",  "text-amber-400",    "จับบลัฟได้"],
+              ["gotBluffed", "😵",  "text-purple-400",   "โดนบลัฟ"],
+              null, // divider
+              ["fourCard",           "🃏", "text-sky-400",    "4 Card"],
+              ["straightFlush",      "♠️", "text-violet-400", "Str.Flush"],
+              ["royalStraightFlush", "👑", "text-amber-300",  "Royal SF"],
+            ];
             return (
               <div key={r.player} className={"border-b border-zinc-800/30 " + (act?"":"opacity-50")}>
-                <div className="px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-                  <div className="flex items-center gap-2 min-w-[80px]">
-                    <span className={"w-2 h-2 rounded-full flex-shrink-0 "+(pb>0?"bg-emerald-400":pb<0?"bg-red-400":"")}/>
-                    <span className="text-white font-medium"><PlayerName player={r.player} nicknames={data.nicknames}/></span>
-                    <button onClick={() => setRows(prev => prev.filter(x => x.player !== r.player))}
-                      className="ml-1 text-zinc-600 hover:text-red-400 text-xs transition-colors">✕</button>
-                  </div>
-                  <div className="flex gap-2 flex-1">
-                    <div className="flex-1">
-                      <label className="text-zinc-600 text-xs">ซื้อ {mode==="baht"?"(฿)":"(ชิป)"}</label>
-                      <NInput value={dv(r.buy)} onChange={v=>upd(i,"buy",v)}/>
-                      {r.buy>0 && <div className="text-zinc-600 text-xs mt-0.5 font-mono">= {mode==="chips"?fmt(c2b(r.buy,rate))+" ฿":fmt(r.buy)+" ชิป"}</div>}
+                {/* Main row */}
+                <div className="px-4 py-2.5 grid gap-2 items-center" style={{gridTemplateColumns:"100px 1fr 1fr 100px"}}>
+                  {/* col 1: ชื่อ + Stats */}
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-1.5">
+                      <span className={"w-2 h-2 rounded-full flex-shrink-0 "+(pb>0?"bg-emerald-400":pb<0?"bg-red-400":"")}/>
+                      <span className="text-white font-medium text-sm truncate"><PlayerName player={r.player} nicknames={data.nicknames}/></span>
+                      <button onClick={() => setRows(prev => prev.filter(x => x.player !== r.player))}
+                        className="ml-auto text-zinc-600 hover:text-red-400 text-xs transition-colors flex-shrink-0">✕</button>
                     </div>
-                    <div className="flex-1">
-                      <label className="text-zinc-600 text-xs">แลก {mode==="baht"?"(฿)":"(ชิป)"}</label>
-                      <NInput value={dv(r.sell)} onChange={v=>upd(i,"sell",v)}/>
-                      {r.sell>0 && <div className="text-zinc-600 text-xs mt-0.5 font-mono">= {mode==="chips"?fmt(c2b(r.sell,rate))+" ฿":fmt(r.sell)+" ชิป"}</div>}
-                    </div>
+                    <button
+                      onClick={() => setRows(prev => prev.map((x,j) => j===i ? {...x, _statsOpen: !x._statsOpen} : x))}
+                      className={"text-[10px] px-1.5 py-0.5 rounded border transition-colors w-fit " + (r._statsOpen ? "border-amber-500/50 text-amber-400 bg-amber-500/10" : hasStats ? "border-emerald-500/30 text-emerald-400 bg-emerald-500/10" : "border-zinc-700/30 text-zinc-600 hover:text-zinc-400")}>
+                      {r._statsOpen ? "▲ Stats" : (hasStats ? "✦ Stats" : "Stats")}
+                    </button>
                   </div>
-                  <div className="text-right min-w-[90px]">
+                  {/* col 2: ซื้อ */}
+                  <div>
+                    <label className="text-zinc-600 text-xs">ซื้อ {mode==="baht"?"(฿)":"(ชิป)"}</label>
+                    <NInput value={dv(r.buy)} onChange={v=>upd(i,"buy",v)}/>
+                    {r.buy>0 && <div className="text-zinc-600 text-xs mt-0.5 font-mono">= {mode==="chips"?fmt(c2b(r.buy,rate))+" ฿":fmt(r.buy)+" ชิป"}</div>}
+                  </div>
+                  {/* col 3: แลก */}
+                  <div>
+                    <label className="text-zinc-600 text-xs">แลก {mode==="baht"?"(฿)":"(ชิป)"}</label>
+                    <NInput value={dv(r.sell)} onChange={v=>upd(i,"sell",v)}/>
+                    {r.sell>0 && <div className="text-zinc-600 text-xs mt-0.5 font-mono">= {mode==="chips"?fmt(c2b(r.sell,rate))+" ฿":fmt(r.sell)+" ชิป"}</div>}
+                  </div>
+                  {/* col 4: กำไร */}
+                  <div className="text-right">
                     <div className="text-xs text-zinc-600">กำไร/ขาดทุน</div>
                     <Profit v={pb} sx=" ฿"/>
                     {act && <div className="text-purple-400 text-xs font-mono">-{fmt(fee)} ฿ ส่วนกลาง</div>}
                     {act && <Profit v={pb-fee} sx=" ฿ สุทธิ"/>}
                   </div>
                 </div>
-                {/* Bluff fields */}
-                <div className="flex gap-2 px-4 pb-3">
-                  {[
-                    ["bluffWin",   "🎭 บลัฟผ่าน",    "text-emerald-400"],
-                    ["bluffLose",  "❌ บลัฟไม่ผ่าน", "text-red-400"],
-                    ["catchBluff", "🔍 จับบลัฟได้",  "text-amber-400"],
-                    ["gotBluffed",  "😵 โดนบลัฟ",     "text-purple-400"],
-                  ].map(([field, label, color]) => (
-                    <div key={field} className="flex-1">
-                      <label className={"text-[10px] font-semibold " + color}>{label}</label>
-                      <div className="flex items-center gap-1 mt-0.5">
-                        <button onClick={() => { const n=[...rows]; n[i]={...n[i],[field]:Math.max(0,(n[i][field]||0)-1)}; setRows(n); }}
-                          className="w-6 h-6 rounded-md text-zinc-400 hover:text-white text-sm flex items-center justify-center border border-zinc-700/30"
-                          style={{background:"rgba(255,255,255,0.05)"}}>−</button>
-                        <span className={"flex-1 text-center font-mono font-bold text-sm " + color}>{r[field]||0}</span>
-                        <button onClick={() => { const n=[...rows]; n[i]={...n[i],[field]:(n[i][field]||0)+1}; setRows(n); }}
-                          className="w-6 h-6 rounded-md text-zinc-400 hover:text-white text-sm flex items-center justify-center border border-zinc-700/30"
-                          style={{background:"rgba(255,255,255,0.05)"}}>+</button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                {/* Stats row - collapsible */}
+                {r._statsOpen && (
+                  <div className="flex items-center gap-1 px-4 pb-3 flex-wrap" style={{background:"rgba(255,255,255,0.02)"}}>
+                    {ALL_STAT_FIELDS.map((f, fi) => {
+                      if (f === null) return (
+                        <div key={"div"+fi} className="w-px h-8 mx-1 flex-shrink-0" style={{background:"rgba(255,255,255,0.1)"}}/>
+                      );
+                      const [field, emoji, color, label] = f;
+                      return (
+                        <div key={field} className="flex flex-col items-center gap-1 flex-shrink-0 rounded-md border border-zinc-700/20 px-2 py-1.5" style={{background:"rgba(255,255,255,0.04)"}}>
+                          <span className={"text-[11px] whitespace-nowrap " + color}>{emoji} {label}</span>
+                          <div className="flex items-center gap-0.5">
+                            <button onClick={() => { const n=[...rows]; n[i]={...n[i],[field]:Math.max(0,(n[i][field]||0)-1)}; setRows(n); }}
+                              className="w-5 h-5 rounded text-zinc-400 hover:text-white text-xs flex items-center justify-center border border-zinc-700/30"
+                              style={{background:"rgba(255,255,255,0.05)"}}>−</button>
+                            <span className={"w-5 text-center font-mono font-bold text-sm " + color}>{r[field]||0}</span>
+                            <button onClick={() => { const n=[...rows]; n[i]={...n[i],[field]:(n[i][field]||0)+1}; setRows(n); }}
+                              className="w-5 h-5 rounded text-zinc-400 hover:text-white text-xs flex items-center justify-center border border-zinc-700/30"
+                              style={{background:"rgba(255,255,255,0.05)"}}>+</button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             );
           })}
@@ -1434,10 +1537,10 @@ function SessionForm({ data, editSession, onSave, onCancel, saving }) {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 // POT
-// ─────────────────────────────────────────────────────────────────
-function PotView({ data, onAddTx, onDeleteTx, saving }) {
+// -----------------------------------------------------------------
+function PotView({ data, onAddTx, onDeleteTx, saving, allowPublicPotEdit, setAllowPublicPotEdit, isAdmin }) {
   const pot = data.pot || {balance:0,transactions:[]};
   const [add,  setAdd]  = useState(false);
   const [type, setType] = useState("income");
@@ -1461,9 +1564,19 @@ function PotView({ data, onAddTx, onDeleteTx, saving }) {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <div><h2 className="text-xl font-bold text-white">💰 กองกลาง</h2><p className="text-zinc-500 text-sm">รายรับ-รายจ่ายเงินส่วนกลาง</p></div>
-        {onAddTx && <button onClick={()=>setAdd(!add)} className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold text-sm">{add?"ยกเลิก":"+ เพิ่มรายการ"}</button>}
+        <div className="flex items-center gap-2">
+          {isAdmin && (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{background:"rgba(255,255,255,0.08)"}}>
+              <span className="text-xs text-zinc-400">อนุญาตผู้เล่นแก้ไข</span>
+              <button onClick={() => setAllowPublicPotEdit()} disabled={saving} className={"w-10 h-6 rounded-full flex items-center px-1 transition-all disabled:opacity-50 " + (allowPublicPotEdit ? "bg-emerald-600" : "bg-zinc-600")}>
+                <div className={"w-4 h-4 rounded-full bg-white transition-transform " + (allowPublicPotEdit ? "translate-x-4" : "translate-x-0")}/>
+              </button>
+            </div>
+          )}
+          {onAddTx && <button onClick={()=>setAdd(!add)} className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold text-sm">{add?"ยกเลิก":"+ เพิ่มรายการ"}</button>}
+        </div>
       </div>
       <div className="grid grid-cols-3 gap-3">
         <div className="bg-emerald-900/20 border border-emerald-700/30 rounded-2xl p-3 text-center"><div className="text-emerald-400 text-xs font-semibold mb-1">รายรับรวม</div><div className="text-emerald-300 font-mono font-black text-lg">{inc>0?"+":""}{fmt(inc)}</div><div className="text-zinc-600 text-xs">฿</div></div>
@@ -1481,7 +1594,7 @@ function PotView({ data, onAddTx, onDeleteTx, saving }) {
             <div><label className="text-zinc-500 text-xs">วันที่</label><input type="date" value={dt} onChange={e=>setDt(e.target.value)} className="w-full border border-zinc-600/60 rounded-lg px-3 py-2 text-white text-sm focus:border-amber-500 focus:outline-none" style={{background:"rgba(255,255,255,0.06)"}}/></div>
             <div><label className="text-zinc-500 text-xs">จำนวนเงิน (฿)</label><NInput value={amt} onChange={setAmt}/></div>
           </div>
-          <div><label className="text-zinc-500 text-xs">รายการ</label><input type="text" value={txt} onChange={e=>setTxt(e.target.value)} placeholder="เช่น ค่าอาหาร..." className="w-full border border-zinc-600/60 rounded-lg px-3 py-2 text-white text-sm placeholder-zinc-600 focus:border-amber-500 focus:outline-none"/></div>
+          <div><label className="text-zinc-500 text-xs">รายการ</label><input type="text" value={txt} onChange={e=>setTxt(e.target.value)} placeholder="เช่น ค่าอาหาร..." className="w-full border border-zinc-600/60 rounded-lg px-3 py-2 text-black text-sm placeholder-zinc-600 focus:border-amber-500 focus:outline-none"/></div>
           {err && <p className="text-red-400 text-xs">{err}</p>}
           <button onClick={submit} className={"w-full py-2.5 rounded-xl font-bold text-sm text-white transition-colors "+(type==="income"?"bg-emerald-600 hover:bg-emerald-500":"bg-red-600 hover:bg-red-500")}>บันทึกรายการ</button>
         </Box>
@@ -1489,8 +1602,8 @@ function PotView({ data, onAddTx, onDeleteTx, saving }) {
       <div className="space-y-2">
         <div className="text-zinc-500 text-xs font-semibold">ประวัติรายการ ({pot.transactions.length})</div>
         {pot.transactions.length===0 && <Box><div className="text-center py-6 text-zinc-600 text-sm">ยังไม่มีรายการ</div></Box>}
-        {pot.transactions.map(tx => (
-          <div key={tx.id} className="flex items-center justify-between border border-zinc-700/25 rounded-xl px-4 py-3" style={{background:"rgba(15,10,3,0.05)",backdropFilter:"blur(6px)"}}>
+        {[...pot.transactions].reverse().map(tx => (
+          <div key={tx.id} className="flex items-center justify-between border border-zinc-700/25 rounded-xl px-4 py-3" style={{background:"rgba(15,10,3,0.40)",backdropFilter:"blur(6px)"}}>
             <div className="flex items-center gap-3">
               <span className={"text-lg "+(tx.type==="income"?"text-emerald-400":"text-red-400")}>{tx.type==="income"?"➕":"➖"}</span>
               <div><div className="text-white text-sm font-medium">{tx.note}</div><div className="text-zinc-600 text-xs">{String(tx.date||"").slice(0,10)}</div></div>
@@ -1506,57 +1619,34 @@ function PotView({ data, onAddTx, onDeleteTx, saving }) {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 // SETTINGS
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 function SettingsView({ data, onUpdate, saving }) {
   const [players,       setPlayers]       = useState(data.players);
   const [newName,       setNewName]       = useState("");
   const [rate,          setRate]          = useState({...data.chipRate});
   const [fee,           setFee]           = useState(data.defaultFee);
   const [nicknames,     setNicknames]     = useState({...( data.nicknames||{} )});
-  const [avatars,       setAvatars]       = useState({...( data.avatars||{} )});
-  const [adminPassword, setAdminPassword] = useState(data.adminPassword || "");
-  const [showPw,        setShowPw]        = useState(false);
-  const [saved,         setSaved]         = useState(false);
-  const [theme,         setTheme]         = useState(getTheme(data.theme));
+  const [avatars,          setAvatars]          = useState({...( data.avatars||{} )});
+  const [avatarOverflows,  setAvatarOverflows]  = useState({...( data.avatarOverflows||{} )});
+  const [adminPassword,    setAdminPassword]    = useState(data.adminPassword || "");
+  const [showPw,           setShowPw]           = useState(false);
+  const [saved,            setSaved]            = useState(false);
 
   function addPlayer() { const n=newName.trim(); if(!n||players.includes(n)) return; setPlayers([...players,n]); setNewName(""); }
   function rmPlayer(n) { setPlayers(players.filter(p=>p!==n)); const nn={...nicknames}; delete nn[n]; setNicknames(nn); const aa={...avatars}; delete aa[n]; setAvatars(aa); }
   function setNick(player, val) { setNicknames(prev=>({...prev, [player]: val})); }
   function setAvatar(player, val) { setAvatars(prev=>({...prev, [player]: val})); }
+  function setOverflow(player, val) { setAvatarOverflows(prev=>({...prev, [player]: val})); }
   async function save() {
-    await onUpdate({players, chipRate:rate, defaultFee:fee, nicknames, avatars, adminPassword, theme});
+    await onUpdate({players, chipRate:rate, defaultFee:fee, nicknames, avatars, avatarOverflows, adminPassword});
     setSaved(true); setTimeout(()=>setSaved(false),2000);
   }
 
   return (
     <div className="space-y-5">
       <h2 className="text-xl font-bold text-white">⚙️ ตั้งค่า</h2>
-      <Box className="space-y-3">
-        <div className="text-sky-400 font-semibold text-sm">🎨 ธีม (Theme)</div>
-        <div className="grid grid-cols-2 gap-3">
-          <button onClick={()=>setTheme("gold")}
-            className={"rounded-xl p-3 text-left border-2 transition-colors " + (theme==="gold" ? "border-amber-400" : "border-zinc-700/40")}
-            style={{background:"rgba(255,255,255,0.04)"}}>
-            <div className="w-full h-10 rounded-lg mb-2" style={{background:"linear-gradient(180deg,#3a2c0a,#1a1305)"}}/>
-            <div className="text-white text-xs font-semibold">Classic Gold</div>
-            <div className="text-zinc-500 text-[10px]">ธีมเดิม · โทนทอง-ดำ</div>
-          </button>
-          <button onClick={()=>setTheme("pastel")}
-            className={"rounded-xl p-3 text-left border-2 transition-colors " + (theme==="pastel" ? "border-[#7F77DD]" : "border-zinc-700/40")}
-            style={{background:"rgba(255,255,255,0.04)"}}>
-            <div className="w-full h-10 rounded-lg mb-2 flex items-center justify-center gap-1.5" style={{background:"#F4F1EC"}}>
-              <span className="w-3 h-3 rounded" style={{background:"#AFA9EC"}}/>
-              <span className="w-3 h-3 rounded" style={{background:"#9FE1CB"}}/>
-              <span className="w-3 h-3 rounded" style={{background:"#F0997B"}}/>
-            </div>
-            <div className="text-white text-xs font-semibold">Minimal Pastel</div>
-            <div className="text-zinc-500 text-[10px]">ธีมใหม่ · ไม่มีรูปพื้นหลัง</div>
-          </button>
-        </div>
-        <div className="text-zinc-600 text-xs">ตอนนี้ธีมมีผลกับหน้า "ภาพรวม" และแถบเมนูก่อน ส่วนหน้าอื่นจะทยอยรองรับ</div>
-      </Box>
       <Box className="space-y-3">
         <div className="text-amber-400 font-semibold text-sm">🎰 อัตราแลกชิป (ค่าเริ่มต้น)</div>
         <div className="flex items-center gap-3">
@@ -1579,10 +1669,12 @@ function SettingsView({ data, onUpdate, saving }) {
           <button onClick={addPlayer} className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold">เพิ่ม</button>
         </div>
         <div className="space-y-2">
-          {players.map(p => (
+          {players.map(p => {
+            const isOverflow = avatarOverflows[p] !== false;
+            return (
             <div key={p} className="border border-zinc-700/30 rounded-xl px-3 py-2 space-y-1.5" style={{background:"rgba(255,255,255,0.06)"}}>
               <div className="flex items-center gap-2">
-                <img src={avatars[p] || "https://raw.githubusercontent.com/clsclassic-droid/Legendary-Poker-Tracker/main/src/default-player.png"} alt={p}
+                <img src={avatarUrl(p, avatars)} onError={onAvatarError} alt={p}
                   className="w-8 h-8 rounded-lg object-cover flex-shrink-0" style={{objectPosition:"top"}}/>
                 <span className="text-white font-medium text-sm w-16 flex-shrink-0">{p}</span>
                 <input
@@ -1591,6 +1683,17 @@ function SettingsView({ data, onUpdate, saving }) {
                   placeholder="Nickname..."
                   className="flex-1 border border-zinc-600/60 rounded-lg px-3 py-1.5 text-zinc-300 text-xs placeholder-zinc-600 focus:border-amber-500 focus:outline-none" style={{background:"rgba(255,255,255,0.06)"}}
                 />
+                {/* toggle ทะลุกรอบ per player */}
+                <div className="flex flex-shrink-0 rounded-lg overflow-hidden border border-zinc-700/30">
+                  <button onClick={() => setOverflow(p, true)}
+                    className={"text-[10px] px-2 py-1 transition-colors " + (isOverflow ? "bg-amber-500/20 text-amber-400" : "text-zinc-600 hover:text-zinc-400")}>
+                    ทะลุ
+                  </button>
+                  <button onClick={() => setOverflow(p, false)}
+                    className={"text-[10px] px-2 py-1 transition-colors " + (!isOverflow ? "bg-amber-500/20 text-amber-400" : "text-zinc-600 hover:text-zinc-400")}>
+                    ใน
+                  </button>
+                </div>
                 <button onClick={()=>rmPlayer(p)} className="text-zinc-600 hover:text-red-400 text-xs flex-shrink-0">✕</button>
               </div>
               <input
@@ -1600,7 +1703,7 @@ function SettingsView({ data, onUpdate, saving }) {
                 className="w-full border border-zinc-600/60 rounded-lg px-3 py-1.5 text-zinc-300 text-xs placeholder-zinc-600 focus:border-amber-500 focus:outline-none" style={{background:"rgba(255,255,255,0.04)"}}
               />
             </div>
-          ))}
+          );})}
         </div>
       </Box>
       <Box className="space-y-2">
@@ -1636,7 +1739,7 @@ function SettingsView({ data, onUpdate, saving }) {
   );
 }
 
-// ─── StreetOutCard — dropdown table of hands ───────────────────
+// --- StreetOutCard - dropdown table of hands -------------------
 function StreetOutCard({ street, desc, mult, outsNeeded, isOk, validHands, allHands }) {
   const [open, setOpen] = useState(false);
   const failHands = allHands.filter(h => h.out < outsNeeded);
@@ -1644,7 +1747,7 @@ function StreetOutCard({ street, desc, mult, outsNeeded, isOk, validHands, allHa
   return (
     <div className={"rounded-xl border overflow-hidden " + (isOk ? "border-emerald-500/25" : "border-red-500/25")}
       style={{background: isOk ? "rgba(5,30,15,0.2)" : "rgba(30,5,5,0.2)"}}>
-      {/* Header row — always visible */}
+      {/* Header row - always visible */}
       <button className="w-full flex items-center justify-between px-3 py-2.5 text-left"
         onClick={() => setOpen(o => !o)}>
         <div>
@@ -1671,7 +1774,7 @@ function StreetOutCard({ street, desc, mult, outsNeeded, isOk, validHands, allHa
             <span className="flex-1">Hand / Draw</span>
             <span className="w-8 text-right">Out</span>
           </div>
-          {/* fail hands — faded */}
+          {/* fail hands - faded */}
           {failHands.map((h, i) => (
             <div key={i} className="flex items-center gap-2 px-1 py-1 opacity-30">
               <span className="w-6 text-center text-xs">{"♠♥♦♣"[i%4]}</span>
@@ -1687,7 +1790,7 @@ function StreetOutCard({ street, desc, mult, outsNeeded, isOk, validHands, allHa
                 style={{background:"rgba(0,0,0,0.5)"}}>≥ {outsNeeded} out ✓</span>
             </div>
           )}
-          {/* valid hands — highlighted */}
+          {/* valid hands - highlighted */}
           {validHands.length === 0
             ? <div className="text-center text-zinc-600 text-xs py-2">ต้องการ out มากเกินไป</div>
             : validHands.map((h, i) => (
@@ -1704,219 +1807,214 @@ function StreetOutCard({ street, desc, mult, outsNeeded, isOk, validHands, allHa
   );
 }
 
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 // STREAK VIEW
-// ─────────────────────────────────────────────────────────────────
-const STREAK_ITEMS = [
-  // หมวด คู่
-  { id:"pair_flop",   group:"🃏 ติดคู่",    label:"ติดคู่ที่ Flop",              prob:32.46, avgEvery:3  },
-  { id:"pair_turn",   group:"🃏 ติดคู่",    label:"ติดคู่ที่ Turn เท่านั้น",     prob:8.63,  avgEvery:12 },
-  { id:"pair_river",  group:"🃏 ติดคู่",    label:"ติดคู่ที่ River เท่านั้น",    prob:7.68,  avgEvery:13 },
-  { id:"pair_5",      group:"🃏 ติดคู่",    label:"ติดคู่ภายใน 5 ใบ รวม",       prob:48.77, avgEvery:2  },
-  // หมวด Set
-  { id:"set_flop",    group:"🎯 ติด Set",   label:"ติด Set ที่ Flop",            prob:11.76, avgEvery:9  },
-  { id:"set_turn",    group:"🎯 ติด Set",   label:"ติด Set ที่ Turn เท่านั้น",   prob:3.75,  avgEvery:27 },
-  { id:"set_river",   group:"🎯 ติด Set",   label:"ติด Set ที่ River เท่านั้น",  prob:3.67,  avgEvery:27 },
-  { id:"set_5",       group:"🎯 ติด Set",   label:"ติด Set ภายใน 5 ใบ รวม",     prob:19.18, avgEvery:5  },
-  // หมวด Flush
-  { id:"flush_flop",  group:"♦️ Flush",     label:"ติด Flush สมบูรณ์ที่ Flop",  prob:0.84,  avgEvery:119},
-  { id:"flush_turn",  group:"♦️ Flush",     label:"Draw → ติดที่ Turn",          prob:19.15, avgEvery:5  },
-  { id:"flush_river", group:"♦️ Flush",     label:"Draw → ติดที่ River",         prob:15.82, avgEvery:6  },
-  { id:"flush_tr",    group:"♦️ Flush",     label:"Draw → ติดใน Turn หรือ River",prob:34.97, avgEvery:3  },
-  // หมวด Straight
-  { id:"str_flop",    group:"♠️ Straight",  label:"ติด Straight สมบูรณ์ที่ Flop",prob:2.61, avgEvery:38 },
-  { id:"oesd_turn",   group:"♠️ Straight",  label:"OESD → ติดที่ Turn",          prob:17.02, avgEvery:6  },
-  { id:"oesd_river",  group:"♠️ Straight",  label:"OESD → ติดที่ River",         prob:14.43, avgEvery:7  },
-  { id:"oesd_tr",     group:"♠️ Straight",  label:"OESD → ติดใน Turn หรือ River",prob:31.45, avgEvery:3  },
+// -----------------------------------------------------------------
+const STREAK_GROUPS = [
+  { key:"hc_pair",    icon:"🃏", name:"High Card → Pair",     odds:{ flop:3,   turn:2.2, river:1.5 } },
+  { key:"hc_2pair",   icon:"🃏", name:"High Card → 2 Pair",   odds:{ flop:49,  turn:20,  river:12  } },
+  { key:"pp_set",     icon:"🎯", name:"Pocket Pair → Set",    odds:{ flop:8.5, turn:7,   river:6   } },
+  { key:"conn_str",   icon:"♠️", name:"Connected → Straight", odds:{ flop:76,  turn:30,  river:21  } },
+  { key:"suit_flush", icon:"♦️", name:"Suited → Flush",       odds:{ flop:119, turn:56,  river:15  } },
 ];
+const STREAK_STAGES = ["flop", "turn", "river"];
+const STAGE_LABEL   = { flop:"Flop", turn:"Turn", river:"River" };
 
-function StreakView() {
-  const initState = () => {
+// list ของ cell id ทั้งหมด เช่น "hc_pair_flop"
+const STREAK_CELLS = STREAK_GROUPS.flatMap(g => STREAK_STAGES.map(st => g.key + "_" + st));
+
+function barColor(pct) {
+  if (pct >= 75) return "#34d399"; // emerald
+  if (pct >= 50) return "#fbbf24"; // amber
+  if (pct >= 25) return "#fb923c"; // orange
+  return "#52525b";                // zinc
+}
+
+function StreakView({ allowPublicStreak, setAllowPublicStreak, isAdmin, saving }) {
+  const initCounts = () => {
     const s = {};
-    STREAK_ITEMS.forEach(item => { s[item.id] = 0; });
+    STREAK_CELLS.forEach(id => { s[id] = 0; });
     return s;
   };
-  const [counts,  setCounts]  = useState(initState);
-  const [history, setHistory] = useState(() => {
-    // history: { [id]: [{count, time}] }
+  const initHistory = () => {
     const h = {};
-    STREAK_ITEMS.forEach(item => { h[item.id] = []; });
+    STREAK_CELLS.forEach(id => { h[id] = []; }); // [{count, time}]
     return h;
-  });
-  const [openHist, setOpenHist] = useState(null); // id ที่เปิด history dropdown
+  };
+  const [counts,  setCounts]  = useState(initCounts);
+  const [history, setHistory] = useState(initHistory);
+  const [openHist, setOpenHist] = useState(null); // cell id ที่เปิดประวัติ
 
-  function tick(id) {
-    setCounts(prev => ({ ...prev, [id]: prev[id] + 1 }));
+  // กด "เล่นมือนี้" → +1 ทั้ง 3 stage ของหมวดนั้น
+  function played(groupKey) {
+    setCounts(prev => {
+      const next = { ...prev };
+      STREAK_STAGES.forEach(st => { next[groupKey + "_" + st] += 1; });
+      return next;
+    });
   }
-  function hit(id) {
-    // บันทึกว่าครั้งนี้ใช้ไป count+1 ครั้ง (นับรวมครั้งที่ติดด้วย)
-    const count = counts[id] + 1;
-    const now   = new Date();
+
+  // กด Hit ที่ stage ใด → บันทึก current ของ stage นั้นลงประวัติ แล้วรีเซ็ตทั้ง 3 stage ของหมวด
+  function hit(groupKey, stage) {
+    const id = groupKey + "_" + stage;
+    const count = counts[id];
+    const now = new Date();
     const timeStr = now.getHours().toString().padStart(2,"0") + ":" + now.getMinutes().toString().padStart(2,"0");
-    setHistory(prev => ({
-      ...prev,
-      [id]: [...prev[id], { count, time: timeStr }]
-    }));
-    setCounts(prev => ({ ...prev, [id]: 0 })); // reset counter
+    setHistory(prev => ({ ...prev, [id]: [...prev[id], { count, time: timeStr }] }));
+    setCounts(prev => {
+      const next = { ...prev };
+      STREAK_STAGES.forEach(st => { next[groupKey + "_" + st] = 0; });
+      return next;
+    });
   }
-  function reset(id) {
-    setCounts(prev => ({ ...prev, [id]: 0 }));
-  }
+
   function resetAll() {
-    setCounts(initState());
+    setCounts(initCounts());
   }
   function clearHistory(id) {
     setHistory(prev => ({ ...prev, [id]: [] }));
+    setOpenHist(o => (o === id ? null : o));
   }
 
-  // จัดกลุ่ม
-  const groups = [...new Set(STREAK_ITEMS.map(i => i.group))];
-
   return (
-    <div className="space-y-5">
-      <div className="flex items-center justify-between">
+    <div className="space-y-2">
+      <div className="flex items-start justify-between gap-2">
         <div>
-          <h2 className="text-xl font-bold text-white">🎯 Streak</h2>
-          <p className="text-zinc-500 text-sm mt-0.5">นับว่าแต่ละสถานการณ์ยังไม่เกิดมากี่ครั้งแล้ว</p>
+          <h2 className="text-lg font-bold text-white">🎯 Streak</h2>
+          <p className="text-zinc-500 text-[10px] mt-0.5 leading-tight">
+            กด “เล่นมือนี้” ทุกครั้งที่ลง แล้วกด Hit เมื่อติด · นับว่าแต่ละมือยังไม่ติดมากี่ครั้งแล้ว
+          </p>
         </div>
-        <button onClick={resetAll}
-          className="px-3 py-1.5 rounded-xl text-xs text-zinc-500 hover:text-red-400 border border-zinc-700/30 transition-colors"
-          style={{background:"rgba(255,255,255,0.04)"}}>
-          🔄 Reset ทั้งหมด
-        </button>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {isAdmin && (
+            <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg" style={{background:"rgba(255,255,255,0.08)"}}>
+              <span className="text-[10px] text-zinc-400 whitespace-nowrap">อนุญาตผู้เล่นทั่วไป</span>
+              <button onClick={() => setAllowPublicStreak()} disabled={saving} className={"w-9 h-5 rounded-full flex items-center px-0.5 transition-all disabled:opacity-50 " + (allowPublicStreak ? "bg-emerald-600" : "bg-zinc-600")}>
+                <div className={"w-3.5 h-3.5 rounded-full bg-white transition-transform " + (allowPublicStreak ? "translate-x-4" : "translate-x-0")}/>
+              </button>
+            </div>
+          )}
+          <button onClick={resetAll}
+            className="px-2.5 py-1 rounded-lg text-[10px] text-zinc-500 hover:text-red-400 border border-zinc-700/30 transition-colors whitespace-nowrap flex-shrink-0"
+            style={{background:"rgba(255,255,255,0.04)"}}>
+            🔄 Reset
+          </button>
+        </div>
       </div>
 
-      {groups.map(group => (
-        <div key={group}>
-          <div className="text-amber-400 text-xs font-bold mb-2 px-1">{group}</div>
-          <div className="space-y-2">
-            {STREAK_ITEMS.filter(i => i.group === group).map(item => {
-              const count = counts[item.id];
-              const over  = count > item.avgEvery;
-              const ratio = item.avgEvery > 0 ? (count / item.avgEvery) : 0;
-              const pct   = Math.min(ratio * 100, 100);
+      <Box className="overflow-hidden p-0">
+        <div className="space-y-2">
+          {STREAK_GROUPS.map(g => (
+        <div key={g.key} className="rounded-xl border border-zinc-700/30 p-2"
+          style={{background:"rgba(25,14,2,0.15)"}}>
+
+          {/* หัวการ์ด */}
+          <div className="flex items-center justify-between gap-1.5 mb-2">
+            <div className="text-xs font-semibold text-amber-400 flex items-center gap-1 min-w-0">
+              <span className="text-[12px] flex-shrink-0">{g.icon}</span>
+              <span className="truncate">{g.name}</span>
+            </div>
+            <button onClick={() => played(g.key)}
+              className="text-[10px] font-semibold text-amber-400 border border-amber-500/30 px-2 py-1 rounded-md hover:bg-amber-500/15 transition-colors whitespace-nowrap flex-shrink-0"
+              style={{background:"rgba(245,158,11,0.12)"}}>
+              เล่น
+            </button>
+          </div>
+
+          {/* 3 stage */}
+          <div className="grid grid-cols-3 gap-1">
+            {STREAK_STAGES.map(st => {
+              const id    = g.key + "_" + st;
+              const odds  = g.odds[st];
+              const count = counts[id];
+              const on    = count > 0;
+              const pct   = Math.min((count / odds) * 100, 100);
+              const hist  = history[id];
+              const att   = hist.length;
+              const avg   = att > 0 ? hist.reduce((s,h)=>s+h.count,0) / att : 0;
+              const avgStr = avg >= 10 ? Math.round(avg) : avg.toFixed(1);
               return (
-                <div key={item.id} className={"rounded-xl border px-3 py-2.5 " + (
-                  count === 0 ? "border-zinc-700/25" :
-                  over ? "border-red-500/30" : "border-emerald-500/20"
-                )} style={{background: count === 0 ? "rgba(255,255,255,0.03)" :
-                  over ? "rgba(30,5,5,0.25)" : "rgba(5,20,10,0.25)"}}>
-                  {/* Header */}
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex-1">
-                      <div className="text-sm font-semibold text-white">{item.label}</div>
-                      <div className="text-zinc-600 text-[10px] mt-0.5">
-                        โอกาส {item.prob}% · ควรเกิด 1 ใน ~{item.avgEvery} ครั้ง
-                      </div>
-                    </div>
-                    {/* Counter */}
-                    <div className="flex items-center gap-2 flex-shrink-0 ml-3">
-                      <div className="text-right">
-                        <div className={"font-mono font-black text-2xl leading-none " + (
-                          count === 0 ? "text-zinc-600" :
-                          over ? "text-red-400" : "text-emerald-400"
-                        )}>{count}</div>
-                        <div className="text-zinc-600 text-[9px]">ครั้ง</div>
-                      </div>
-                    </div>
+                <div key={id}
+                  className={"rounded-xl border px-1.5 py-2 flex flex-col items-center gap-1.5 " + (on ? "border-amber-500/30" : "border-zinc-700/30")}
+                  style={{background: on ? "rgba(30,20,4,0.1)" : "rgba(255,255,255,0.025)"}}>
+                  <div className="flex gap-1"><span className="text-[8px] font-bold text-zinc-400 tracking-wide uppercase inline">{STAGE_LABEL[st]}</span><span className="text-[8px] text-zinc-500 inline">~1 ใน <b className="text-amber-300/80 font-semibold">{odds}</b></span></div>
+                  <div className={"font-mono font-black text-xl leading-none " + (on ? "text-amber-400" : "text-zinc-600")}>{count}</div>
+                  <button onClick={() => hit(g.key, st)}
+                    className="w-full text-[9px] font-bold text-emerald-400 border border-emerald-500/30 py-1.5 rounded-md hover:bg-emerald-500/15 transition-colors"
+                    style={{background:"rgba(5,30,15,0.4)"}}>
+                    ✅ Hit
+                  </button>
+                  <div className="w-full h-[2px] rounded-full overflow-hidden" style={{background:"rgba(255,255,255,0.06)"}}>
+                    <div className="h-full rounded-full transition-all" style={{width: pct + "%", background: barColor(pct)}}/>
                   </div>
-
-                  {/* Progress bar */}
-                  {count > 0 && (
-                    <div className="mb-2">
-                      <div className="h-1.5 rounded-full overflow-hidden" style={{background:"rgba(255,255,255,0.06)"}}>
-                        <div className={"h-full rounded-full transition-all " + (over ? "bg-red-500" : "bg-emerald-500")}
-                          style={{width: pct + "%"}}/>
-                      </div>
-                      <div className="flex justify-between text-[9px] text-zinc-700 mt-0.5">
-                        <span>0</span>
-                        <span className={over ? "text-red-500" : "text-zinc-600"}>
-                          {over ? `เกินค่าเฉลี่ย ${count - item.avgEvery} ครั้ง ⚠️` : `${item.avgEvery - count} ครั้งจะถึงค่าเฉลี่ย`}
-                        </span>
-                        <span>~{item.avgEvery}</span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Buttons */}
-                  <div className="flex gap-2">
-                    <button onClick={() => tick(item.id)}
-                      className="flex-1 py-2 rounded-lg text-xs font-bold border border-zinc-700/30 text-zinc-300 hover:text-white hover:border-amber-500/40 transition-colors"
-                      style={{background:"rgba(255,255,255,0.06)"}}>
-                      ☐ ยังไม่ติด +1
-                    </button>
-                    <button onClick={() => hit(item.id)}
-                      className="flex-1 py-2 rounded-lg text-xs font-bold border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 transition-colors"
-                      style={{background:"rgba(5,30,15,0.3)"}}>
-                      ✅ ติดแล้ว! บันทึก
-                    </button>
-                    {count > 0 && (
-                      <button onClick={() => reset(item.id)}
-                        className="px-3 py-2 rounded-lg text-xs text-zinc-600 hover:text-red-400 border border-zinc-700/20 transition-colors"
-                        style={{background:"rgba(255,255,255,0.03)"}}>
-                        ↺
-                      </button>
-                    )}
-                  </div>
-
-                  {/* History */}
-                  {history[item.id].length > 0 && (
-                    <div className="mt-2">
-                      <button onClick={() => setOpenHist(openHist === item.id ? null : item.id)}
-                        className="w-full flex items-center justify-between text-[10px] text-zinc-600 hover:text-zinc-400 transition-colors py-1">
-                        <span>📋 ประวัติ ({history[item.id].length} ครั้ง) · เฉลี่ย {(history[item.id].reduce((s,h)=>s+h.count,0)/history[item.id].length).toFixed(1)} ครั้ง/ติด</span>
-                        <span>{openHist === item.id ? "▲" : "▼"}</span>
-                      </button>
-                      {openHist === item.id && (
-                        <div className="mt-1 rounded-lg overflow-hidden" style={{background:"rgba(255,255,255,0.03)"}}>
-                          <div className="flex text-[9px] text-zinc-700 px-3 py-1 border-b border-white/5">
-                            <span className="w-6">#</span>
-                            <span className="flex-1">ใช้ไปกี่ครั้ง</span>
-                            <span className="w-12 text-right">เวลา</span>
-                            <span className="w-12 text-right">vs เฉลี่ย</span>
-                          </div>
-                          {history[item.id].map((h, i) => {
-                            const diff = h.count - item.avgEvery;
-                            return (
-                              <div key={i} className="flex items-center text-xs px-3 py-1.5 border-b border-white/5 last:border-0">
-                                <span className="w-6 text-zinc-600 text-[10px]">{i+1}</span>
-                                <span className="flex-1 font-mono font-bold text-white">{h.count} ครั้ง</span>
-                                <span className="w-12 text-right text-zinc-600 text-[10px]">{h.time}</span>
-                                <span className={"w-12 text-right text-[10px] font-mono " + (diff > 0 ? "text-red-400" : "text-emerald-400")}>
-                                  {diff > 0 ? "+" : ""}{diff}
-                                </span>
-                              </div>
-                            );
-                          })}
-                          <button onClick={() => clearHistory(item.id)}
-                            className="w-full text-[10px] text-zinc-700 hover:text-red-400 py-1.5 transition-colors border-t border-white/5">
-                            🗑 ล้างประวัติ
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                  <button onClick={() => att > 0 && setOpenHist(openHist === id ? null : id)}
+                    className={"text-[8px] transition-colors leading-tight " + (att > 0 ? "text-zinc-500 hover:text-zinc-300 cursor-pointer" : "text-zinc-700 cursor-default")}>
+                    {att > 0 ? `📋 ${att}× · เฉลี่ย ${avgStr}` : "📋 No data"}
+                  </button>
                 </div>
               );
             })}
           </div>
+
+          {/* ประวัติ (เปิดทีละ stage) */}
+          {STREAK_STAGES.map(st => {
+            const id   = g.key + "_" + st;
+            const odds = g.odds[st];
+            const hist = history[id];
+            if (openHist !== id || hist.length === 0) return null;
+            const avg = hist.reduce((s,h)=>s+h.count,0) / hist.length;
+            return (
+              <div key={id} className="mt-1.5 rounded-lg border border-zinc-700/25 overflow-hidden"
+                style={{background:"rgba(255,255,255,0.025)"}}>
+                <div className="flex justify-between items-center px-2 py-1 border-b border-white/5 text-[9px]">
+                  <span className="text-zinc-400 font-semibold">ประวัติ {STAGE_LABEL[st]} ({hist.length})</span>
+                  <span className="text-zinc-600">เฉลี่ย {avg >= 10 ? Math.round(avg) : avg.toFixed(1)} / ติด</span>
+                </div>
+                <div className="flex text-[8px] text-zinc-700 px-2 py-0.5 border-b border-white/5">
+                  <span className="w-6">#</span>
+                  <span className="flex-1">ครั้ง</span>
+                  <span className="w-12 text-right">เวลา</span>
+                  <span className="w-12 text-right">vs odds</span>
+                </div>
+                {[...hist].reverse().map((h, ri) => {
+                  const diff = +(h.count - odds).toFixed(1);
+                  return (
+                    <div key={ri} className="flex items-center text-[10px] px-2 py-1 border-b border-white/5 last:border-0">
+                      <span className="w-6 text-zinc-600 text-[10px]">{hist.length - ri}</span>
+                      <span className="flex-1 font-mono font-bold text-white">{h.count} ครั้ง</span>
+                      <span className="w-12 text-right text-zinc-600 text-[10px]">{h.time}</span>
+                      <span className={"w-12 text-right text-[10px] font-mono " + (diff > 0 ? "text-red-400" : diff < 0 ? "text-emerald-400" : "text-zinc-500")}>
+                        {diff > 0 ? "+" : ""}{diff}
+                      </span>
+                    </div>
+                  );
+                })}
+                <button onClick={() => clearHistory(id)}
+                  className="w-full text-[9px] text-zinc-600 hover:text-red-400 py-1 transition-colors border-t border-white/5">
+                  🗑 ล้างประวัติ {STAGE_LABEL[st]}
+                </button>
+              </div>
+            );
+          })}
         </div>
-      ))}
+          ))}
+        </div>
+      </Box>
     </div>
   );
 }
 
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 // CALCULATOR VIEW (Pot Odds)
-// ─────────────────────────────────────────────────────────────────
-function CalcView() {
+// -----------------------------------------------------------------
+function CalcView({ allowPublicCalc, setAllowPublicCalc, isAdmin, saving }) {
   const [pot,     setPot]     = useState(0);
   const [call,    setCall]    = useState(0);
   const [selHand, setSelHand] = useState("");
 
   const total  = pot + call;
   const equity = total > 0 ? (call / total) * 100 : 0;
-  const ratio  = call > 0 ? (pot / call).toFixed(2) : "—";
+  const ratio  = call > 0 ? (pot / call).toFixed(2) : "-";
 
   function reset() { setPot(0); setCall(0); setSelHand(""); }
 
@@ -1951,9 +2049,19 @@ function CalcView() {
 
   return (
     <div className="space-y-5">
-      <div>
-        <h2 className="text-xl font-bold text-white">🧮 Pot Odds Calculator</h2>
-        <p className="text-zinc-500 text-sm mt-0.5">คำนวณ % equity ที่ต้องการเพื่อ call คุ้ม</p>
+      <div className="flex items-center justify-between gap-2">
+        <div>
+          <h2 className="text-xl font-bold text-white">🧮 Pot Odds Calculator</h2>
+          <p className="text-zinc-500 text-sm mt-0.5">คำนวณ % equity ที่ต้องการเพื่อ call คุ้ม</p>
+        </div>
+        {isAdmin && (
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg flex-shrink-0" style={{background:"rgba(255,255,255,0.08)"}}>
+            <span className="text-xs text-zinc-400">อนุญาตผู้เล่นทั่วไปเข้าถึง</span>
+            <button onClick={() => setAllowPublicCalc()} disabled={saving} className={"w-10 h-6 rounded-full flex items-center px-1 transition-all disabled:opacity-50 " + (allowPublicCalc ? "bg-emerald-600" : "bg-zinc-600")}>
+              <div className={"w-4 h-4 rounded-full bg-white transition-transform " + (allowPublicCalc ? "translate-x-4" : "translate-x-0")}/>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Inputs */}
@@ -2018,7 +2126,7 @@ function CalcView() {
           </div>
         </div>
 
-        {/* Hand result — แสดงเมื่อเลือก hand */}
+        {/* Hand result - แสดงเมื่อเลือก hand */}
         {hand && call > 0 && (
           <div className={"rounded-xl px-4 py-3 border " + (handOk ? "border-emerald-500/30" : handOk === false ? "border-red-500/30" : "border-zinc-700/30")}
             style={{background: handOk ? "rgba(5,30,15,0.35)" : handOk === false ? "rgba(30,5,5,0.35)" : "rgba(255,255,255,0.04)"}}>
@@ -2035,12 +2143,12 @@ function CalcView() {
                 <div className="flex justify-between">
                   <span>Pot ปัจจุบัน</span>
                   <span className={"font-mono font-bold " + (handOk ? "text-emerald-400" : "text-red-400")}>
-                    {pot > 0 ? pot.toLocaleString() : "—"}
+                    {pot > 0 ? pot.toLocaleString() : "-"}
                   </span>
                 </div>
                 {pot > 0 && (
                   <div className={"mt-1 pt-1 border-t border-white/5 font-semibold " + (handOk ? "text-emerald-400" : "text-red-400")}>
-                    {handOk ? "✅ Pot ถึงแล้ว — call คุ้ม" : "❌ Pot ยังไม่ถึง — ควร fold"}
+                    {handOk ? "✅ Pot ถึงแล้ว - call คุ้ม" : "❌ Pot ยังไม่ถึง - ควร fold"}
                   </div>
                 )}
               </div>
@@ -2070,7 +2178,7 @@ function CalcView() {
         equity <= 25 ? "border-emerald-500/40" :
         equity <= 33 ? "border-amber-500/40" :
         "border-red-500/40"
-      )} style={{background: total === 0 ? "rgba(15,10,3,0.05)" :
+      )} style={{background: total === 0 ? "rgba(15,10,3,0.40)" :
         equity <= 25 ? "rgba(5,30,15,0.3)" :
         equity <= 33 ? "rgba(30,20,5,0.3)" :
         "rgba(30,5,5,0.3)"}}>
@@ -2097,15 +2205,15 @@ function CalcView() {
               equity <= 33 ? "text-amber-300" :
               "text-red-300"
             )}>
-              {equity <= 25 ? "✅ Call คุ้มมาก — ต้องการ equity น้อย" :
-               equity <= 33 ? "⚠️ Call พอได้ — ต้องมี hand ที่ดีพอสมควร" :
-               "❌ Call ไม่คุ้ม — ต้องการ equity สูงมาก"}
+              {equity <= 25 ? "✅ Call คุ้มมาก - ต้องการ equity น้อย" :
+               equity <= 33 ? "⚠️ Call พอได้ - ต้องมี hand ที่ดีพอสมควร" :
+               "❌ Call ไม่คุ้ม - ต้องการ equity สูงมาก"}
             </div>
           </>
         )}
       </div>
 
-      {/* Guide — Outs */}
+      {/* Guide - Outs */}
       <Box>
         <div className="text-zinc-400 text-xs font-semibold mb-3">🃏 จำนวน Out ที่ต้องการ (Rule of 2 & 4)</div>
         <div className="space-y-2">
@@ -2137,7 +2245,7 @@ function CalcView() {
                 { out: 21, name: "Flush draw + open-ended + two overcards" },
               ];
               const validHands = outsNeeded <= 0 ? [] : allHands.filter(h => h.out >= outsNeeded);
-              const exampleText = validHands.length === 0 ? (outsNeeded > 15 ? "แทบทุก draw รวมกัน" : "—")
+              const exampleText = validHands.length === 0 ? (outsNeeded > 15 ? "แทบทุก draw รวมกัน" : "-")
                 : validHands.map(h => h.name).join(", ");
               return (
                 <StreetOutCard key={street}
@@ -2185,9 +2293,9 @@ function CalcView() {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 // SKILL VIEW
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 function buildSkillSummary(players, sessions) {
   const map = {};
   players.forEach(p => {
@@ -2246,7 +2354,7 @@ function SkillView({ data }) {
       </div>
 
       {!hasData ? (
-        <div className="border border-zinc-700/25 rounded-2xl p-8 text-center" style={{background:"rgba(255,255,255,0.03)"}}>
+        <div className="border border-zinc-700/25 rounded-2xl p-8 text-center" style={{background:"rgba(255,255,255,0.06)"}}>
           <div className="text-4xl mb-3">🎭</div>
           <div className="text-zinc-500 text-sm">ยังไม่มีข้อมูล Bluff</div>
           <div className="text-zinc-700 text-xs mt-1">กรอกข้อมูล Bluff ตอนบันทึกเซสชั่น</div>
@@ -2257,8 +2365,8 @@ function SkillView({ data }) {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {summary.slice(0,3).map((p,i) => {
               const total = p.bluffWin + p.bluffLose;
-              const GRAD  = ["border-amber-500/40","border-zinc-500/40","border-orange-700/40"];
-              const BG    = ["rgba(25,14,2,0.4)","rgba(20,20,20,0.4)","rgba(25,12,2,0.4)"];
+              const GRAD  = ["bg-gradient-to-br from-amber-900/40 to-amber-700/10 border-amber-500/40","bg-gradient-to-br from-zinc-700/40 to-zinc-600/10 border-zinc-500/40","bg-gradient-to-br from-orange-900/30 to-orange-800/10 border-orange-700/40"];
+              const BG    = ["rgba(25,14,2,0.15)","rgba(20,20,20,0.15)","rgba(25,12,2,0.15)"];
               const MEDAL = ["🥇","🥈","🥉"];
               return (
                 <div key={p.name} className={"rounded-2xl border p-4 " + GRAD[i]}
@@ -2295,7 +2403,7 @@ function SkillView({ data }) {
           </div>
 
           {/* Full table */}
-          <div className="border border-zinc-700/25 rounded-2xl overflow-hidden" style={{background:"rgba(15,10,3,0.05)"}}>
+          <Box className="overflow-hidden p-0">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
@@ -2313,13 +2421,13 @@ function SkillView({ data }) {
                   {summary.map((p, i) => {
                     const total = p.bluffWin + p.bluffLose;
                     return (
-                      <tr key={p.name} className="border-b border-zinc-800/30 hover:bg-white/5 transition-colors">
+                      <tr key={p.name} className="border-b border-zinc-800/50 hover:bg-white/5 transition-colors">
                         <td className="px-3 py-2.5 text-zinc-600 font-mono text-xs">{i+1}</td>
                         <td className="px-3 py-2.5 text-white font-semibold">{p.name}</td>
-                        <td className="px-2 py-2.5 text-center font-mono font-bold text-emerald-400">{p.bluffWin > 0 ? p.bluffWin : <span className="text-zinc-700">—</span>}</td>
-                        <td className="px-2 py-2.5 text-center font-mono font-bold text-red-400">{p.bluffLose > 0 ? p.bluffLose : <span className="text-zinc-700">—</span>}</td>
-                        <td className="px-2 py-2.5 text-center font-mono font-bold text-amber-400">{p.catchBluff > 0 ? p.catchBluff : <span className="text-zinc-700">—</span>}</td>
-                        <td className="px-2 py-2.5 text-center font-mono font-bold text-purple-400">{p.gotBluffed > 0 ? p.gotBluffed : <span className="text-zinc-700">—</span>}</td>
+                        <td className="px-2 py-2.5 text-center font-mono font-bold text-emerald-400">{p.bluffWin > 0 ? p.bluffWin : <span className="text-zinc-700">-</span>}</td>
+                        <td className="px-2 py-2.5 text-center font-mono font-bold text-red-400">{p.bluffLose > 0 ? p.bluffLose : <span className="text-zinc-700">-</span>}</td>
+                        <td className="px-2 py-2.5 text-center font-mono font-bold text-amber-400">{p.catchBluff > 0 ? p.catchBluff : <span className="text-zinc-700">-</span>}</td>
+                        <td className="px-2 py-2.5 text-center font-mono font-bold text-purple-400">{p.gotBluffed > 0 ? p.gotBluffed : <span className="text-zinc-700">-</span>}</td>
                         <td className="px-2 py-2.5 text-center">
                           <span className={"text-xs font-bold font-mono " + (p.score>0?"text-emerald-400":p.score<0?"text-red-400":"text-zinc-500")}>
                             {p.score>0?"+":""}{p.score}
@@ -2331,7 +2439,7 @@ function SkillView({ data }) {
                 </tbody>
               </table>
             </div>
-          </div>
+          </Box>
         </>
       )}
     </div>
@@ -2339,9 +2447,9 @@ function SkillView({ data }) {
 }
 
 
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 // LUCK VIEW
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 function buildLuckSummary(players, sessions) {
   const map = {};
   players.forEach(p => {
@@ -2399,7 +2507,7 @@ function LuckView({ data }) {
       </div>
 
       {!hasData ? (
-        <div className="border border-zinc-700/25 rounded-2xl p-8 text-center" style={{background:"rgba(255,255,255,0.03)"}}>
+        <div className="border border-zinc-700/25 rounded-2xl p-8 text-center" style={{background:"rgba(255,255,255,0.06)"}}>
           <div className="text-4xl mb-3">🍀</div>
           <div className="text-zinc-500 text-sm">ยังไม่มีข้อมูล Luck</div>
           <div className="text-zinc-700 text-xs mt-1">กรอกข้อมูลไพ่พิเศษตอนบันทึกเซสชั่น</div>
@@ -2409,8 +2517,8 @@ function LuckView({ data }) {
           {/* Top 3 cards */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {summary.slice(0,3).map((p,i) => {
-              const GRAD  = ["border-amber-500/40","border-zinc-500/40","border-orange-700/40"];
-              const BG    = ["rgba(25,14,2,0.4)","rgba(20,20,20,0.4)","rgba(25,12,2,0.4)"];
+              const GRAD  = ["bg-gradient-to-br from-amber-900/40 to-amber-700/10 border-amber-500/40","bg-gradient-to-br from-zinc-700/40 to-zinc-600/10 border-zinc-500/40","bg-gradient-to-br from-orange-900/30 to-orange-800/10 border-orange-700/40"];
+              const BG    = ["rgba(25,14,2,0.15)","rgba(20,20,20,0.15)","rgba(25,12,2,0.15)"];
               const MEDAL = ["🥇","🥈","🥉"];
               return (
                 <div key={p.name} className={"rounded-2xl border p-4 " + GRAD[i]} style={{background:BG[i]}}>
@@ -2442,7 +2550,7 @@ function LuckView({ data }) {
           </div>
 
           {/* Full table */}
-          <div className="border border-zinc-700/25 rounded-2xl overflow-hidden" style={{background:"rgba(15,10,3,0.05)"}}>
+          <Box className="overflow-hidden p-0">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
@@ -2457,12 +2565,12 @@ function LuckView({ data }) {
                 </thead>
                 <tbody>
                   {summary.map((p, i) => (
-                    <tr key={p.name} className="border-b border-zinc-800/30 hover:bg-white/5 transition-colors">
+                    <tr key={p.name} className="border-b border-zinc-800/50 hover:bg-white/5 transition-colors">
                       <td className="px-3 py-2.5 text-zinc-600 font-mono text-xs">{i+1}</td>
                       <td className="px-3 py-2.5 text-white font-semibold">{p.name}</td>
-                      <td className="px-2 py-2.5 text-center font-mono font-bold text-sky-400">{p.fourCard > 0 ? p.fourCard : <span className="text-zinc-700">—</span>}</td>
-                      <td className="px-2 py-2.5 text-center font-mono font-bold text-violet-400">{p.straightFlush > 0 ? p.straightFlush : <span className="text-zinc-700">—</span>}</td>
-                      <td className="px-2 py-2.5 text-center font-mono font-bold text-amber-400">{p.royalStraightFlush > 0 ? p.royalStraightFlush : <span className="text-zinc-700">—</span>}</td>
+                      <td className="px-2 py-2.5 text-center font-mono font-bold text-sky-400">{p.fourCard > 0 ? p.fourCard : <span className="text-zinc-700">-</span>}</td>
+                      <td className="px-2 py-2.5 text-center font-mono font-bold text-violet-400">{p.straightFlush > 0 ? p.straightFlush : <span className="text-zinc-700">-</span>}</td>
+                      <td className="px-2 py-2.5 text-center font-mono font-bold text-amber-400">{p.royalStraightFlush > 0 ? p.royalStraightFlush : <span className="text-zinc-700">-</span>}</td>
                       <td className="px-2 py-2.5 text-center">
                         <span className={"text-xs font-bold font-mono " + (p.score>0?"text-emerald-400":p.score===0?"text-zinc-500":"text-red-400")}>
                           {p.score>0?"+":""}{p.score}
@@ -2473,24 +2581,24 @@ function LuckView({ data }) {
                 </tbody>
               </table>
             </div>
-          </div>
+          </Box>
         </>
       )}
     </div>
   );
 }
 
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 // APP
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 function Spinner() {
   return <div className="inline-block w-4 h-4 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />;
 }
 
 
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 // LOGIN VIEW
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
 function LoginView({ data, onLogin, onCancel }) {
   const [pw,  setPw]  = useState("");
   const [err, setErr] = useState("");
@@ -2554,6 +2662,7 @@ export default function App() {
   const [saving,  setSaving]  = useState(false);
   const [error,   setError]   = useState(null);
   const [isAdmin, setIsAdmin] = useState(() => localStorage.getItem("lspc_admin") === "1");
+
   const [menuOpen, setMenuOpen] = useState(false);
 
   async function refresh() {
@@ -2625,7 +2734,100 @@ export default function App() {
         nextInternalId: data.nextInternalId,
         nicknames: cfg.nicknames||{},
         avatars: cfg.avatars||{},
+        avatarOverflows: cfg.avatarOverflows||{},
         adminPassword: cfg.adminPassword !== undefined ? cfg.adminPassword : (data.adminPassword || ""),
+        allowPublicPotEdit: cfg.allowPublicPotEdit !== undefined ? cfg.allowPublicPotEdit : (data.allowPublicPotEdit || false),
+        allowPublicCalc: cfg.allowPublicCalc !== undefined ? cfg.allowPublicCalc : (data.allowPublicCalc || false),
+        allowPublicStreak: cfg.allowPublicStreak !== undefined ? cfg.allowPublicStreak : (data.allowPublicStreak || false),
+        allowPublicAdd: cfg.allowPublicAdd !== undefined ? cfg.allowPublicAdd : (data.allowPublicAdd || false),
+      }});
+      await refresh();
+    } catch(e) { alert("บันทึกไม่สำเร็จ: " + e.message); }
+    finally { setSaving(false); }
+  }
+
+  async function toggleAllowPublicPotEdit() {
+    setSaving(true);
+    try {
+      await apiPost({ action: "saveSettings", settings: {
+        players: data.players,
+        chipRate: data.chipRate,
+        defaultFee: data.defaultFee,
+        nextInternalId: data.nextInternalId,
+        nicknames: data.nicknames || {},
+        avatars: data.avatars || {},
+        avatarOverflows: data.avatarOverflows || {},
+        adminPassword: data.adminPassword || "",
+        allowPublicPotEdit: !data.allowPublicPotEdit,
+        allowPublicCalc: data.allowPublicCalc || false,
+        allowPublicStreak: data.allowPublicStreak || false,
+        allowPublicAdd: data.allowPublicAdd || false,
+      }});
+      await refresh();
+    } catch(e) { alert("บันทึกไม่สำเร็จ: " + e.message); }
+    finally { setSaving(false); }
+  }
+
+  async function toggleAllowPublicCalc() {
+    setSaving(true);
+    try {
+      await apiPost({ action: "saveSettings", settings: {
+        players: data.players,
+        chipRate: data.chipRate,
+        defaultFee: data.defaultFee,
+        nextInternalId: data.nextInternalId,
+        nicknames: data.nicknames || {},
+        avatars: data.avatars || {},
+        avatarOverflows: data.avatarOverflows || {},
+        adminPassword: data.adminPassword || "",
+        allowPublicPotEdit: data.allowPublicPotEdit || false,
+        allowPublicCalc: !data.allowPublicCalc,
+        allowPublicStreak: data.allowPublicStreak || false,
+        allowPublicAdd: data.allowPublicAdd || false,
+      }});
+      await refresh();
+    } catch(e) { alert("บันทึกไม่สำเร็จ: " + e.message); }
+    finally { setSaving(false); }
+  }
+
+  async function toggleAllowPublicStreak() {
+    setSaving(true);
+    try {
+      await apiPost({ action: "saveSettings", settings: {
+        players: data.players,
+        chipRate: data.chipRate,
+        defaultFee: data.defaultFee,
+        nextInternalId: data.nextInternalId,
+        nicknames: data.nicknames || {},
+        avatars: data.avatars || {},
+        avatarOverflows: data.avatarOverflows || {},
+        adminPassword: data.adminPassword || "",
+        allowPublicPotEdit: data.allowPublicPotEdit || false,
+        allowPublicCalc: data.allowPublicCalc || false,
+        allowPublicStreak: !data.allowPublicStreak,
+        allowPublicAdd: data.allowPublicAdd || false,
+      }});
+      await refresh();
+    } catch(e) { alert("บันทึกไม่สำเร็จ: " + e.message); }
+    finally { setSaving(false); }
+  }
+
+  async function toggleAllowPublicAdd() {
+    setSaving(true);
+    try {
+      await apiPost({ action: "saveSettings", settings: {
+        players: data.players,
+        chipRate: data.chipRate,
+        defaultFee: data.defaultFee,
+        nextInternalId: data.nextInternalId,
+        nicknames: data.nicknames || {},
+        avatars: data.avatars || {},
+        avatarOverflows: data.avatarOverflows || {},
+        adminPassword: data.adminPassword || "",
+        allowPublicPotEdit: data.allowPublicPotEdit || false,
+        allowPublicCalc: data.allowPublicCalc || false,
+        allowPublicStreak: data.allowPublicStreak || false,
+        allowPublicAdd: !data.allowPublicAdd,
       }});
       await refresh();
     } catch(e) { alert("บันทึกไม่สำเร็จ: " + e.message); }
@@ -2666,8 +2868,6 @@ export default function App() {
   );
 
   const potBal = data.pot?.balance ?? 0;
-  const theme = getTheme(data.theme);
-  const isPastel = theme === "pastel";
   const ALL_TABS = [
     { id:"dashboard",   icon:"📊", label:"ภาพรวม",  adminOnly: false },
     { id:"leaderboard", icon:"🏆", label:"Rank",     adminOnly: false },
@@ -2675,52 +2875,66 @@ export default function App() {
     { id:"race",        icon:"🏎️", label:"Race",      adminOnly: false },
     { id:"skill",       icon:"🎭", label:"Skill",     adminOnly: false },
     { id:"luck",        icon:"🍀", label:"Luck",      adminOnly: false },
-    { id:"calc",        icon:"🧮", label:"Calc",      adminOnly: true },
-    { id:"streak",      icon:"🎯", label:"Streak",    adminOnly: true },
+    { id:"calc",        icon:"🧮", label:"Calc",      adminOnly: true, publicToggle: "calc" },
+    { id:"streak",      icon:"🎯", label:"Streak",    adminOnly: true, publicToggle: "streak" },
     { id:"sessions",    icon:"📋", label:"เซสชั่น",  adminOnly: false },
     { id:"add",         icon:"➕", label:"บันทึก",   adminOnly: true  },
     { id:"pot",         icon:"💰", label:"กองกลาง",  adminOnly: false },
     { id:"settings",    icon:"⚙️", label:"ตั้งค่า",  adminOnly: true  },
   ];
-  const TABS = ALL_TABS.filter(t => !t.adminOnly || isAdmin);
-
-  const outerStyle = isPastel
-    ? { background: "#F4F1EC" }
-    : { backgroundImage: `url(${BG_SRC})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed' };
-  const headerBg = isPastel ? { background: "rgba(255,255,255,0.9)", backdropFilter: "blur(16px)" } : { background: "rgba(8,5,1,0.8)", backdropFilter: "blur(16px)" };
-  const mobileHeaderBg = isPastel ? { background: "rgba(255,255,255,0.92)", backdropFilter: "blur(16px)" } : { background: "rgba(8,5,1,0.85)", backdropFilter: "blur(16px)" };
-  const mobileDropdownBg = isPastel ? { background: "rgba(255,255,255,0.97)", backdropFilter: "blur(20px)" } : { background: "rgba(20,12,2,0.92)", backdropFilter: "blur(20px)" };
+  const TABS = ALL_TABS.filter(t =>
+    !t.adminOnly || isAdmin ||
+    (t.id === "calc"   && data.allowPublicCalc) ||
+    (t.id === "streak" && data.allowPublicStreak) ||
+    (t.id === "add"    && data.allowPublicAdd)
+  );
 
   return (
-    <div className={"min-h-screen " + (isPastel ? "text-zinc-800" : "text-white")} style={outerStyle}>
-      {/* dark overlay — เฉพาะธีมทอง */}
-      {!isPastel && <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.05)',zIndex:0,pointerEvents:'none'}}/>}
+    <>
+    <style>{`
+      .bg-legendary-main {
+        background-image: url(${BG_SRC});
+        background-color: #0a0806;
+        background-position: center;
+        background-size: cover;
+        background-attachment: fixed;
+      }
+      /* mobile (<768px): cover + left center + fixed */
+      @media (max-width: 767px) {
+        .bg-legendary-main {
+          background-position: left center;
+        }
+      }
+    `}</style>
+    <div className="min-h-screen text-white bg-legendary-main">
+      {/* dark overlay */}
+      <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.05)',zIndex:0,pointerEvents:'none'}}/>
       <div style={{position:'relative',zIndex:1,minHeight:'100vh'}}>
-      {/* ── DESKTOP header (sm ขึ้นไป) ── */}
-      <header className={"hidden sm:block border-b sticky top-0 z-40 " + (isPastel ? "border-zinc-200" : "border-zinc-800/60")} style={headerBg}>
+      {/* -- DESKTOP header (sm ขึ้นไป) -- */}
+      <header className="hidden sm:block border-b border-zinc-800/60 sticky top-0 z-40" style={{background:"rgba(8,5,1,0.8)",backdropFilter:"blur(16px)"}}>
         <div className="max-w-3xl mx-auto px-3 flex items-center gap-2">
           <img src={LOGO_SRC} alt="Legendary Secrets Poker Club" className="h-14 w-14 rounded-xl object-cover flex-shrink-0 my-1"/>
           <div className="flex flex-1 items-center justify-between overflow-x-auto">
             <div className="flex">
               {TABS.map(t => (
                 <button key={t.id} onClick={() => { setTab(t.id); if (t.id !== "add") setEditSes(null); }}
-                  className={"flex items-center gap-1 px-2 sm:px-2.5 py-4 text-xs font-medium border-b-2 transition-colors whitespace-nowrap " + (tab === t.id ? (isPastel ? "border-[#7F77DD] text-[#534AB7]" : "border-amber-400 text-amber-400") : (isPastel ? "border-transparent text-zinc-500 hover:text-zinc-700" : "border-transparent text-zinc-500 hover:text-zinc-300"))}>
+                  className={"flex items-center gap-1 px-2 sm:px-2.5 py-4 text-xs font-medium border-b-2 transition-colors whitespace-nowrap " + (tab === t.id ? "border-amber-400 text-amber-400" : "border-transparent text-zinc-500 hover:text-zinc-300")}>
                   <span>{t.icon}</span>
                   <span>{t.label}</span>
                 </button>
               ))}
             </div>
             <div className="flex items-center gap-2 flex-shrink-0 pl-2">
-              <span className={"text-xs font-mono " + (potBal >= 0 ? (isPastel ? "text-[#534AB7]" : "text-purple-400") : "text-red-400")}>
+              <span className={"text-xs font-mono " + (potBal >= 0 ? "text-purple-400" : "text-red-400")}>
                 💰 {fmt(potBal)} ฿
               </span>
               {isAdmin
                 ? <button onClick={() => { localStorage.removeItem("lspc_admin"); setIsAdmin(false); setTab("dashboard"); }}
-                    className={"text-xs px-2 py-1 rounded-lg border transition-colors " + (isPastel ? "hover:bg-zinc-100 text-zinc-500 hover:text-zinc-800 border-zinc-300" : "hover:bg-white/10 text-zinc-400 hover:text-white border-zinc-700")}>
+                    className="text-xs px-2 py-1 rounded-lg hover:bg-white/10 text-zinc-400 hover:text-white border border-zinc-700 transition-colors">
                     🔓 Logout
                   </button>
                 : <button onClick={() => setTab("login")}
-                    className={"text-xs px-2 py-1 rounded-lg border transition-colors " + (isPastel ? "hover:bg-zinc-100 text-zinc-500 hover:text-[#534AB7] border-zinc-300" : "hover:bg-white/10 text-zinc-400 hover:text-amber-400 border-zinc-700")}>
+                    className="text-xs px-2 py-1 rounded-lg hover:bg-white/10 text-zinc-400 hover:text-amber-400 border border-zinc-700 transition-colors">
                     🔐 Login
                   </button>
               }
@@ -2729,51 +2943,51 @@ export default function App() {
         </div>
       </header>
 
-      {/* ── MOBILE header (< sm) ── */}
-      <div className="sm:hidden sticky top-0 z-40" style={mobileHeaderBg}>
+      {/* -- MOBILE header (< sm) -- */}
+      <div className="sm:hidden sticky top-0 z-40" style={{background:"rgba(8,5,1,0.85)",backdropFilter:"blur(16px)"}}>
         {/* Top bar */}
-        <div className={"flex items-center justify-between px-4 py-3 border-b " + (isPastel ? "border-zinc-200" : "border-zinc-800/60")}>
+        <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800/60">
           {/* Hamburger ซ้าย */}
           <button onClick={() => setMenuOpen(o => !o)}
-            className={"w-9 h-9 rounded-xl border flex flex-col items-center justify-center gap-1.5 flex-shrink-0 " + (isPastel ? "border-zinc-300" : "border-zinc-700/30")} style={isPastel ? {background:"rgba(0,0,0,0.04)"} : {background:"rgba(255,255,255,0.08)"}}>
-            <span className={"block w-4 h-0.5 transition-all duration-200 " + (isPastel ? "bg-zinc-600" : "bg-zinc-300") + " " + (menuOpen ? "rotate-45 translate-y-1.5" : "")}/>
-            <span className={"block w-4 h-0.5 transition-all duration-200 " + (isPastel ? "bg-zinc-600" : "bg-zinc-300") + " " + (menuOpen ? "opacity-0" : "")}/>
-            <span className={"block w-4 h-0.5 transition-all duration-200 " + (isPastel ? "bg-zinc-600" : "bg-zinc-300") + " " + (menuOpen ? "-rotate-45 -translate-y-1.5" : "")}/>
+            className="w-9 h-9 rounded-xl border border-zinc-700/30 flex flex-col items-center justify-center gap-1.5 flex-shrink-0" style={{background:"rgba(255,255,255,0.08)"}}>
+            <span className={"block w-4 h-0.5 bg-zinc-300 transition-all duration-200 " + (menuOpen ? "rotate-45 translate-y-1.5" : "")}/>
+            <span className={"block w-4 h-0.5 bg-zinc-300 transition-all duration-200 " + (menuOpen ? "opacity-0" : "")}/>
+            <span className={"block w-4 h-0.5 bg-zinc-300 transition-all duration-200 " + (menuOpen ? "-rotate-45 -translate-y-1.5" : "")}/>
           </button>
           {/* Logo + ชื่อ กลาง */}
           <div className="flex items-center gap-2">
             <img src={LOGO_SRC} alt="logo" className="h-9 w-9 rounded-lg object-cover"/>
             <div className="leading-tight">
-              <div className={"font-bold text-xs tracking-widest " + (isPastel ? "text-[#534AB7]" : "text-amber-400")}>LEGENDARY</div>
-              <div className={"text-[10px] tracking-widest " + (isPastel ? "text-zinc-500" : "text-zinc-400")}>SECRETS POKER</div>
+              <div className="text-amber-400 font-bold text-xs tracking-widest">LEGENDARY</div>
+              <div className="text-zinc-400 text-[10px] tracking-widest">SECRETS POKER</div>
             </div>
           </div>
           {/* กองกลาง ขวา */}
           <button onClick={() => { setTab("pot"); setMenuOpen(false); }}
-            className={"text-sm font-mono font-bold px-3 py-1.5 rounded-xl border transition-colors " + (potBal >= 0 ? (isPastel ? "text-[#534AB7] border-[#AFA9EC] bg-[#EEEDFE]" : "text-amber-400 border-amber-500/30 bg-amber-500/10") : "text-red-400 border-red-500/30 bg-red-500/10")}>
+            className={"text-sm font-mono font-bold px-3 py-1.5 rounded-xl border transition-colors " + (potBal >= 0 ? "text-amber-400 border-amber-500/30 bg-amber-500/10" : "text-red-400 border-red-500/30 bg-red-500/10")}>
             💰 {fmt(potBal)} ฿
           </button>
         </div>
-        {/* Dropdown — อยู่ใน flow ไม่ทับ content */}
+        {/* Dropdown - อยู่ใน flow ไม่ทับ content */}
         {menuOpen && (
-          <div className={"border-b " + (isPastel ? "border-zinc-200" : "border-amber-900/30")} style={mobileDropdownBg}>
+          <div className="border-b border-amber-900/30" style={{background:"rgba(20,12,2,0.92)",backdropFilter:"blur(20px)"}}>
             <div className="py-1">
               {TABS.map(t => (
                 <button key={t.id} onClick={() => { setTab(t.id); setMenuOpen(false); if (t.id !== "add") setEditSes(null); }}
-                  className={"w-full flex items-center gap-3 px-5 py-3 text-sm font-medium transition-colors " + (tab === t.id ? (isPastel ? "text-[#534AB7] bg-[#EEEDFE]" : "text-amber-400 bg-amber-500/10") : (isPastel ? "text-zinc-600 hover:text-[#534AB7] hover:bg-zinc-100" : "text-zinc-300 hover:text-amber-300 hover:bg-white/5"))}>
+                  className={"w-full flex items-center gap-3 px-5 py-3 text-sm font-medium transition-colors " + (tab === t.id ? "text-amber-400 bg-amber-500/10" : "text-zinc-300 hover:text-amber-300 hover:bg-white/5")}>
                   <span className="text-base">{t.icon}</span>
                   <span>{t.label}</span>
-                  {tab === t.id && <span className={"ml-auto w-1.5 h-1.5 rounded-full flex-shrink-0 " + (isPastel ? "bg-[#7F77DD]" : "bg-amber-400")}/>}
+                  {tab === t.id && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-amber-400 flex-shrink-0"/>}
                 </button>
               ))}
-              <div className={"mx-4 my-1 border-t " + (isPastel ? "border-zinc-200" : "border-amber-900/30")}/>
+              <div className="mx-4 my-1 border-t border-amber-900/30"/>
               {isAdmin
                 ? <button onClick={() => { localStorage.removeItem("lspc_admin"); setIsAdmin(false); setTab("dashboard"); setMenuOpen(false); }}
-                    className={"w-full flex items-center gap-3 px-5 py-3 text-sm transition-colors " + (isPastel ? "text-zinc-500 hover:text-zinc-800 hover:bg-zinc-100" : "text-zinc-500 hover:text-white hover:bg-white/5")}>
+                    className="w-full flex items-center gap-3 px-5 py-3 text-sm text-zinc-500 hover:text-white hover:bg-white/5 transition-colors">
                     <span className="text-base">🔓</span><span>Logout</span>
                   </button>
                 : <button onClick={() => { setTab("login"); setMenuOpen(false); }}
-                    className={"w-full flex items-center gap-3 px-5 py-3 text-sm transition-colors " + (isPastel ? "text-zinc-500 hover:text-[#534AB7] hover:bg-zinc-100" : "text-zinc-500 hover:text-amber-400 hover:bg-white/5")}>
+                    className="w-full flex items-center gap-3 px-5 py-3 text-sm text-zinc-500 hover:text-amber-400 hover:bg-white/5 transition-colors">
                     <span className="text-base">🔐</span><span>Admin Login</span>
                   </button>
               }
@@ -2782,7 +2996,7 @@ export default function App() {
         )}
       </div>
       <main className="max-w-3xl mx-auto px-4 py-6" style={{position:"relative",zIndex:1}}>
-        {tab === "dashboard"   && <DashboardView data={data} theme={theme}
+        {tab === "dashboard"   && <DashboardView data={data}
           onGoLeader={name => { setProfileSel(name); setTab("profiles"); }}
           onGoLatestSes={id => { setOpenSesId(id); setTab("sessions"); }}
           onGoPot={() => setTab("pot")}
@@ -2792,18 +3006,19 @@ export default function App() {
         {tab === "race"        && <RaceView data={data}/>}
         {tab === "skill"       && <SkillView data={data}/>}
         {tab === "luck"        && <LuckView data={data}/>}
-        {tab === "calc"        && <CalcView/>}
-        {tab === "streak"      && <StreakView/>}
+        {tab === "calc"        && <CalcView allowPublicCalc={data.allowPublicCalc} setAllowPublicCalc={toggleAllowPublicCalc} isAdmin={isAdmin} saving={saving}/>}
+        {tab === "streak"      && <StreakView allowPublicStreak={data.allowPublicStreak} setAllowPublicStreak={toggleAllowPublicStreak} isAdmin={isAdmin} saving={saving}/>}
         {tab === "sessions"    && !editSes && <SessionsView data={data}
           onEdit={isAdmin ? (s => { setEditSes(s); setTab("add"); }) : null}
           onDelete={isAdmin ? delSes : null}
           initialOpen={openSesId}/>}
-        {tab === "add"         && isAdmin && <SessionForm data={data} editSession={editSes} onSave={saveSes} saving={saving} onCancel={editSes ? () => { setEditSes(null); setTab("sessions"); } : null}/>}
-        {tab === "pot"         && <PotView data={data} onAddTx={isAdmin ? addPotTx : null} onDeleteTx={isAdmin ? delPotTx : null} saving={saving}/>}
+        {tab === "add"         && (isAdmin || data.allowPublicAdd) && <SessionForm data={data} editSession={editSes} onSave={saveSes} saving={saving} onCancel={editSes ? () => { setEditSes(null); setTab("sessions"); } : null} isAdmin={isAdmin} allowPublicAdd={data.allowPublicAdd} setAllowPublicAdd={toggleAllowPublicAdd}/>}
+        {tab === "pot"         && <PotView data={data} onAddTx={(isAdmin || data.allowPublicPotEdit) ? addPotTx : null} onDeleteTx={(isAdmin || data.allowPublicPotEdit) ? delPotTx : null} saving={saving} allowPublicPotEdit={data.allowPublicPotEdit} setAllowPublicPotEdit={toggleAllowPublicPotEdit} isAdmin={isAdmin}/>}
         {tab === "settings"    && isAdmin && <SettingsView data={data} onUpdate={saveSettings} saving={saving}/>}
         {tab === "login"       && <LoginView data={data} onLogin={() => { setIsAdmin(true); setTab("dashboard"); }} onCancel={() => setTab("dashboard")}/>}
       </main>
       </div>
     </div>
+    </>
   );
 }
