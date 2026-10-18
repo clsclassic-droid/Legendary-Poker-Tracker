@@ -564,3 +564,9 @@ select:focus-visible, textarea:focus-visible {
 .vip-nav-icon-wrap {display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;flex-shrink:0;filter:drop-shadow(0 0 4px rgba(237,174,65,.18))}
 .vip-nav-icon {stroke:#edbc62;transition:stroke .2s,filter .2s,transform .2s}
 button:hover .vip-nav-icon,button[aria-current="page"] .vip-nav-icon {stroke:#ffdf92;filter:drop-shadow(0 0 4px rgba(255,200,87,.5));transform:translateY(-1px)}
+
+
+/* PNG VIP icons: the vector remains as fallback until assets are deployed. */
+.vip-nav-icon-slot{position:relative;display:inline-flex;align-items:center;justify-content:center;width:25px;height:25px}
+.vip-nav-art{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 0 3px rgba(242,173,53,.25))}
+.vip-nav-icon-slot:has(.vip-nav-art:not([style*="display: none"])) .vip-nav-icon{opacity:0}
