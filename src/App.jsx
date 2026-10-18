@@ -416,7 +416,7 @@ function DashboardView({ data, onGoLeader, onGoLatestSes, onGoPot }) {
         </div>
       </section>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="vip-dashboard-stats grid grid-cols-2 lg:grid-cols-4 gap-3">
         {[
           {label:"เซสชั่นทั้งหมด",value:fmt(data.sessions.length),sub:"ประวัติการแข่งขัน",icon:"♠",color:"text-amber-300"},
           {label:"ผู้เล่นทั้งหมด",value:fmt(data.players.length),sub:"สมาชิกในระบบ",icon:"♣",color:"text-sky-300"},
@@ -642,10 +642,9 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
   // Player list
   const avatarOverflows = data.avatarOverflows || {};
   return (
-    <div className="vip-players space-y-2">
-      <h2 className="text-xl font-bold text-white">👤 Player Profiles</h2>
-      <p className="text-zinc-500 text-sm">กดเพื่อ select · กดอีกครั้งเพื่อดู profile</p>
-      <div className="space-y-2">
+    <div className="vip-players space-y-4">
+      <div className="vip-players-hero"><div className="text-amber-300 text-xs font-bold tracking-[.22em] mb-2">LEGENDARY SECRETS · VIP MEMBERS</div><h2 className="text-2xl sm:text-3xl font-black text-white">♛ ทำเนียบผู้เล่น</h2><p className="text-amber-100/65 text-sm mt-2">สมาชิก {summary.length} คน · แตะเลือก แล้วแตะอีกครั้งเพื่อดูโปรไฟล์</p></div>
+      <div className="vip-players-list space-y-3">
         {summary.map((p, idx) => {
           const isSel      = hovSel === p.name;
           const avatar     = avatarUrl(p.name, data.avatars);
@@ -658,14 +657,12 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
                 if (isSel) { setSel(p.name); }
                 else { setHovSel(p.name); }
               }}
-              className="w-full text-left transition-all rounded-2xl"
+              className={"vip-player-card w-full text-left transition-all rounded-2xl "+(idx<3?"vip-player-top vip-player-top-"+(idx+1):"")}
               style={{
                 background: isSel
-                  ? "linear-gradient(135deg, rgba(201,162,39,0.15), rgba(201,162,39,0.05))"
-                  : "rgba(15,10,3,0.40)",
-                border: isSel
-                  ? "1.5px solid rgba(201,162,39,0.45)"
-                  : "1px solid rgba(255,255,255,0.08)",
+                  ? "linear-gradient(135deg, rgba(201,162,39,0.22), rgba(201,162,39,0.05))"
+                  : undefined,
+                border: isSel ? "1.5px solid rgba(240,192,91,0.8)" : undefined,
                 backdropFilter: "blur(6px)",
                 overflow: "hidden",
               }}>
@@ -677,7 +674,7 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
                     fontSize: isSel ? "28px" : "18px",
                     fontWeight: 700,
                     lineHeight: 1,
-                  }}>{rankNum}</span>
+                  }}>{rankNum<=3?["🥇","🥈","🥉"][rankNum-1]:rankNum}</span>
                 </div>
                 {/* รูป */}
                 <div className="flex-shrink-0 flex items-center justify-center my-2 ml-2 w-[88px] h-[88px] sm:w-[104px] sm:h-[104px] overflow-hidden rounded-xl border border-amber-400/20 bg-[#1b1c20]">
@@ -695,17 +692,18 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
                   />
                 </div>
                 {/* Info */}
-                <div className="flex-1 flex flex-col justify-center py-3 px-3 pr-4 min-w-0">
+                <div className="vip-player-info flex-1 flex flex-col justify-center py-3 px-3 pr-4 min-w-0">
                   <div className="flex items-center justify-between gap-2 mb-1">
                     <span className="font-bold" style={{color: isSel?"#f0c040":"#fff", fontSize: isSel?"16px":"15px"}}>
                       <PlayerName player={p.name} nicknames={data.nicknames}/>
                     </span>
                     <Profit v={p.total} sx=" ฿"/>
                   </div>
-                  <div className="text-xs mb-1.5" style={{color: isSel?"#888":"#666"}}>
-                    {p.n} เซสชั่น · Win rate {p.n>0?Math.round((p.gold/p.n)*100):0}%
+                  <div className="text-xs mb-1.5" style={{color: isSel?"#e6c995":"#aaa"}}>
+                    {p.n} เซสชั่น · อัตราชนะ {p.n>0?Math.round((p.gold/p.n)*100):0}%
                   </div>
-                  <div className="flex gap-1" style={{flexWrap:"nowrap"}}>
+                  <div className="vip-player-winbar" role="img" aria-label={"อัตราชนะ "+(p.n>0?Math.round((p.gold/p.n)*100):0)+" เปอร์เซ็นต์"}><span style={{width:(p.n>0?Math.round((p.gold/p.n)*100):0)+"%"}} /></div>
+                  <div className="flex gap-1" style={{flexWrap:"wrap"}}>
                     {p.gold>0   && <span className="bg-amber-500/20 border border-amber-500/30 text-amber-300 px-1.5 py-0.5 rounded-full text-[10px] whitespace-nowrap">🥇{p.gold}</span>}
                     {p.silver>0 && <span className="border border-zinc-600 text-zinc-300 px-1.5 py-0.5 rounded-full text-[10px] whitespace-nowrap">🥈{p.silver}</span>}
                     {p.last>0   && <span className="bg-red-900/30 border border-red-700/30 text-red-400 px-1.5 py-0.5 rounded-full text-[10px] whitespace-nowrap">💀{p.last}</span>}
@@ -1074,7 +1072,7 @@ function LeaderboardView({ data }) {
                 </div>
                 <span className="text-amber-300 text-3xl">♛</span>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+              <div className="vip-rank-podium grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
                 {top3.map((p,i) => (
                   <div key={p.name} className={"relative overflow-hidden rounded-2xl border p-5 "+GRAD[i]+" "+(i===0?"sm:min-h-[245px] border-amber-300/60 shadow-[0_0_35px_rgba(210,157,65,0.13)]":"sm:min-h-[210px]")}>
                     <div className="absolute -right-4 -top-9 text-[120px] opacity-10 pointer-events-none">{["♛","♠","♦"][i]}</div>
@@ -1084,7 +1082,7 @@ function LeaderboardView({ data }) {
                         <span className="text-xs tracking-widest text-zinc-300">RANK 0{i+1}</span>
                       </div>
                       <div className="text-white text-xl font-black truncate">{p.name}</div>
-                      <div className="text-zinc-400 text-xs mt-1">{(data.nicknames||{})[p.name] || p.n+" เซสชั่น"}</div>
+                      <div className="text-zinc-300 text-xs mt-1">{(data.nicknames||{})[p.name] || p.n+" เซสชั่น"}</div><div className="vip-rank-winrate">อัตราชนะ {p.n>0?Math.round(p.gold/p.n*100):0}% <span className="vip-rank-bar"><span style={{width:(p.n>0?Math.round(p.gold/p.n*100):0)+"%"}} /></span></div>
                       <div className={"font-mono text-2xl font-black mt-4 "+(p.total>=0?"text-emerald-300":"text-red-300")}>{p.total>0?"+":""}{fmt(p.total)} ฿</div>
                       <div className="flex flex-wrap gap-1.5 mt-4 text-xs">
                         <span className="rounded-full bg-black/25 border border-white/10 px-2 py-1">🥇 {p.gold}</span>
