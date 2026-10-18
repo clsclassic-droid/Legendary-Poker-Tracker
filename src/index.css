@@ -338,3 +338,36 @@ select:focus-visible, textarea:focus-visible {
 .vip-players .vip-member-grid .vip-player-winbar {width:100%;height:6px}
 @media(max-width:850px){.vip-players .vip-member-grid{grid-template-columns:1fr}.vip-dashboard .vip-dash-hero-layout > button{min-width:220px}.vip-rank .vip-champions>div{min-height:250px!important}.vip-rank .vip-champions>div:first-child{min-height:290px!important}}
 @media(max-width:639px){.vip-dashboard.vip-redesign>section:first-child{padding:24px!important;min-height:unset!important}.vip-dashboard .vip-dash-hero-layout>button{width:100%;min-height:135px}.vip-rank.vip-redesign>div:first-child{padding:23px!important;min-height:145px}.vip-rank .vip-champions>div,.vip-rank .vip-champions>div:first-child{min-height:215px!important;transform:none}.vip-players .vip-member-grid .vip-member-avatar{width:86px!important;height:100px!important}.vip-players .vip-member-grid .vip-member-content{min-height:145px}.vip-players .vip-member-grid>.vip-player-card{min-height:150px!important}.vip-players .vip-member-grid .vip-member-name>span:first-child{font-size:16px!important}}
+
+/* Rank reference fidelity pass: compact portraits, premium hall-of-fame scene */
+.vip-rank-reference {position:relative}
+.vip-rank-reference > div:first-child {position:relative;overflow:hidden;isolation:isolate;min-height:190px!important;padding:28px 34px!important;background:linear-gradient(90deg,rgba(13,12,13,.94) 0%,rgba(18,13,11,.84) 46%,rgba(23,15,11,.42) 100%),radial-gradient(ellipse at 75% 70%,rgba(238,159,49,.34),transparent 58%),repeating-linear-gradient(90deg,#24180f 0,#2c1d12 10px,#100d0d 23px,#17100c 38px)!important}
+.vip-rank-reference > div:first-child:before {content:"";position:absolute;inset:0;z-index:-1;opacity:.55;background:radial-gradient(circle at 66% 19%,#f2b85d 0 3px,transparent 9px),radial-gradient(circle at 83% 40%,#efb45e 0 4px,transparent 17px),radial-gradient(circle at 93% 13%,#ffe0a2 0 3px,transparent 12px),linear-gradient(0deg,rgba(159,86,23,.35),transparent 35%);filter:blur(2px)}
+.vip-rank-reference .vip-rank-scene {position:absolute;right:4%;top:12%;display:flex;gap:8px;align-items:end;pointer-events:none;opacity:.58;color:#e3b86e;text-shadow:0 0 24px rgba(244,171,61,.7)}
+.vip-rank-reference .vip-rank-scene span:first-child {font-size:100px;line-height:1}
+.vip-rank-reference .vip-rank-scene span:nth-child(2){font-size:70px;transform:rotate(-15deg)}
+.vip-rank-reference .vip-rank-scene span:last-child{font-size:53px;transform:rotate(15deg)}
+.vip-rank-reference .vip-eyebrow,.vip-rank-reference h2,.vip-rank-reference > div:first-child p {position:relative;z-index:1}
+.vip-rank-reference .vip-title-en{color:#edc983}
+.vip-rank-reference .vip-ref-podium {display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;align-items:stretch!important;gap:14px!important;padding:4px 0 0!important}
+.vip-rank-reference .vip-ref-podium > .vip-ref-champion {min-height:0!important;height:auto!important;transform:none!important;padding:16px 13px 15px!important;display:block!important;border-radius:17px!important}
+.vip-rank-reference .vip-ref-podium > .vip-ref-champion:first-child {min-height:0!important;transform:none!important}
+.vip-rank-reference .vip-ref-podium > .vip-ref-champion > .relative {display:flex;flex-direction:column;align-items:center;text-align:center}
+.vip-rank-reference .vip-ref-medal-row {width:100%;display:flex;align-items:center;justify-content:space-between;margin-bottom:2px}
+.vip-rank-reference .vip-podium-medal {font-size:35px!important;line-height:1.1!important}
+.vip-rank-reference .vip-ref-rank-label {font-size:10px;letter-spacing:.16em;color:#e6cc9b}
+.vip-rank-reference .vip-ref-avatar-wrap {width:84px;height:84px;flex-shrink:0;border-radius:50%;padding:4px;border:2px solid #edc06c;background:linear-gradient(145deg,#edca83,#61411c);box-shadow:0 0 0 3px rgba(230,174,73,.12),0 5px 22px rgba(0,0,0,.5),0 0 22px rgba(236,182,72,.2);margin:0 auto 8px}
+.vip-rank-reference .vip-ref-avatar-wrap img {width:100%;height:100%;object-fit:cover;border-radius:50%;background:#17191e}
+.vip-rank-reference .vip-ref-champion:nth-child(2) .vip-ref-avatar-wrap{border-color:#d1d5df;background:linear-gradient(145deg,#d9dde7,#505663)}
+.vip-rank-reference .vip-ref-champion:nth-child(3) .vip-ref-avatar-wrap{border-color:#d58d5a;background:linear-gradient(145deg,#db9968,#603623)}
+.vip-rank-reference .vip-champion-name{font-size:19px!important;margin:0!important;line-height:1.2}
+.vip-rank-reference .vip-ref-session-count {font-size:11px;color:#d3c7b7;margin-top:3px}
+.vip-rank-reference .vip-rank-winrate {width:100%;justify-content:center;margin-top:6px!important;font-size:10px;gap:6px}
+.vip-rank-reference .vip-rank-bar {max-width:95px;height:5px}
+.vip-rank-reference .vip-ref-profit {margin:8px 0 0!important;font-size:clamp(18px,2.2vw,27px)!important;line-height:1.2;white-space:nowrap}
+.vip-rank-reference .vip-ref-champion .flex.flex-wrap.gap-1\\.5 {justify-content:center;margin-top:10px!important;gap:4px}
+.vip-rank-reference .vip-ref-champion .flex.flex-wrap.gap-1\\.5 span{font-size:10px;padding:3px 6px}
+.vip-rank-reference > section {position:relative;overflow:hidden;background:radial-gradient(ellipse at 50% 0%,rgba(170,110,39,.19),transparent 65%),linear-gradient(145deg,#241a17,#101217 80%)!important}
+.vip-rank-reference > section:before{content:"♛";position:absolute;right:20px;top:-48px;font-size:170px;color:rgba(238,187,93,.055);pointer-events:none}
+@media(min-width:800px){.vip-rank-reference .vip-ref-avatar-wrap{width:96px;height:96px}.vip-rank-reference .vip-ref-podium>.vip-ref-champion{padding:19px 17px!important}}
+@media(max-width:550px){.vip-rank-reference .vip-ref-podium{gap:6px!important}.vip-rank-reference .vip-ref-podium>.vip-ref-champion{padding:11px 5px!important}.vip-rank-reference .vip-ref-avatar-wrap{width:54px;height:54px;padding:2px}.vip-rank-reference .vip-podium-medal{font-size:25px!important}.vip-rank-reference .vip-ref-rank-label{font-size:8px}.vip-rank-reference .vip-champion-name{font-size:14px!important}.vip-rank-reference .vip-ref-session-count,.vip-rank-reference .vip-rank-winrate{font-size:9px}.vip-rank-reference .vip-ref-profit{font-size:15px!important}.vip-rank-reference .vip-ref-champion .flex.flex-wrap.gap-1\\.5 span{font-size:9px;padding:2px 4px}}
