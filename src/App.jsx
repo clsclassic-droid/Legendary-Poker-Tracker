@@ -398,30 +398,30 @@ function DashboardView({ data, onGoLeader, onGoLatestSes, onGoPot }) {
         <div className="vip-dash-hero-layout relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
           <div>
             <div className="text-amber-300 text-[11px] font-bold tracking-[.25em] mb-2">LEGENDARY SECRETS · POKER CLUB</div>
-            <h2 className="text-2xl sm:text-3xl font-black text-white mb-2">THE LEGENDARY CLUB <span className="vip-hero-subtitle">ภาพรวมสโมสร</span></h2>
-            <p className="text-zinc-300 text-sm">สถิติการแข่งขันและผลงานผู้เล่นทั้งหมด</p>
+            <h2 className="text-2xl sm:text-3xl font-black text-white mb-2">THE LEGENDARY CLUB <span className="vip-hero-subtitle">PRIVATE MEMBERS · LIVE STANDINGS</span></h2>
+            <p className="text-zinc-300 text-sm">The club at a glance. Every session, every champion.</p>
             <div className="flex flex-wrap gap-2 mt-4">
-              <span className="rounded-full bg-amber-400/10 border border-amber-400/30 px-3 py-1 text-xs text-amber-200">{data.sessions.length} เซสชั่น</span>
-              <span className="rounded-full bg-white/5 border border-white/10 px-3 py-1 text-xs text-zinc-200">{data.players.length} ผู้เล่น</span>
-              <span className="rounded-full bg-white/5 border border-white/10 px-3 py-1 text-xs text-zinc-200">{yearCount} เซสในปีนี้</span>
+              <span className="rounded-full bg-amber-400/10 border border-amber-400/30 px-3 py-1 text-xs text-amber-200">{data.sessions.length} SESSIONS</span>
+              <span className="rounded-full bg-white/5 border border-white/10 px-3 py-1 text-xs text-zinc-200">{data.players.length} PLAYERS</span>
+              <span className="rounded-full bg-white/5 border border-white/10 px-3 py-1 text-xs text-zinc-200">{yearCount} THIS YEAR</span>
             </div>
           </div>
           <button onClick={() => leader && onGoLeader(leader.name)} disabled={!leader}
             className="relative rounded-2xl border border-amber-300/35 bg-black/30 px-5 py-4 text-left sm:min-w-[235px] hover:border-amber-300 transition-colors disabled:opacity-50">
-            <div className="text-amber-300 text-xs font-bold mb-2">♛ ผู้นำอันดับปัจจุบัน</div>
+            <div className="text-amber-300 text-xs font-bold mb-2">♛ CURRENT CLUB LEADER</div>
             <div className="text-white font-black text-2xl">{leader?.name || "ยังไม่มีข้อมูล"}</div>
             <div className="mt-1 text-emerald-300 font-mono font-black text-xl">{leader ? (leader.total > 0 ? "+" : "") + fmt(leader.total) + " ฿" : "—"}</div>
-            <div className="text-zinc-400 text-xs mt-2">ดูโปรไฟล์ผู้เล่น →</div>
+            <div className="text-zinc-400 text-xs mt-2">VIEW PLAYER PROFILE →</div>
           </button>
         </div>
       </section>
 
       <div className="vip-dashboard-stats grid grid-cols-2 lg:grid-cols-4 gap-3">
         {[
-          {label:"เซสชั่นทั้งหมด",value:fmt(data.sessions.length),sub:"ประวัติการแข่งขัน",icon:"♠",color:"text-amber-300"},
-          {label:"ผู้เล่นทั้งหมด",value:fmt(data.players.length),sub:"สมาชิกในระบบ",icon:"♣",color:"text-sky-300"},
-          {label:"ซีซั่นล่าสุด",value:latest ? "S"+latest.season+"/"+latest.year : "—",sub:latest ? "เซสชั่น "+latest.sessionNo : "ยังไม่มีเซส",icon:"♦",color:"text-amber-300"},
-          {label:"กองกลาง",value:fmt(pot)+" ฿",sub:"แตะเพื่อดูรายการ",icon:"♥",color:pot>=0?"text-purple-300":"text-red-300",action:onGoPot},
+          {label:"TOTAL SESSIONS",value:fmt(data.sessions.length),sub:"CLUB HISTORY",icon:"♠",color:"text-amber-300"},
+          {label:"TOTAL PLAYERS",value:fmt(data.players.length),sub:"REGISTERED MEMBERS",icon:"♣",color:"text-sky-300"},
+          {label:"LATEST SEASON",value:latest ? "S"+latest.season+"/"+latest.year : "—",sub:latest ? "SESSION "+latest.sessionNo : "NO SESSIONS",icon:"♦",color:"text-amber-300"},
+          {label:"CLUB BANKROLL",value:fmt(pot)+" ฿",sub:"VIEW DETAILS",icon:"♥",color:pot>=0?"text-purple-300":"text-red-300",action:onGoPot},
         ].map(card => (
           <button key={card.label} onClick={card.action} disabled={!card.action}
             className="rounded-2xl border border-white/10 bg-[#1a1b20] p-4 sm:p-5 text-left shadow-lg disabled:cursor-default hover:border-amber-400/40 transition-colors">
@@ -643,7 +643,7 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
   const avatarOverflows = data.avatarOverflows || {};
   return (
     <div className="vip-players vip-redesign space-y-4">
-      <div className="vip-players-hero"><div className="text-amber-300 text-xs font-bold tracking-[.22em] mb-2">LEGENDARY SECRETS · VIP MEMBERS</div><h2 className="text-2xl sm:text-3xl font-black text-white">♛ ทำเนียบผู้เล่น</h2><p className="text-amber-100/65 text-sm mt-2">สมาชิก {summary.length} คน · แตะเลือก แล้วแตะอีกครั้งเพื่อดูโปรไฟล์</p></div>
+      <div className="vip-players-hero"><div className="text-amber-300 text-xs font-bold tracking-[.22em] mb-2">LEGENDARY SECRETS · VIP MEMBERS</div><h2 className="text-2xl sm:text-3xl font-black text-white">♛ VIP PLAYERS</h2><p className="text-amber-100/65 text-sm mt-2">{summary.length} MEMBERS · SELECT A PLAYER TO VIEW THEIR PROFILE</p></div>
       <div className="vip-players-list vip-member-grid">
         {summary.map((p, idx) => {
           const isSel      = hovSel === p.name;
@@ -993,7 +993,7 @@ function LeaderboardView({ data }) {
   return (
     <div className="vip-rank vip-redesign vip-rank-reference space-y-5">
       <div>
-        <div className="vip-eyebrow">LEGENDARY SECRETS · HALL OF FAME</div><h2 className="text-xl font-bold text-white">🏆 ทำเนียบแชมป์ <span className="vip-title-en">LEADERBOARD</span></h2><div className="vip-rank-scene" aria-hidden="true"><span>♛</span><span>♠</span><span>♣</span></div>
+        <div className="vip-eyebrow">LEGENDARY SECRETS · HALL OF FAME</div><h2 className="text-xl font-bold text-white">HALL OF FAME <span className="vip-title-en">LEADERBOARD</span></h2><div className="vip-rank-scene" aria-hidden="true"><span>♛</span><span>♠</span><span>♣</span></div>
         <p className="text-zinc-500 text-sm mt-0.5">แสดงผล: <span className="text-amber-300">{filterLabel}</span></p>
       </div>
 
