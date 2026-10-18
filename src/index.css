@@ -266,3 +266,27 @@ select:focus-visible, textarea:focus-visible {
 .vip-skill-table tbody tr:nth-child(odd) {background:rgba(255,255,255,.02)}
 .vip-skill-table tbody tr:hover {background:rgba(215,164,72,.1)!important}
 @media(max-width:639px) {.vip-skill-hero{padding:20px}.vip-skill-card{min-height:185px!important}}
+
+/* VIP refinements: stat panels, podium and membership cards */
+.vip-dashboard-stats > button {position:relative;overflow:hidden;min-height:150px!important;padding:22px!important;border-radius:22px!important;background:linear-gradient(125deg,#30241c,#14151a 75%)!important;border:1px solid rgba(222,171,82,.48)!important;box-shadow:inset 0 1px rgba(255,235,186,.1),0 12px 30px rgba(0,0,0,.38)!important}
+.vip-dashboard-stats > button:after {content:"";position:absolute;right:-38px;bottom:-55px;width:150px;height:150px;border:1px solid rgba(238,190,107,.09);border-radius:50%;box-shadow:0 0 0 24px rgba(238,190,107,.025),0 0 0 49px rgba(238,190,107,.02);pointer-events:none}
+.vip-dashboard-stats > button > div:nth-child(2) {font-size:clamp(23px,3vw,34px);line-height:1.25}
+.vip-dashboard-stats > button > div:first-child span:last-child {font-size:30px;opacity:.85}
+.vip-rank-podium > div {min-height:240px!important;padding:24px!important}
+.vip-rank-podium > div:first-child {min-height:275px!important;box-shadow:0 0 34px rgba(232,169,66,.2),inset 0 1px rgba(255,229,155,.15)!important}
+.vip-rank-winrate {font-size:11px;color:#d6c9b2;margin-top:13px;display:flex;align-items:center;gap:10px}
+.vip-rank-bar {flex:1;display:block;height:5px;border-radius:99px;background:rgba(0,0,0,.36);overflow:hidden}
+.vip-rank-bar > span {display:block;height:100%;background:linear-gradient(90deg,#b07a2e,#ffdf88);border-radius:99px}
+.vip-players-hero {position:relative;overflow:hidden;padding:25px 30px;border-radius:23px;border:1px solid rgba(233,179,80,.57);background:radial-gradient(circle at 88% 30%,rgba(214,149,52,.23),transparent 38%),linear-gradient(120deg,#3b261a,#161519 68%,#0c1014);box-shadow:0 12px 35px rgba(0,0,0,.4)}
+.vip-players-hero:after {content:"♣";position:absolute;right:25px;top:-53px;font-size:195px;color:rgba(245,191,91,.09);pointer-events:none}
+.vip-players-list > .vip-player-card {position:relative;overflow:hidden;min-height:130px;background:linear-gradient(105deg,#241d19,#111318 70%)!important;border:1px solid rgba(205,156,80,.38)!important;box-shadow:inset 0 1px rgba(255,233,184,.06),0 10px 24px rgba(0,0,0,.27);transition:transform .18s,border-color .18s,box-shadow .18s}
+.vip-players-list > .vip-player-card:hover {transform:translateY(-2px);border-color:rgba(243,191,91,.8)!important;box-shadow:0 12px 28px rgba(192,125,42,.14)}
+.vip-players-list > .vip-player-top-1 {background:linear-gradient(105deg,#50371e,#1a1719 73%)!important;border-color:rgba(242,189,80,.74)!important}
+.vip-players-list > .vip-player-top-2 {background:linear-gradient(105deg,#30343e,#15171c 73%)!important;border-color:rgba(187,194,209,.53)!important}
+.vip-players-list > .vip-player-top-3 {background:linear-gradient(105deg,#462a21,#181417 73%)!important;border-color:rgba(204,125,81,.53)!important}
+.vip-players-list > .vip-player-card:before {content:"♠";position:absolute;right:16%;top:-36px;font-size:165px;color:rgba(255,230,170,.035);pointer-events:none}
+.vip-players-list > .vip-player-card img {border-radius:10px;object-fit:cover}
+.vip-player-info {position:relative;gap:2px}
+.vip-player-winbar {height:5px;width:min(230px,100%);border-radius:99px;background:rgba(255,255,255,.1);margin:6px 0;overflow:hidden}
+.vip-player-winbar span {display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#a5742d,#ffdf85)}
+@media(max-width:639px){.vip-players-hero{padding:19px}.vip-players-list > .vip-player-card{min-height:112px}.vip-dashboard-stats > button{min-height:125px!important;padding:15px!important}.vip-rank-podium > div{min-height:205px!important}}
