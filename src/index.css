@@ -1,3 +1,92 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Legendary Secrets: premium dark UI refinement (visual only) */
+:root {
+  color-scheme: dark;
+  font-synthesis: none;
+}
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: #0c0d10;
+  color: #f4f0e8;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+button, input, select, textarea { font: inherit; }
+button { -webkit-tap-highlight-color: transparent; }
+button:focus-visible, a:focus-visible, input:focus-visible,
+select:focus-visible, textarea:focus-visible {
+  outline: 2px solid #d9ae62;
+  outline-offset: 3px;
+}
+.bg-legendary-main {
+  background-color: #0c0d10 !important;
+  background-blend-mode: multiply;
+}
+.bg-legendary-main > div:first-child {
+  background: rgba(7, 8, 11, .48) !important;
+}
+.bg-legendary-main main {
+  width: 100%;
+  max-width: 1120px;
+  padding-top: 28px;
+  padding-bottom: 56px;
+}
+.bg-legendary-main header > div {
+  max-width: 1280px;
+}
+.bg-legendary-main header {
+  border-color: rgba(207, 164, 86, .20);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, .26);
+}
+.bg-legendary-main header button {
+  min-height: 48px;
+}
+.bg-legendary-main main > div {
+  min-width: 0;
+}
+.bg-legendary-main main .rounded-2xl {
+  border-color: rgba(199, 164, 99, .18);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, .16);
+}
+.bg-legendary-main main .rounded-2xl:hover {
+  border-color: rgba(199, 164, 99, .32);
+}
+.bg-legendary-main main .text-zinc-500 {
+  color: #a5a4a3;
+}
+.bg-legendary-main main .text-zinc-600 {
+  color: #898886;
+}
+.bg-legendary-main main input,
+.bg-legendary-main main select,
+.bg-legendary-main main textarea {
+  min-height: 38px;
+}
+.bg-legendary-main main table {
+  font-variant-numeric: tabular-nums;
+}
+.bg-legendary-main main th {
+  color: #d8c7a9;
+}
+.bg-legendary-main main td {
+  border-color: rgba(199, 164, 99, .13);
+}
+@media (max-width: 639px) {
+  .bg-legendary-main main {
+    padding: 18px 14px 40px;
+  }
+  .bg-legendary-main main .rounded-2xl {
+    border-radius: 16px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bg-legendary-main * {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}
