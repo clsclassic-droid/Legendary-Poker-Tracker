@@ -1078,7 +1078,7 @@ function LeaderboardView({ data }) {
                     <div className="absolute -right-4 -top-9 text-[120px] opacity-10 pointer-events-none">{["♛","♠","♦"][i]}</div>
                     <div className="relative">
                       <div className="vip-ref-medal-row"><span className="vip-podium-medal">{MEDAL[i]}</span><span className="vip-ref-rank-label">RANK 0{i+1}</span></div>
-                      <div className="vip-ref-avatar-wrap"><img src={avatarUrl(p.name,data.avatars)} alt={"รูปโปรไฟล์ "+p.name} loading="lazy" onError={e=>{e.currentTarget.src=DEFAULT_AVATAR_SRC;}} /></div>
+                      <div className="vip-ref-avatar-wrap"><img src={avatarUrl(p.name,data.avatars)} alt={"รูปโปรไฟล์ "+p.name} loading="lazy" onError={onAvatarError} /></div>
                       <div className="vip-champion-name text-white text-xl font-black truncate">{p.name}</div>
                       <div className="vip-ref-session-count">{p.n} เซสชั่น</div>
                       <div className="vip-rank-winrate">อัตราชนะ {p.n>0?Math.round(p.gold/p.n*100):0}% <span className="vip-rank-bar"><span style={{width:(p.n>0?Math.round(p.gold/p.n*100):0)+"%"}} /></span></div>
