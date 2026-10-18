@@ -511,3 +511,34 @@ select:focus-visible, textarea:focus-visible {
   .vip-dashboard .vip-dash-hero-layout > button {width:100%!important;max-width:none!important;min-width:0!important;min-height:110px!important}
   .vip-dashboard-stats > button {min-height:104px!important}
 }
+
+
+/* Final scene polish: remove the oversized circular template motif and
+   introduce architectural casino light without changing app behavior. */
+.vip-dashboard-stats > button {
+  background:linear-gradient(145deg,rgba(45,30,18,.96),rgba(15,16,20,.99) 68%)!important;
+  isolation:isolate;
+}
+.vip-dashboard-stats > button:before {
+  content:""!important;display:block!important;position:absolute!important;
+  width:75px!important;height:75px!important;left:auto!important;right:-22px!important;
+  top:-29px!important;border-radius:50%!important;
+  border:1px solid rgba(238,181,80,.12)!important;
+  background:radial-gradient(circle,rgba(229,168,76,.12),transparent 68%)!important;
+  opacity:.6!important;pointer-events:none!important;
+}
+.vip-dashboard.vip-redesign > section:first-child {
+  background:
+    linear-gradient(90deg,rgba(7,9,12,.95),rgba(8,10,13,.79) 48%,rgba(9,10,13,.40)),
+    radial-gradient(ellipse at 75% 20%,rgba(255,194,92,.20),transparent 42%),
+    url('/sidebar-bg.jpg') center center / cover no-repeat!important;
+}
+.vip-dashboard .vip-dash-insights > section:first-child {
+  background:linear-gradient(155deg,#1c1b1b,#0c1016 80%)!important;
+}
+.vip-dashboard .vip-dash-insights > section:first-child svg polyline {
+  filter:drop-shadow(0 0 5px rgba(242,183,85,.22));
+}
+@media(min-width:701px) {
+  .vip-dashboard.vip-redesign > section:first-child {min-height:255px!important}
+}
