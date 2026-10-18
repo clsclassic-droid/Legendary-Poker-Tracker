@@ -90,3 +90,77 @@ select:focus-visible, textarea:focus-visible {
     transition-duration: .01ms !important;
   }
 }
+
+/* Phase 2: clearer hierarchy, premium cards and tablet navigation */
+.bg-legendary-main main h2 {
+  font-size: clamp(1.3rem, 2.2vw, 1.65rem);
+  letter-spacing: -.025em;
+  line-height: 1.35;
+  margin-bottom: 16px;
+}
+.bg-legendary-main main .space-y-2 > .grid {
+  margin-top: 14px;
+  margin-bottom: 14px;
+}
+.bg-legendary-main main .grid > button.rounded-2xl {
+  min-width: 0;
+  min-height: 146px;
+  padding: 18px;
+  background: linear-gradient(145deg, rgba(36,29,21,.95), rgba(15,16,19,.94)) !important;
+  border-color: rgba(205,164,93,.28);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 8px 24px rgba(0,0,0,.23);
+}
+.bg-legendary-main main .grid > button.rounded-2xl:hover {
+  border-color: rgba(233,185,102,.65);
+  transform: translateY(-1px);
+}
+.bg-legendary-main main .grid > .rounded-xl {
+  background: linear-gradient(160deg, rgba(28,29,33,.92), rgba(13,14,17,.96)) !important;
+  border-color: rgba(207,164,86,.19);
+  padding-top: 13px;
+  padding-bottom: 13px;
+}
+.bg-legendary-main main .rounded-2xl {
+  background-color: rgba(17,18,21,.92);
+}
+.bg-legendary-main main .font-mono {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.015em;
+}
+.bg-legendary-main main table tbody tr {
+  transition: background-color .18s ease;
+}
+.bg-legendary-main main table tbody tr:hover {
+  background-color: rgba(212,167,91,.07);
+}
+.bg-legendary-main main table th {
+  font-weight: 650;
+  border-bottom-color: rgba(216,176,106,.34);
+}
+.bg-legendary-main header button {
+  border-radius: 0;
+}
+.bg-legendary-main header button:hover {
+  background: rgba(211,169,95,.07);
+}
+.bg-legendary-main main button:not(:disabled) {
+  cursor: pointer;
+}
+@media (min-width: 640px) and (max-width: 1100px) {
+  .bg-legendary-main main {
+    padding-left: 22px;
+    padding-right: 22px;
+  }
+  .bg-legendary-main header > div {
+    max-width: 100%;
+  }
+}
+@media (max-width: 639px) {
+  .bg-legendary-main main .grid > button.rounded-2xl {
+    padding: 12px;
+    min-height: 122px;
+  }
+  .bg-legendary-main main h2 {
+    margin-bottom: 12px;
+  }
+}
