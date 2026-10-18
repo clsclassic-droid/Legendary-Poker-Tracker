@@ -2984,7 +2984,7 @@ export default function App() {
               {TABS.map(t => (
                 <button key={t.id} onClick={() => { setTab(t.id); if (t.id !== "add") setEditSes(null); }}
                   className={"flex items-center gap-2 px-3 py-2.5 my-2 text-xs font-semibold rounded-xl border transition-all whitespace-nowrap " + (tab === t.id ? "border-amber-400/50 bg-amber-400/15 text-amber-200 shadow-[inset_0_1px_0_rgba(255,255,255,.08)]" : "border-transparent text-zinc-400 hover:bg-white/5 hover:text-white")}>
-                  <span className="vip-nav-icon-wrap text-amber-400/90" aria-hidden="true"><VipNavIcon id={t.id} fallback={t.icon}/></span>
+                  <span className="vip-nav-icon-wrap text-amber-400/90" aria-hidden="true"><span className="vip-nav-icon-slot"><VipNavIcon id={t.id} fallback={t.icon}/>{["dashboard","leaderboard","profiles","race","skill","luck","calc","streak"].includes(t.id) && <img src={`/vip-icons/${t.id}.png`} alt="" className="vip-nav-art" onError={e => {e.currentTarget.style.display="none";}}/>}</span></span>
                   <span>{t.label}</span>
                 </button>
               ))}
