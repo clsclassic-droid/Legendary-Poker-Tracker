@@ -558,3 +558,9 @@ select:focus-visible, textarea:focus-visible {
 .vip-dashboard-stats > button {border-color:#a97b3f!important;box-shadow:inset 0 1px #ffd99a30,0 9px 23px #0008,0 0 10px #c28b2b24!important}
 .vip-dashboard .vip-dash-insights > section {border-color:#a77b40!important;box-shadow:inset 0 1px #e8bd7c2e,0 14px 30px #0009!important}
 @media(max-width:700px){.vip-dashboard.vip-redesign > section:first-child{background-position:61% center!important}}
+
+
+/* Casino icon system: resolution-independent, accessible and clickable via existing tabs. */
+.vip-nav-icon-wrap {display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;flex-shrink:0;filter:drop-shadow(0 0 4px rgba(237,174,65,.18))}
+.vip-nav-icon {stroke:#edbc62;transition:stroke .2s,filter .2s,transform .2s}
+button:hover .vip-nav-icon,button[aria-current="page"] .vip-nav-icon {stroke:#ffdf92;filter:drop-shadow(0 0 4px rgba(255,200,87,.5));transform:translateY(-1px)}
