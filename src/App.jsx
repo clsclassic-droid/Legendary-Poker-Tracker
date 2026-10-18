@@ -2385,9 +2385,10 @@ function SkillView({ data }) {
   const hasData = summary.some(p => p.bluffWin+p.bluffLose+p.catchBluff+p.gotBluffed > 0);
 
   return (
-    <div className="space-y-5">
-      <div>
-        <h2 className="text-xl font-bold text-white">🎭 Skill</h2>
+    <div className="vip-skill space-y-5">
+      <div className="vip-skill-hero">
+        <div className="text-amber-300 text-xs font-bold tracking-[.24em] mb-2">LEGENDARY SECRETS · SKILL RANKING</div>
+        <h2 className="text-2xl sm:text-3xl font-black text-white">🎭 Skill · เจ้าแห่งการบลัฟ</h2>
         <p className="text-zinc-500 text-sm mt-0.5">สถิติ Bluff แต่ละผู้เล่น</p>
         <p className="text-zinc-600 text-xs mt-1">Score = 🎭 บลัฟผ่าน <span className="text-emerald-500">+1</span> · ❌ บลัฟไม่ผ่าน <span className="text-red-500">-1</span> · 🔍 จับบลัฟได้ <span className="text-emerald-500">+1</span> · 😵 โดนบลัฟ <span className="text-red-500">-1</span></p>
       </div>
@@ -2413,23 +2414,23 @@ function SkillView({ data }) {
       ) : (
         <>
           {/* Top 3 cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="vip-skill-podium grid grid-cols-1 sm:grid-cols-3 gap-3">
             {summary.slice(0,3).map((p,i) => {
               const total = p.bluffWin + p.bluffLose;
               const GRAD  = ["bg-gradient-to-br from-amber-900/40 to-amber-700/10 border-amber-500/40","bg-gradient-to-br from-zinc-700/40 to-zinc-600/10 border-zinc-500/40","bg-gradient-to-br from-orange-900/30 to-orange-800/10 border-orange-700/40"];
               const BG    = ["rgba(25,14,2,0.15)","rgba(20,20,20,0.15)","rgba(25,12,2,0.15)"];
               const MEDAL = ["🥇","🥈","🥉"];
               return (
-                <div key={p.name} className={"rounded-2xl border p-4 " + GRAD[i]}
+                <div key={p.name} className={"vip-skill-card rounded-2xl border p-4 " + GRAD[i]}
                   style={{background:BG[i]}}>
-                  <div className="flex items-center gap-2 mb-3">
+                  <div className="flex items-center gap-2 mb-3"><span className="text-[10px] text-amber-200/70 tracking-widest ml-auto order-last">RANK 0{i+1}</span>
                     <span className="text-2xl">{MEDAL[i]}</span>
                     <div className="text-white font-bold text-lg">{p.name}</div>
                   </div>
                   <div className="grid grid-cols-4 gap-2 text-center">
                     <div>
                       <div className="text-emerald-400 font-black text-xl font-mono">{p.bluffWin}</div>
-                      <div className="text-zinc-600 text-[10px]">🎭 บลัฟผ่าน</div>
+                      <div className="text-zinc-400 text-[10px]">🎭 บลัฟผ่าน</div>
                     </div>
                     <div>
                       <div className="text-red-400 font-black text-xl font-mono">{p.bluffLose}</div>
@@ -2444,8 +2445,8 @@ function SkillView({ data }) {
                       <div className="text-zinc-600 text-[10px]">😵 โดนบลัฟ</div>
                     </div>
                   </div>
-                  <div className="mt-3 pt-2 border-t border-white/5 text-center">
-                    <span className="text-xs text-zinc-500">Score </span>
+                  <div className="mt-4 pt-3 border-t border-amber-200/15 flex justify-between items-center">
+                    <span className="text-xs text-amber-200">SKILL SCORE</span>
                     <span className={"text-sm font-bold font-mono " + (p.score>0?"text-emerald-400":p.score<0?"text-red-400":"text-zinc-500")}>{p.score>0?"+":""}{p.score}</span>
                   </div>
                 </div>
@@ -2454,7 +2455,7 @@ function SkillView({ data }) {
           </div>
 
           {/* Full table */}
-          <Box className="overflow-hidden p-0">
+          <Box className="vip-skill-table overflow-hidden p-0">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
