@@ -440,22 +440,22 @@ function DashboardView({ data, onGoLeader, onGoLatestSes, onGoPot }) {
           <div className="flex flex-wrap justify-between items-start gap-3 mb-5">
             <div>
               <div className="text-white text-lg font-bold">แนวโน้มกำไรสะสม</div>
-              <div className="text-zinc-400 text-xs mt-1">{leader ? "ผู้นำ: "+leader.name : "ยังไม่มีข้อมูลผู้เล่น"}</div>
+              <div className="text-zinc-400 text-xs mt-1">{leader ? "LEADER: "+leader.name : "NO PLAYER DATA"}</div>
             </div>
-            <span className="rounded-full bg-emerald-400/10 border border-emerald-400/20 px-3 py-1 text-emerald-300 text-xs">ตามเซสชั่นที่เล่น</span>
+            <span className="rounded-full bg-emerald-400/10 border border-emerald-400/20 px-3 py-1 text-emerald-300 text-xs">BY PLAYED SESSION</span>
           </div>
           <div className="rounded-2xl bg-[#101215] border border-white/5 p-3">
-            <svg viewBox="0 0 640 170" role="img" aria-label="กราฟแนวโน้มกำไรสะสมของผู้นำ" className="w-full h-auto">
+            <svg viewBox="0 0 640 170" role="img" aria-label="Leader cumulative profit trend" className="w-full h-auto">
               {[30,85,140].map(y => <line key={y} x1="0" y1={y} x2="640" y2={y} stroke="#3b3c40" strokeDasharray="4 7" />)}
               <polyline points={chartPoints} fill="none" stroke="#e5b85f" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </div>
-          <div className="text-zinc-500 text-xs mt-3">กราฟคำนวณจากกำไร/ขาดทุนของผู้นำในแต่ละเซสชั่น</div>
+          <div className="text-zinc-500 text-xs mt-3">Based on the leader’s net profit or loss in each session</div>
         </section>
         <section className="lg:col-span-2 rounded-3xl border border-amber-400/20 bg-[#17181c] p-5 sm:p-6">
           <div className="flex justify-between items-center mb-5">
             <div>
-              <div className="text-white text-lg font-bold">ทำเนียบ Top 3</div>
+              <div className="text-white text-lg font-bold">TOP 3 PLAYERS</div>
               <div className="text-zinc-400 text-xs mt-1">อันดับตามกำไรสะสม</div>
             </div>
             <span className="text-amber-300 text-2xl">♛</span>
