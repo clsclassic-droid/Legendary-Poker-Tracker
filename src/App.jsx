@@ -667,7 +667,7 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
                   ? "1.5px solid rgba(201,162,39,0.45)"
                   : "1px solid rgba(255,255,255,0.08)",
                 backdropFilter: "blur(6px)",
-                overflow: doOverflow ? "visible" : "hidden",
+                overflow: "hidden",
               }}>
               <div className="flex items-stretch">
                 {/* เลขอันดับ - กึ่งกลาง card */}
@@ -2920,18 +2920,18 @@ export default function App() {
 
   const potBal = data.pot?.balance ?? 0;
   const ALL_TABS = [
-    { id:"dashboard",   icon:"📊", label:"ภาพรวม",  adminOnly: false },
-    { id:"leaderboard", icon:"🏆", label:"Rank",     adminOnly: false },
-    { id:"profiles",    icon:"👤", label:"Players",  adminOnly: false },
-    { id:"race",        icon:"🏎️", label:"Race",      adminOnly: false },
-    { id:"skill",       icon:"🎭", label:"Skill",     adminOnly: false },
-    { id:"luck",        icon:"🍀", label:"Luck",      adminOnly: false },
-    { id:"calc",        icon:"🧮", label:"Calc",      adminOnly: true, publicToggle: "calc" },
-    { id:"streak",      icon:"🎯", label:"Streak",    adminOnly: true, publicToggle: "streak" },
-    { id:"sessions",    icon:"📋", label:"เซสชั่น",  adminOnly: false },
-    { id:"add",         icon:"➕", label:"บันทึก",   adminOnly: true  },
-    { id:"pot",         icon:"💰", label:"กองกลาง",  adminOnly: false },
-    { id:"settings",    icon:"⚙️", label:"ตั้งค่า",  adminOnly: true  },
+    { id:"dashboard",   icon:"◈", label:"ภาพรวม",  adminOnly: false },
+    { id:"leaderboard", icon:"♛", label:"Rank",     adminOnly: false },
+    { id:"profiles",    icon:"♟", label:"Players",  adminOnly: false },
+    { id:"race",        icon:"↗", label:"Race",      adminOnly: false },
+    { id:"skill",       icon:"✦", label:"Skill",     adminOnly: false },
+    { id:"luck",        icon:"♣", label:"Luck",      adminOnly: false },
+    { id:"calc",        icon:"▦", label:"Calc",      adminOnly: true, publicToggle: "calc" },
+    { id:"streak",      icon:"◎", label:"Streak",    adminOnly: true, publicToggle: "streak" },
+    { id:"sessions",    icon:"▤", label:"เซสชั่น",  adminOnly: false },
+    { id:"add",         icon:"+", label:"บันทึก",   adminOnly: true  },
+    { id:"pot",         icon:"♦", label:"กองกลาง",  adminOnly: false },
+    { id:"settings",    icon:"⚙", label:"ตั้งค่า",  adminOnly: true  },
   ];
   const TABS = ALL_TABS.filter(t =>
     !t.adminOnly || isAdmin ||
@@ -2963,14 +2963,14 @@ export default function App() {
       <div style={{position:'relative',zIndex:1,minHeight:'100vh'}}>
       {/* -- DESKTOP header (sm ขึ้นไป) -- */}
       <header className="hidden sm:block border-b border-zinc-800/60 sticky top-0 z-40" style={{background:"rgba(8,5,1,0.8)",backdropFilter:"blur(16px)"}}>
-        <div className="max-w-3xl mx-auto px-3 flex items-center gap-2">
-          <img src={LOGO_SRC} alt="Legendary Secrets Poker Club" className="h-14 w-14 rounded-xl object-cover flex-shrink-0 my-1"/>
-          <div className="flex flex-1 items-center justify-between overflow-x-auto">
-            <div className="flex">
+        <div className="max-w-7xl mx-auto px-4 flex items-center gap-4">
+          <img src={LOGO_SRC} alt="Legendary Secrets Poker Club" className="h-12 w-12 rounded-xl object-cover flex-shrink-0 my-2 ring-1 ring-amber-400/30"/>
+          <div className="flex flex-1 items-center justify-between overflow-x-auto gap-3">
+            <div className="flex gap-1">
               {TABS.map(t => (
                 <button key={t.id} onClick={() => { setTab(t.id); if (t.id !== "add") setEditSes(null); }}
-                  className={"flex items-center gap-1 px-2 sm:px-2.5 py-4 text-xs font-medium border-b-2 transition-colors whitespace-nowrap " + (tab === t.id ? "border-amber-400 text-amber-400" : "border-transparent text-zinc-500 hover:text-zinc-300")}>
-                  <span>{t.icon}</span>
+                  className={"flex items-center gap-2 px-3 py-2.5 my-2 text-xs font-semibold rounded-xl border transition-all whitespace-nowrap " + (tab === t.id ? "border-amber-400/50 bg-amber-400/15 text-amber-200 shadow-[inset_0_1px_0_rgba(255,255,255,.08)]" : "border-transparent text-zinc-400 hover:bg-white/5 hover:text-white")}>
+                  <span className="text-lg leading-none text-amber-400/90" aria-hidden="true">{t.icon}</span>
                   <span>{t.label}</span>
                 </button>
               ))}
