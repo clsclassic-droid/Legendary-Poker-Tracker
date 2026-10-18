@@ -485,3 +485,29 @@ select:focus-visible, textarea:focus-visible {
 @media(prefers-reduced-motion:reduce) {
   .vip-dashboard-stats > button,.vip-players .vip-member-grid > .vip-player-card {transition:none!important}
 }
+
+
+/* VIP layout correction: compact tablet dashboard, no oversized empty cards */
+.vip-dashboard.vip-redesign > section:first-child {min-height:270px!important;padding:27px 30px!important}
+.vip-dashboard .vip-dash-hero-layout h2 {font-size:clamp(29px,3.4vw,43px)!important}
+.vip-dashboard .vip-hero-subtitle {font-size:11px!important;letter-spacing:.21em!important;font-weight:700!important;margin-top:12px!important;color:#e7c38a!important}
+.vip-dashboard .vip-dash-hero-layout > button {min-height:155px!important;min-width:225px!important;max-width:280px;padding:18px!important}
+.vip-dashboard-stats {grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:12px!important}
+.vip-dashboard-stats > button {min-height:112px!important;padding:17px!important;border-radius:14px!important}
+.vip-dashboard-stats > button > div:nth-child(2) {margin-top:9px!important}
+.vip-dashboard-stats > button .text-xl {font-size:clamp(19px,2.2vw,27px)!important}
+.vip-dashboard-stats > button:before {content:none!important}
+.vip-dashboard .vip-dash-insights > section {border-radius:18px!important}
+.vip-rank-reference > div:first-child {min-height:165px!important}
+.vip-players.vip-redesign .vip-players-hero {min-height:145px!important}
+@media(min-width:640px) and (max-width:1023px) {
+  .vip-dashboard .vip-dash-hero-layout {flex-direction:row!important;align-items:center!important}
+  .vip-dashboard .vip-dash-hero-layout > div:first-child {flex:1;min-width:0}
+  .vip-dashboard .vip-dash-hero-layout > button {flex:0 0 240px}
+}
+@media(max-width:700px) {
+  .vip-dashboard-stats {grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .vip-dashboard.vip-redesign > section:first-child {min-height:0!important;padding:21px!important}
+  .vip-dashboard .vip-dash-hero-layout > button {width:100%!important;max-width:none!important;min-width:0!important;min-height:110px!important}
+  .vip-dashboard-stats > button {min-height:104px!important}
+}
