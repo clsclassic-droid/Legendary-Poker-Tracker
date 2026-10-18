@@ -290,3 +290,51 @@ select:focus-visible, textarea:focus-visible {
 .vip-player-winbar {height:5px;width:min(230px,100%);border-radius:99px;background:rgba(255,255,255,.1);margin:6px 0;overflow:hidden}
 .vip-player-winbar span {display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#a5742d,#ffdf85)}
 @media(max-width:639px){.vip-players-hero{padding:19px}.vip-players-list > .vip-player-card{min-height:112px}.vip-dashboard-stats > button{min-height:125px!important;padding:15px!important}.vip-rank-podium > div{min-height:205px!important}}
+
+/* Legendary Secrets 2026: structural VIP casino redesign */
+.vip-redesign {--vip-gold:#eac078;--vip-edge:rgba(229,174,88,.43);--vip-cream:#f9edd5}
+.vip-redesign .vip-eyebrow {font-size:11px;letter-spacing:.25em;font-weight:800;color:#e6b968;margin-bottom:12px}
+.vip-redesign .vip-title-en {display:block;color:#c5a474;font-size:11px;letter-spacing:.24em;margin-top:5px;font-weight:700}
+.vip-dashboard.vip-redesign > section:first-child {min-height:350px!important;padding:34px!important;border-radius:26px!important;background:linear-gradient(100deg,rgba(9,12,15,.12),rgba(12,12,15,.82)),radial-gradient(ellipse at 73% 42%,rgba(226,163,58,.32),transparent 45%),repeating-linear-gradient(135deg,transparent 0px,transparent 32px,rgba(238,190,102,.025) 33px,transparent 35px),linear-gradient(120deg,#57361e,#17141a 67%,#0c1014)!important}
+.vip-dashboard .vip-dash-hero-layout {width:100%;gap:26px}
+.vip-dashboard .vip-dash-hero-layout > div:first-child {max-width:610px}
+.vip-dashboard .vip-dash-hero-layout h2 {font-size:clamp(29px,4.2vw,52px)!important;line-height:1.12;letter-spacing:.015em;text-shadow:0 3px 28px rgba(242,183,84,.2)}
+.vip-dashboard .vip-hero-subtitle {display:block;color:#e6bd7b;font-size:clamp(18px,2.2vw,25px);font-weight:500;letter-spacing:.04em;margin-top:12px}
+.vip-dashboard .vip-dash-hero-layout > button {min-width:255px;min-height:185px;padding:24px!important;background:linear-gradient(145deg,rgba(20,19,23,.94),rgba(37,26,20,.95))!important;border:1px solid rgba(241,190,96,.73)!important;box-shadow:0 14px 45px rgba(0,0,0,.55),inset 0 1px rgba(255,229,167,.15)}
+.vip-dashboard .vip-dash-hero-layout > button > div:nth-child(2) {font-size:30px}
+.vip-dashboard-stats {gap:16px}
+.vip-dashboard-stats > button {min-height:155px!important;border-radius:18px!important;background:linear-gradient(140deg,#211b19,#111319)!important}
+.vip-dashboard-stats > button:nth-child(1){border-top:3px solid #e7bd69!important}
+.vip-dashboard-stats > button:nth-child(2){border-top:3px solid #7bb9d5!important}
+.vip-dashboard-stats > button:nth-child(3){border-top:3px solid #e7bd69!important}
+.vip-dashboard-stats > button:nth-child(4){border-top:3px solid #c99de0!important}
+.vip-dashboard .vip-dash-insights {gap:18px}
+.vip-dashboard .vip-dash-insights > section {background:linear-gradient(145deg,#201b1b,#101318)!important;border:1px solid rgba(221,167,79,.38)!important;box-shadow:0 16px 35px rgba(0,0,0,.35)}
+.vip-dashboard .vip-dash-leaders button {background:linear-gradient(95deg,rgba(95,65,28,.22),rgba(12,15,19,.35))!important;border-color:rgba(216,164,81,.3)!important}
+.vip-dashboard .vip-dash-medal {font-size:23px}
+.vip-rank.vip-redesign > div:first-child {min-height:178px;padding:31px 34px!important;display:flex;flex-direction:column;justify-content:center;background:radial-gradient(circle at 90% 40%,rgba(205,144,55,.21),transparent 40%),linear-gradient(105deg,#3a2519,#121317 75%)!important;border:1px solid rgba(230,177,85,.52)!important;border-radius:24px}
+.vip-rank.vip-redesign > div:first-child h2 {font-size:clamp(26px,3.5vw,40px);line-height:1.2}
+.vip-rank.vip-redesign > section {background:linear-gradient(160deg,#26201c,#101216 80%)!important;border-radius:25px}
+.vip-rank.vip-redesign > section > div:first-child {padding:8px 5px 14px;border-bottom:1px solid rgba(232,184,97,.18)}
+.vip-rank .vip-champions {gap:18px;padding-top:10px}
+.vip-rank .vip-champions > div {min-height:300px!important;display:flex;align-items:center;border-radius:23px!important}
+.vip-rank .vip-champions > div:first-child {min-height:350px!important;transform:translateY(-5px);background:radial-gradient(circle at 50% 0%,rgba(255,216,121,.21),transparent 55%),linear-gradient(145deg,#6a471e,#2e2219 62%,#15171c)!important}
+.vip-rank .vip-champions > div:nth-child(2) {background:linear-gradient(145deg,#454956,#1b1f27)!important}
+.vip-rank .vip-champions > div:nth-child(3) {background:linear-gradient(145deg,#673927,#241b1b)!important}
+.vip-rank .vip-podium-medal {font-size:52px;line-height:1.3;filter:drop-shadow(0 6px 14px rgba(0,0,0,.35))}
+.vip-rank .vip-champion-name {font-size:clamp(23px,2.5vw,30px);margin-top:5px}
+.vip-rank .vip-champions .font-mono.text-2xl {font-size:clamp(24px,2.7vw,33px)}
+.vip-players.vip-redesign .vip-players-hero {min-height:175px;padding:33px!important;background:radial-gradient(circle at 85% 30%,rgba(226,169,65,.2),transparent 43%),linear-gradient(110deg,#402819,#16171b 75%)!important}
+.vip-players .vip-member-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.vip-players .vip-member-grid > .vip-player-card {min-height:190px!important;margin:0!important;border-radius:22px!important;box-shadow:0 16px 34px rgba(0,0,0,.4),inset 0 1px rgba(255,230,171,.08)}
+.vip-players .vip-member-grid > .vip-player-card:after {content:"VIP MEMBER";position:absolute;right:15px;bottom:12px;letter-spacing:.24em;font-size:9px;color:rgba(245,199,117,.34);pointer-events:none}
+.vip-players .vip-member-grid .vip-member-content {min-height:180px;align-items:center;gap:9px;padding:10px}
+.vip-players .vip-member-grid .vip-member-rank {align-self:flex-start;margin-top:13px}
+.vip-players .vip-member-grid .vip-member-avatar {width:118px!important;height:136px!important;flex-shrink:0;border:2px solid rgba(231,182,94,.48)!important;box-shadow:0 8px 23px rgba(0,0,0,.5);margin:0!important}
+.vip-players .vip-member-grid .vip-player-info {gap:6px;padding:10px!important}
+.vip-players .vip-member-grid .vip-member-name {display:flex;flex-direction:column;align-items:flex-start;gap:9px}
+.vip-players .vip-member-grid .vip-member-name > span:first-child {font-size:19px!important}
+.vip-players .vip-member-grid .vip-member-name > span:last-child {font-size:18px}
+.vip-players .vip-member-grid .vip-player-winbar {width:100%;height:6px}
+@media(max-width:850px){.vip-players .vip-member-grid{grid-template-columns:1fr}.vip-dashboard .vip-dash-hero-layout > button{min-width:220px}.vip-rank .vip-champions>div{min-height:250px!important}.vip-rank .vip-champions>div:first-child{min-height:290px!important}}
+@media(max-width:639px){.vip-dashboard.vip-redesign>section:first-child{padding:24px!important;min-height:unset!important}.vip-dashboard .vip-dash-hero-layout>button{width:100%;min-height:135px}.vip-rank.vip-redesign>div:first-child{padding:23px!important;min-height:145px}.vip-rank .vip-champions>div,.vip-rank .vip-champions>div:first-child{min-height:215px!important;transform:none}.vip-players .vip-member-grid .vip-member-avatar{width:86px!important;height:100px!important}.vip-players .vip-member-grid .vip-member-content{min-height:145px}.vip-players .vip-member-grid>.vip-player-card{min-height:150px!important}.vip-players .vip-member-grid .vip-member-name>span:first-child{font-size:16px!important}}
