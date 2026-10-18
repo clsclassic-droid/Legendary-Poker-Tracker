@@ -164,3 +164,81 @@ select:focus-visible, textarea:focus-visible {
     margin-bottom: 12px;
   }
 }
+
+/* VIP CASINO 2026: visual layer for dashboard, rank and players */
+.bg-legendary-main {
+  background-color:#08090c !important;
+  background-image:
+    radial-gradient(ellipse at 50% -10%,rgba(121,62,23,.25),transparent 48%),
+    radial-gradient(ellipse at 100% 85%,rgba(96,23,17,.12),transparent 46%),
+    repeating-linear-gradient(115deg,transparent 0px,transparent 90px,rgba(233,178,83,.012) 91px,transparent 92px) !important;
+}
+.bg-legendary-main > div:first-child {background:rgba(5,6,8,.26)!important}
+.bg-legendary-main main {max-width:1200px;padding-top:32px}
+.bg-legendary-main header {
+  background:linear-gradient(180deg,rgba(20,15,11,.98),rgba(7,7,9,.96))!important;
+  border-bottom:1px solid rgba(227,178,80,.36)!important;
+  box-shadow:0 7px 32px rgba(0,0,0,.65),inset 0 1px rgba(255,225,161,.08)!important;
+}
+.bg-legendary-main header button {border-radius:12px!important}
+.bg-legendary-main header button:hover {background:rgba(201,145,54,.14)!important}
+.vip-dashboard,.vip-rank,.vip-players {position:relative}
+.vip-dashboard h2,.vip-rank h2,.vip-players h2 {color:#fff4d9;text-shadow:0 2px 18px rgba(224,160,57,.17)}
+.vip-dashboard > section:first-child {
+  min-height:265px;
+  display:flex;
+  align-items:center;
+  border:1px solid rgba(241,193,94,.64)!important;
+  box-shadow:inset 0 0 0 1px rgba(247,200,111,.12),0 15px 55px rgba(0,0,0,.6),0 0 60px rgba(194,121,34,.10)!important;
+  background:
+    radial-gradient(circle at 94% 16%,rgba(250,188,74,.28),transparent 30%),
+    repeating-radial-gradient(circle at 87% 70%,transparent 0px,transparent 30px,rgba(247,198,115,.055) 31px,transparent 33px),
+    linear-gradient(125deg,#352318,#171316 55%,#100e11)!important;
+}
+.vip-dashboard > section:first-child:before {
+  content:"♠  ♥  ♦  ♣";position:absolute;right:2%;bottom:-24px;
+  font-size:clamp(60px,10vw,120px);letter-spacing:-.13em;color:rgba(233,181,86,.085);
+  pointer-events:none;white-space:nowrap;
+}
+.vip-dashboard > section:first-child h2 {font-size:clamp(27px,3.5vw,40px);letter-spacing:.01em}
+.vip-dashboard > .grid:nth-of-type(1) > button {
+  background:linear-gradient(145deg,#25201d,#101217)!important;
+  border:1px solid rgba(235,181,83,.44)!important;
+  box-shadow:inset 0 1px rgba(255,232,177,.08),0 12px 32px rgba(0,0,0,.35)!important;
+  min-height:138px;
+}
+.vip-dashboard > .grid:nth-of-type(1) > button:hover {transform:translateY(-3px);box-shadow:0 15px 35px rgba(203,138,41,.18)!important}
+.vip-dashboard > .grid:nth-of-type(2) > section,
+.vip-dashboard > button:last-child {
+  background:linear-gradient(145deg,rgba(29,27,29,.98),rgba(10,13,17,.98))!important;
+  border:1px solid rgba(209,158,70,.42)!important;
+  box-shadow:0 16px 42px rgba(0,0,0,.4),inset 0 1px rgba(255,226,166,.06);
+}
+.vip-dashboard svg polyline {filter:drop-shadow(0 0 5px rgba(246,179,61,.42))}
+.vip-rank > div:first-child {padding:19px 24px;border:1px solid rgba(231,178,79,.36);border-radius:20px;background:linear-gradient(100deg,rgba(74,44,21,.45),rgba(14,15,18,.3))}
+.vip-rank > section {background:linear-gradient(155deg,#201a18,#0d1014)!important;border-color:rgba(239,185,91,.47)!important;box-shadow:0 16px 50px rgba(0,0,0,.4)!important}
+.vip-rank > section .grid > div {box-shadow:inset 0 1px rgba(255,232,184,.1),0 12px 28px rgba(0,0,0,.35);transition:transform .2s ease}
+.vip-rank > section .grid > div:hover {transform:translateY(-4px)}
+.vip-rank > section .grid > div:first-child {background:linear-gradient(150deg,#66431b,#332315 55%,#171318)!important;border-color:rgba(255,212,112,.78)!important;box-shadow:0 0 24px rgba(227,165,53,.18),inset 0 1px rgba(255,233,171,.18)}
+.vip-rank > section .grid > div:nth-child(2) {background:linear-gradient(150deg,#34363e,#171a21)!important}
+.vip-rank > section .grid > div:nth-child(3) {background:linear-gradient(150deg,#502a1e,#1b1415)!important}
+.vip-rank table {background:#0d1014}
+.vip-rank table thead {background:rgba(155,104,37,.18)}
+.vip-rank table tbody tr:nth-child(odd) {background:rgba(255,255,255,.018)}
+.vip-rank table tbody tr:hover {background:rgba(225,169,67,.12)}
+.vip-players > button {
+  background:linear-gradient(105deg,rgba(42,29,21,.92),rgba(12,15,20,.98))!important;
+  border:1px solid rgba(207,154,67,.4)!important;
+  box-shadow:inset 0 1px rgba(255,221,159,.055),0 9px 26px rgba(0,0,0,.3);
+  min-height:122px;transition:transform .2s ease,border-color .2s ease;
+}
+.vip-players > button:hover,.vip-players > button:focus-visible {transform:translateY(-2px);border-color:#e6b85f!important;background:linear-gradient(105deg,#48301b,#15171c)!important}
+.vip-players > button:nth-of-type(1) {background:linear-gradient(105deg,#503719,#17161a)!important;border-color:rgba(242,189,87,.7)!important}
+.vip-players > button:nth-of-type(2) {background:linear-gradient(105deg,#34343c,#12151a)!important}
+.vip-players > button:nth-of-type(3) {background:linear-gradient(105deg,#492b20,#151317)!important}
+.vip-players img {box-shadow:0 5px 18px rgba(0,0,0,.55)}
+@media(max-width:639px) {
+ .vip-dashboard > section:first-child {min-height:240px}
+ .vip-rank > div:first-child {padding:14px}
+ .vip-players > button {min-height:104px}
+}
