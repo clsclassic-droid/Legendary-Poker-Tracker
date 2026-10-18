@@ -2917,6 +2917,22 @@ export default function App() {
   );
 
   const potBal = data.pot?.balance ?? 0;
+  const VipNavIcon = ({id, fallback}) => {
+    const paths = {
+      dashboard:<><path d="m3 11 9-8 9 8"/><path d="M5 10v11h14V10M10 21v-7h4v7"/></>,
+      leaderboard:<><path d="M7 3h10v8a5 5 0 0 1-10 0V3ZM7 5H3v3a4 4 0 0 0 4 4m10-7h4v3a4 4 0 0 1-4 4M12 16v4m-5 1h10"/></>,
+      profiles:<><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M2 21v-3a7 7 0 0 1 14 0v3m1-9a5 5 0 0 1 5 5v4"/></>,
+      race:<><path d="M5 22V3m0 1c5-4 9 4 15 0v10c-6 4-10-4-15 0"/></>,
+      skill:<><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/><path d="m12 12 8-9"/></>,
+      luck:<><path d="M12 12C2 10 4 2 9 3c3 0 3 4 3 9Zm0 0c0-10 8-10 9-5 1 4-4 5-9 5Zm0 0c10 0 10 8 5 9-4 1-5-4-5-9Zm0 0c0 10-8 10-9 5-1-4 4-5 9-5Z"/></>,
+      calc:<><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M7 7h10M8 12h2m4 0h2m-8 4h2m4 0h2"/></>,
+      streak:<><path d="M4 21V14h3v7m3 0V9h3v12m3 0V4h3v17"/></>,
+      sessions:<><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8m-8 4h8m-8 4h5"/></>,
+      add:<path d="M12 4v16M4 12h16"/>,
+      pot:<><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v5c0 4 16 4 16 0V6M4 11v6c0 4 16 4 16 0v-6"/></>,
+    };
+    return paths[id] ? <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="vip-nav-icon">{paths[id]}</svg> : <>{fallback}</>;
+  };
   const ALL_TABS = [
     { id:"dashboard",   icon:"◈", label:"ภาพรวม",  adminOnly: false },
     { id:"leaderboard", icon:"♛", label:"Rank",     adminOnly: false },
@@ -2968,7 +2984,7 @@ export default function App() {
               {TABS.map(t => (
                 <button key={t.id} onClick={() => { setTab(t.id); if (t.id !== "add") setEditSes(null); }}
                   className={"flex items-center gap-2 px-3 py-2.5 my-2 text-xs font-semibold rounded-xl border transition-all whitespace-nowrap " + (tab === t.id ? "border-amber-400/50 bg-amber-400/15 text-amber-200 shadow-[inset_0_1px_0_rgba(255,255,255,.08)]" : "border-transparent text-zinc-400 hover:bg-white/5 hover:text-white")}>
-                  <span className="text-lg leading-none text-amber-400/90" aria-hidden="true">{t.icon}</span>
+                  <span className="vip-nav-icon-wrap text-amber-400/90" aria-hidden="true"><VipNavIcon id={t.id} fallback={t.icon}/></span>
                   <span>{t.label}</span>
                 </button>
               ))}
