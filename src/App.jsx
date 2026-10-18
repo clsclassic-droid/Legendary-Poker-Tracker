@@ -991,9 +991,9 @@ function LeaderboardView({ data }) {
     : "-";
 
   return (
-    <div className="vip-rank vip-redesign space-y-5">
+    <div className="vip-rank vip-redesign vip-rank-reference space-y-5">
       <div>
-        <div className="vip-eyebrow">LEGENDARY SECRETS · HALL OF FAME</div><h2 className="text-xl font-bold text-white">♛ ทำเนียบแชมป์ <span className="vip-title-en">LEADERBOARD</span></h2>
+        <div className="vip-eyebrow">LEGENDARY SECRETS · HALL OF FAME</div><h2 className="text-xl font-bold text-white">🏆 ทำเนียบแชมป์ <span className="vip-title-en">LEADERBOARD</span></h2><div className="vip-rank-scene" aria-hidden="true"><span>♛</span><span>♠</span><span>♣</span></div>
         <p className="text-zinc-500 text-sm mt-0.5">แสดงผล: <span className="text-amber-300">{filterLabel}</span></p>
       </div>
 
@@ -1072,18 +1072,17 @@ function LeaderboardView({ data }) {
                 </div>
                 <span className="text-amber-300 text-3xl">♛</span>
               </div>
-              <div className="vip-rank-podium vip-champions grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+              <div className="vip-rank-podium vip-champions vip-ref-podium grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
                 {top3.map((p,i) => (
-                  <div key={p.name} className={"relative overflow-hidden rounded-2xl border p-5 "+GRAD[i]+" "+(i===0?"sm:min-h-[245px] border-amber-300/60 shadow-[0_0_35px_rgba(210,157,65,0.13)]":"sm:min-h-[210px]")}>
+                  <div key={p.name} className={"vip-ref-champion relative overflow-hidden rounded-2xl border p-5 "+GRAD[i]+" "+(i===0?"border-amber-300/60 shadow-[0_0_35px_rgba(210,157,65,0.13)]":"")}>
                     <div className="absolute -right-4 -top-9 text-[120px] opacity-10 pointer-events-none">{["♛","♠","♦"][i]}</div>
                     <div className="relative">
-                      <div className="flex items-center justify-between mb-5">
-                        <span className="vip-podium-medal">{MEDAL[i]}</span>
-                        <span className="text-xs tracking-widest text-zinc-300">RANK 0{i+1}</span>
-                      </div>
+                      <div className="vip-ref-medal-row"><span className="vip-podium-medal">{MEDAL[i]}</span><span className="vip-ref-rank-label">RANK 0{i+1}</span></div>
+                      <div className="vip-ref-avatar-wrap"><img src={avatarUrl(p.name,data.avatars)} alt={"รูปโปรไฟล์ "+p.name} loading="lazy" onError={e=>{e.currentTarget.src=DEFAULT_AVATAR_SRC;}} /></div>
                       <div className="vip-champion-name text-white text-xl font-black truncate">{p.name}</div>
-                      <div className="text-zinc-300 text-xs mt-1">{(data.nicknames||{})[p.name] || p.n+" เซสชั่น"}</div><div className="vip-rank-winrate">อัตราชนะ {p.n>0?Math.round(p.gold/p.n*100):0}% <span className="vip-rank-bar"><span style={{width:(p.n>0?Math.round(p.gold/p.n*100):0)+"%"}} /></span></div>
-                      <div className={"font-mono text-2xl font-black mt-4 "+(p.total>=0?"text-emerald-300":"text-red-300")}>{p.total>0?"+":""}{fmt(p.total)} ฿</div>
+                      <div className="vip-ref-session-count">{p.n} เซสชั่น</div>
+                      <div className="vip-rank-winrate">อัตราชนะ {p.n>0?Math.round(p.gold/p.n*100):0}% <span className="vip-rank-bar"><span style={{width:(p.n>0?Math.round(p.gold/p.n*100):0)+"%"}} /></span></div>
+                      <div className={"vip-ref-profit font-mono text-2xl font-black "+(p.total>=0?"text-emerald-300":"text-red-300")}>{p.total>0?"+":""}{fmt(p.total)} ฿</div>
                       <div className="flex flex-wrap gap-1.5 mt-4 text-xs">
                         <span className="rounded-full bg-black/25 border border-white/10 px-2 py-1">🥇 {p.gold}</span>
                         <span className="rounded-full bg-black/25 border border-white/10 px-2 py-1">🥈 {p.silver}</span>
