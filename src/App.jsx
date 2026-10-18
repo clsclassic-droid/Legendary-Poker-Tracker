@@ -365,84 +365,127 @@ function MiniChart({ player, sessions }) {
 // DASHBOARD
 // -----------------------------------------------------------------
 function DashboardView({ data, onGoLeader, onGoLatestSes, onGoPot }) {
-  const latest  = data.sessions[data.sessions.length-1] ?? null;
+  const latest = data.sessions[data.sessions.length - 1] ?? null;
   const summary = useMemo(() => buildSummary(data.players, data.sessions), [data]);
-  const leader  = summary.find(p => p.n > 0) ?? null;
-  const pot     = data.pot?.balance ?? 0;
+  const active = summary.filter(p => p.n > 0);
+  const leader = active[0] ?? null;
+  const pot = data.pot?.balance ?? 0;
+  const yearCount = data.sessions.filter(s => s.year === new Date().getFullYear()).length;
+  const leaderTrend = useMemo(() => {
+    if (!leader) return [];
+    let total = 0;
+    return [...data.sessions].sort((a,b) => String(a.date).localeCompare(String(b.date)))
+      .map(s => {
+        const entry = (s.entries || []).find(e => e.player === leader.name);
+        if (!entry) return null;
+        total += Number(entry.profitBaht) || 0;
+        return total;
+      }).filter(v => v !== null);
+  }, [data.sessions, leader?.name]);
+  const chartValues = leaderTrend.length ? [0, ...leaderTrend] : [0, 0];
+  const chartMin = Math.min(...chartValues);
+  const chartMax = Math.max(...chartValues);
+  const chartRange = chartMax - chartMin || 1;
+  const chartPoints = chartValues.map((v,i) =>
+    `${(i / Math.max(chartValues.length - 1, 1)) * 640},${145 - ((v - chartMin) / chartRange) * 120}`
+  ).join(" ");
 
   return (
-    <div className="space-y-2">
-      <h2 className="text-xl font-bold text-white">📊 ภาพรวม</h2>
-
-      <div className="grid grid-cols-3 gap-3">
-        {/* Leader - กดแล้วไปหน้า profile ผู้นำ */}
-        <button onClick={()=>leader&&onGoLeader(leader.name)}
-          className="border border-amber-500/40 rounded-2xl p-3 text-left hover:border-amber-400/70 transition-colors" style={{background:"rgba(25,14,2,0.06)",backdropFilter:"blur(6px)"}}>
-          <div className="text-amber-400 text-xs font-semibold mb-1">🏆 นำอยู่</div>
-          {leader
-            ? <>
-                <div className="text-white font-black text-lg leading-none">{leader.name}</div>
-                <Profit v={leader.total} sx=" ฿"/>
-                <div className="text-zinc-500 text-[10px] mt-1">{leader.n} เซสชั่น · 🥇×{leader.gold}</div>
-              </>
-            : <div className="text-zinc-600 text-xs">ยังไม่มีข้อมูล</div>}
-        </button>
-        {/* Latest session - กดแล้วไปหน้าเซสชั่น พร้อมเปิดเซสล่าสุด */}
-        <button onClick={()=>latest&&onGoLatestSes(latest.internalId)}
-          className="border border-zinc-700/25 rounded-2xl p-3 text-left hover:border-zinc-600 transition-colors" style={{background:"rgba(15,10,3,0.05)",backdropFilter:"blur(6px)"}}>
-          <div className="text-sky-400 text-xs font-semibold mb-1">📋 เซสล่าสุด</div>
-          {latest
-            ? <>
-                <div className="text-white font-black text-sm">ปี {latest.year}</div>
-                <div className="text-amber-300 text-sm font-bold">S{latest.season} เซสชั่น {latest.sessionNo}</div>
-                <div className="text-zinc-500 text-[10px] mt-1">{String(latest.date||"").slice(0,10)}</div>
-              </>
-            : <div className="text-zinc-600 text-xs">ยังไม่มีเซส</div>}
-        </button>
-        {/* Pot - กดแล้วไปหน้ากองกลาง */}
-        <button onClick={onGoPot}
-          className="border border-purple-500/30 rounded-2xl p-3 text-left hover:border-purple-400/60 transition-colors" style={{background:"rgba(15,8,25,0.06)",backdropFilter:"blur(6px)"}}>
-          <div className="text-purple-400 text-xs font-semibold mb-1">💰 กองกลาง</div>
-          <div className={"font-mono font-black text-lg " + (pot>=0?"text-purple-300":"text-red-400")}>{fmt(pot)} ฿</div>
-          <div className="text-zinc-600 text-[10px] mt-1">{data.sessions.length} เซสชั่น · {data.players.length} คน</div>
-        </button>
-      </div>
-
-      {/* Quick stats */}
-      <div className="grid grid-cols-4 gap-2">
-        {[
-          ["เซสทั้งหมด", data.sessions.length,                                        "text-white"],
-          ["ผู้เล่น",    data.players.length,                                          "text-white"],
-          ["ซีซั่น",     latest ? "S"+latest.season+"/"+latest.year : "-",             "text-amber-300"],
-          ["ปีนี้",      data.sessions.filter(s=>s.year===new Date().getFullYear()).length, "text-sky-300"],
-        ].map(([label,value,color]) => (
-          <div key={label} className="border border-zinc-700/25 rounded-xl px-2 py-2 text-center" style={{background:"rgba(15,10,3,0.05)",backdropFilter:"blur(6px)"}}>
-            <div className={"font-mono font-black text-lg "+color}>{value}</div>
-            <div className="text-zinc-600 text-[10px] mt-0.5">{label}</div>
+    <div className="space-y-6">
+      <section className="relative overflow-hidden rounded-3xl border border-amber-400/30 p-5 sm:p-7"
+        style={{background:"radial-gradient(circle at 85% 0%, rgba(196,136,48,.27), transparent 45%), linear-gradient(135deg,#242016 0%,#141518 55%,#101114 100%)"}}>
+        <div className="absolute -right-8 -top-12 text-[150px] leading-none opacity-[0.07] pointer-events-none" aria-hidden="true">♠</div>
+        <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
+          <div>
+            <div className="text-amber-300 text-[11px] font-bold tracking-[.25em] mb-2">LEGENDARY SECRETS · POKER CLUB</div>
+            <h2 className="text-2xl sm:text-3xl font-black text-white mb-2">ภาพรวมสโมสร</h2>
+            <p className="text-zinc-300 text-sm">สถิติการแข่งขันและผลงานผู้เล่นทั้งหมด</p>
+            <div className="flex flex-wrap gap-2 mt-4">
+              <span className="rounded-full bg-amber-400/10 border border-amber-400/30 px-3 py-1 text-xs text-amber-200">{data.sessions.length} เซสชั่น</span>
+              <span className="rounded-full bg-white/5 border border-white/10 px-3 py-1 text-xs text-zinc-200">{data.players.length} ผู้เล่น</span>
+              <span className="rounded-full bg-white/5 border border-white/10 px-3 py-1 text-xs text-zinc-200">{yearCount} เซสในปีนี้</span>
+            </div>
           </div>
+          <button onClick={() => leader && onGoLeader(leader.name)} disabled={!leader}
+            className="relative rounded-2xl border border-amber-300/35 bg-black/30 px-5 py-4 text-left sm:min-w-[235px] hover:border-amber-300 transition-colors disabled:opacity-50">
+            <div className="text-amber-300 text-xs font-bold mb-2">♛ ผู้นำอันดับปัจจุบัน</div>
+            <div className="text-white font-black text-2xl">{leader?.name || "ยังไม่มีข้อมูล"}</div>
+            <div className="mt-1 text-emerald-300 font-mono font-black text-xl">{leader ? (leader.total > 0 ? "+" : "") + fmt(leader.total) + " ฿" : "—"}</div>
+            <div className="text-zinc-400 text-xs mt-2">ดูโปรไฟล์ผู้เล่น →</div>
+          </button>
+        </div>
+      </section>
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {[
+          {label:"เซสชั่นทั้งหมด",value:fmt(data.sessions.length),sub:"ประวัติการแข่งขัน",icon:"♠",color:"text-amber-300"},
+          {label:"ผู้เล่นทั้งหมด",value:fmt(data.players.length),sub:"สมาชิกในระบบ",icon:"♣",color:"text-sky-300"},
+          {label:"ซีซั่นล่าสุด",value:latest ? "S"+latest.season+"/"+latest.year : "—",sub:latest ? "เซสชั่น "+latest.sessionNo : "ยังไม่มีเซส",icon:"♦",color:"text-amber-300"},
+          {label:"กองกลาง",value:fmt(pot)+" ฿",sub:"แตะเพื่อดูรายการ",icon:"♥",color:pot>=0?"text-purple-300":"text-red-300",action:onGoPot},
+        ].map(card => (
+          <button key={card.label} onClick={card.action} disabled={!card.action}
+            className="rounded-2xl border border-white/10 bg-[#1a1b20] p-4 sm:p-5 text-left shadow-lg disabled:cursor-default hover:border-amber-400/40 transition-colors">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-zinc-300 text-xs font-semibold">{card.label}</span>
+              <span className={card.color+" text-xl"}>{card.icon}</span>
+            </div>
+            <div className={"mt-3 text-xl sm:text-2xl font-black font-mono break-words "+card.color}>{card.value}</div>
+            <div className="text-zinc-400 text-xs mt-2">{card.sub}</div>
+          </button>
         ))}
       </div>
 
-      {/* Top 3 */}
-      {summary.filter(p=>p.n>0).length > 0 && (
-        <Box>
-          <div className="text-zinc-400 text-xs font-semibold mb-3">🏅 Top 3 ตอนนี้</div>
-          <div className="space-y-2">
-            {summary.filter(p=>p.n>0).slice(0,3).map((p,i) => (
-              <div key={p.name} className="flex items-center gap-3">
-                <span className="text-lg">{["🥇","🥈","🥉"][i]}</span>
-                <span className="text-white font-semibold flex-1"><PlayerName player={p.name} nicknames={data.nicknames}/></span>
-                <div className="flex gap-1 text-xs">
-                  {p.gold>0   && <span className="text-amber-300">🥇{p.gold}</span>}
-                  {p.silver>0 && <span className="text-zinc-300">🥈{p.silver}</span>}
-                  {p.last>0   && <span className="text-red-400">💀{p.last}</span>}
-                </div>
-                <Profit v={p.total} sx=" ฿"/>
-              </div>
-            ))}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+        <section className="lg:col-span-3 rounded-3xl border border-white/10 bg-[#17181c] p-5 sm:p-6">
+          <div className="flex flex-wrap justify-between items-start gap-3 mb-5">
+            <div>
+              <div className="text-white text-lg font-bold">แนวโน้มกำไรสะสม</div>
+              <div className="text-zinc-400 text-xs mt-1">{leader ? "ผู้นำ: "+leader.name : "ยังไม่มีข้อมูลผู้เล่น"}</div>
+            </div>
+            <span className="rounded-full bg-emerald-400/10 border border-emerald-400/20 px-3 py-1 text-emerald-300 text-xs">ตามเซสชั่นที่เล่น</span>
           </div>
-        </Box>
-      )}
+          <div className="rounded-2xl bg-[#101215] border border-white/5 p-3">
+            <svg viewBox="0 0 640 170" role="img" aria-label="กราฟแนวโน้มกำไรสะสมของผู้นำ" className="w-full h-auto">
+              {[30,85,140].map(y => <line key={y} x1="0" y1={y} x2="640" y2={y} stroke="#3b3c40" strokeDasharray="4 7" />)}
+              <polyline points={chartPoints} fill="none" stroke="#e5b85f" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+          <div className="text-zinc-500 text-xs mt-3">กราฟคำนวณจากกำไร/ขาดทุนของผู้นำในแต่ละเซสชั่น</div>
+        </section>
+        <section className="lg:col-span-2 rounded-3xl border border-amber-400/20 bg-[#17181c] p-5 sm:p-6">
+          <div className="flex justify-between items-center mb-5">
+            <div>
+              <div className="text-white text-lg font-bold">ทำเนียบ Top 3</div>
+              <div className="text-zinc-400 text-xs mt-1">อันดับตามกำไรสะสม</div>
+            </div>
+            <span className="text-amber-300 text-2xl">♛</span>
+          </div>
+          <div className="space-y-3">
+            {active.slice(0,3).map((p,i) => (
+              <button key={p.name} onClick={() => onGoLeader(p.name)}
+                className="w-full flex items-center gap-3 rounded-xl border border-white/10 bg-white/[.035] p-3 text-left hover:bg-amber-400/10 transition-colors">
+                <span className={"w-10 h-10 rounded-xl flex items-center justify-center font-black text-lg "+(["bg-amber-400/20 text-amber-300","bg-zinc-300/15 text-zinc-200","bg-orange-400/15 text-orange-300"][i])}>{i+1}</span>
+                <span className="flex-1 min-w-0">
+                  <span className="block text-white font-bold truncate"><PlayerName player={p.name} nicknames={data.nicknames}/></span>
+                  <span className="block text-zinc-400 text-xs">{p.n} เซสชั่น · 🥇 {p.gold}</span>
+                </span>
+                <span className={"font-mono font-bold text-sm whitespace-nowrap "+(p.total>=0?"text-emerald-300":"text-red-300")}>{p.total>0?"+":""}{fmt(p.total)} ฿</span>
+              </button>
+            ))}
+            {!active.length && <div className="text-zinc-400 text-sm">ยังไม่มีอันดับผู้เล่น</div>}
+          </div>
+        </section>
+      </div>
+
+      {latest && <button onClick={() => onGoLatestSes(latest.internalId)}
+        className="w-full flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-400/20 bg-[#1a1b20] p-4 sm:p-5 text-left hover:border-amber-400/50 transition-colors">
+        <div>
+          <div className="text-amber-300 text-xs font-bold mb-1">เซสชั่นล่าสุด</div>
+          <div className="text-white font-bold">ปี {latest.year} · S{latest.season} เซสชั่น {latest.sessionNo}</div>
+          <div className="text-zinc-400 text-xs mt-1">{String(latest.date || "").slice(0,10)}</div>
+        </div>
+        <span className="text-amber-300 text-sm font-semibold">ดูรายละเอียด →</span>
+      </button>}
     </div>
   );
 }
