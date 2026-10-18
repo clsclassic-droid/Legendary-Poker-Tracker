@@ -439,7 +439,7 @@ function DashboardView({ data, onGoLeader, onGoLatestSes, onGoPot }) {
         <section className="lg:col-span-3 rounded-3xl border border-white/10 bg-[#17181c] p-5 sm:p-6">
           <div className="flex flex-wrap justify-between items-start gap-3 mb-5">
             <div>
-              <div className="text-white text-lg font-bold">แนวโน้มกำไรสะสม</div>
+              <div className="text-white text-lg font-bold">CUMULATIVE PROFIT</div>
               <div className="text-zinc-400 text-xs mt-1">{leader ? "LEADER: "+leader.name : "NO PLAYER DATA"}</div>
             </div>
             <span className="rounded-full bg-emerald-400/10 border border-emerald-400/20 px-3 py-1 text-emerald-300 text-xs">BY PLAYED SESSION</span>
