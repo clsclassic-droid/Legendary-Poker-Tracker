@@ -371,3 +371,51 @@ select:focus-visible, textarea:focus-visible {
 .vip-rank-reference > section:before{content:"♛";position:absolute;right:20px;top:-48px;font-size:170px;color:rgba(238,187,93,.055);pointer-events:none}
 @media(min-width:800px){.vip-rank-reference .vip-ref-avatar-wrap{width:96px;height:96px}.vip-rank-reference .vip-ref-podium>.vip-ref-champion{padding:19px 17px!important}}
 @media(max-width:550px){.vip-rank-reference .vip-ref-podium{gap:6px!important}.vip-rank-reference .vip-ref-podium>.vip-ref-champion{padding:11px 5px!important}.vip-rank-reference .vip-ref-avatar-wrap{width:54px;height:54px;padding:2px}.vip-rank-reference .vip-podium-medal{font-size:25px!important}.vip-rank-reference .vip-ref-rank-label{font-size:8px}.vip-rank-reference .vip-champion-name{font-size:14px!important}.vip-rank-reference .vip-ref-session-count,.vip-rank-reference .vip-rank-winrate{font-size:9px}.vip-rank-reference .vip-ref-profit{font-size:15px!important}.vip-rank-reference .vip-ref-champion .flex.flex-wrap.gap-1\\.5 span{font-size:9px;padding:2px 4px}}
+
+
+/* VIP casino atmosphere pass. Presentation only: no application logic or data changes. */
+.vip-dashboard.vip-redesign > section:first-child,
+.vip-rank-reference > div:first-child {
+  isolation:isolate;
+  box-shadow:inset 0 0 0 1px rgba(255,222,150,.24),0 18px 45px rgba(0,0,0,.48),0 0 30px rgba(191,122,35,.10)!important;
+}
+.vip-dashboard.vip-redesign > section:first-child:before,
+.vip-rank-reference > div:first-child:after {
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:-1;
+  background:
+    radial-gradient(ellipse 16% 55% at 79% 40%,rgba(255,215,135,.32),transparent 75%),
+    radial-gradient(circle at 82% 18%,rgba(255,236,180,.85) 0 2px,rgba(255,171,53,.30) 5px,transparent 29px),
+    radial-gradient(circle at 68% 27%,rgba(255,236,180,.75) 0 3px,rgba(255,171,53,.22) 8px,transparent 38px),
+    radial-gradient(circle at 95% 43%,rgba(255,227,164,.70) 0 2px,rgba(255,171,53,.20) 8px,transparent 33px),
+    repeating-linear-gradient(90deg,transparent 0 63px,rgba(250,194,106,.08) 65px,transparent 69px),
+    linear-gradient(0deg,rgba(14,56,45,.66) 0%,transparent 38%);
+  opacity:.86;
+}
+.vip-dashboard .vip-dash-hero-layout {position:relative;z-index:1}
+.vip-dashboard .vip-dash-hero-layout > button {
+  backdrop-filter:blur(8px);
+  box-shadow:0 16px 44px rgba(0,0,0,.55),0 0 22px rgba(218,152,60,.12),inset 0 1px rgba(255,235,187,.24)!important;
+}
+.vip-dashboard-stats > button {
+  position:relative;overflow:hidden;
+  box-shadow:inset 0 1px rgba(255,231,177,.16),0 10px 28px rgba(0,0,0,.40),0 0 16px rgba(191,128,44,.08)!important;
+}
+.vip-dashboard-stats > button:after {
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(115deg,transparent 12%,rgba(255,226,163,.075) 28%,transparent 45%);
+}
+.vip-rank-reference > section {
+  box-shadow:inset 0 1px rgba(255,221,156,.16),0 18px 50px rgba(0,0,0,.50)!important;
+}
+.vip-rank-reference .vip-ref-podium > .vip-ref-champion {
+  box-shadow:inset 0 1px rgba(255,238,201,.19),0 16px 28px rgba(0,0,0,.46),0 0 22px rgba(226,162,72,.09)!important;
+}
+.vip-rank-reference .vip-ref-podium > .vip-ref-champion:first-child {
+  box-shadow:inset 0 1px rgba(255,239,183,.4),0 0 0 1px rgba(244,192,93,.30),0 0 28px rgba(233,162,49,.26),0 18px 38px rgba(0,0,0,.48)!important;
+}
+.vip-rank-reference .vip-ref-avatar-wrap {
+  box-shadow:0 0 0 3px rgba(10,9,9,.75),0 0 0 5px rgba(242,190,97,.38),0 0 24px rgba(242,190,97,.26)!important;
+}
+@media(max-width:639px){
+ .vip-dashboard.vip-redesign > section:first-child:before,.vip-rank-reference > div:first-child:after{opacity:.58}
+}
