@@ -391,7 +391,7 @@ function DashboardView({ data, onGoLeader, onGoLatestSes, onGoPot }) {
   ).join(" ");
 
   return (
-    <div className="space-y-6">
+    <div className="vip-dashboard space-y-6">
       <section className="relative overflow-hidden rounded-3xl border border-amber-400/30 p-5 sm:p-7"
         style={{background:"radial-gradient(circle at 85% 0%, rgba(196,136,48,.27), transparent 45%), linear-gradient(135deg,#242016 0%,#141518 55%,#101114 100%)"}}>
         <div className="absolute -right-8 -top-12 text-[150px] leading-none opacity-[0.07] pointer-events-none" aria-hidden="true">♠</div>
@@ -642,7 +642,7 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
   // Player list
   const avatarOverflows = data.avatarOverflows || {};
   return (
-    <div className="space-y-2">
+    <div className="vip-players space-y-2">
       <h2 className="text-xl font-bold text-white">👤 Player Profiles</h2>
       <p className="text-zinc-500 text-sm">กดเพื่อ select · กดอีกครั้งเพื่อดู profile</p>
       <div className="space-y-2">
@@ -993,7 +993,7 @@ function LeaderboardView({ data }) {
     : "-";
 
   return (
-    <div className="space-y-5">
+    <div className="vip-rank space-y-5">
       <div>
         <h2 className="text-xl font-bold text-white">🏆 Leaderboard</h2>
         <p className="text-zinc-500 text-sm mt-0.5">แสดงผล: <span className="text-amber-300">{filterLabel}</span></p>
