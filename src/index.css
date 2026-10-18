@@ -542,3 +542,19 @@ select:focus-visible, textarea:focus-visible {
 @media(min-width:701px) {
   .vip-dashboard.vip-redesign > section:first-child {min-height:255px!important}
 }
+
+
+/* Real casino artwork asset: independent of the live dashboard text and data. */
+.vip-dashboard.vip-redesign > section:first-child,
+.vip-rank-reference > div:first-child,
+.vip-players.vip-redesign .vip-players-hero {
+  background-image:linear-gradient(90deg,rgba(4,6,8,.89) 0%,rgba(5,7,9,.68) 46%,rgba(6,8,10,.36) 100%),url('/vip-casino-scene.svg')!important;
+  background-position:center center!important;
+  background-size:cover!important;
+  background-repeat:no-repeat!important;
+}
+.vip-dashboard.vip-redesign > section:first-child {border-color:#bd9048!important;box-shadow:inset 0 0 0 2px rgba(8,7,7,.85),inset 0 0 0 3px rgba(239,183,83,.35),0 18px 40px #000a,0 0 18px #bd85361f!important}
+.vip-dashboard .vip-dash-hero-layout > button {background:linear-gradient(130deg,rgba(12,12,13,.95),rgba(24,17,12,.93))!important;border-color:#d6a65c!important;box-shadow:0 0 0 1px #e1b46944,0 0 24px #f0b75b36,inset 0 0 20px #d29a3214!important}
+.vip-dashboard-stats > button {border-color:#a97b3f!important;box-shadow:inset 0 1px #ffd99a30,0 9px 23px #0008,0 0 10px #c28b2b24!important}
+.vip-dashboard .vip-dash-insights > section {border-color:#a77b40!important;box-shadow:inset 0 1px #e8bd7c2e,0 14px 30px #0009!important}
+@media(max-width:700px){.vip-dashboard.vip-redesign > section:first-child{background-position:61% center!important}}
