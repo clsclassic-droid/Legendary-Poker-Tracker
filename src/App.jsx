@@ -680,15 +680,15 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
                   }}>{rankNum}</span>
                 </div>
                 {/* รูป */}
-                <div className="flex-shrink-0 flex items-center py-2" style={{overflow: doOverflow ? "visible" : "hidden"}}>
+                <div className="flex-shrink-0 flex items-center justify-center my-2 ml-2 w-[88px] h-[88px] sm:w-[104px] sm:h-[104px] overflow-hidden rounded-xl border border-amber-400/20 bg-[#1b1c20]">
                   <img src={avatar} alt={p.name} onError={onAvatarError}
-                    className={doOverflow ? "object-contain" : "object-cover"}
+                    className="object-cover"
                     style={{
-                      width: isSel ? "160px" : "100px",
-                      height: isSel ? "160px" : "100px",
-                      marginTop: doOverflow ? (isSel ? "-60px" : "-40px") : "0px",
+                      width: "100%",
+                      height: "100%",
+                      marginTop: "0px",
                       objectPosition: "top center",
-                      borderRadius: doOverflow ? "0px" : "8px",
+                      borderRadius: "10px",
                       filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.7))",
                       transition: "all 0.2s ease",
                     }}
@@ -1066,29 +1066,37 @@ function LeaderboardView({ data }) {
       ) : (
         <>
           {top3.length>0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {top3.map((p,i) => (
-                <div key={p.name} className={"rounded-2xl border p-4 "+GRAD[i]}>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-2xl">{MEDAL[i]}</span>
-                    <div>
-                      <div className="text-white font-bold text-lg leading-tight">{p.name}</div>
-                      <div className="text-xs font-normal" style={{color:"rgba(255,255,255,0.4)"}}>
-                        {(data.nicknames||{})[p.name] ? `"${(data.nicknames||{})[p.name]}"` : "-"}
+            <section className="rounded-3xl border border-amber-400/20 bg-[#151619] p-4 sm:p-6">
+              <div className="flex items-center justify-between mb-5">
+                <div>
+                  <div className="text-white font-black text-xl">ทำเนียบผู้ชนะ</div>
+                  <div className="text-zinc-400 text-xs mt-1">อันดับสูงสุดในช่วงที่เลือก</div>
+                </div>
+                <span className="text-amber-300 text-3xl">♛</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+                {top3.map((p,i) => (
+                  <div key={p.name} className={"relative overflow-hidden rounded-2xl border p-5 "+GRAD[i]+" "+(i===0?"sm:min-h-[245px] border-amber-300/60 shadow-[0_0_35px_rgba(210,157,65,0.13)]":"sm:min-h-[210px]")}>
+                    <div className="absolute -right-4 -top-9 text-[120px] opacity-10 pointer-events-none">{["♛","♠","♦"][i]}</div>
+                    <div className="relative">
+                      <div className="flex items-center justify-between mb-5">
+                        <span className="text-3xl">{MEDAL[i]}</span>
+                        <span className="text-xs tracking-widest text-zinc-300">RANK 0{i+1}</span>
+                      </div>
+                      <div className="text-white text-xl font-black truncate">{p.name}</div>
+                      <div className="text-zinc-400 text-xs mt-1">{(data.nicknames||{})[p.name] || p.n+" เซสชั่น"}</div>
+                      <div className={"font-mono text-2xl font-black mt-4 "+(p.total>=0?"text-emerald-300":"text-red-300")}>{p.total>0?"+":""}{fmt(p.total)} ฿</div>
+                      <div className="flex flex-wrap gap-1.5 mt-4 text-xs">
+                        <span className="rounded-full bg-black/25 border border-white/10 px-2 py-1">🥇 {p.gold}</span>
+                        <span className="rounded-full bg-black/25 border border-white/10 px-2 py-1">🥈 {p.silver}</span>
+                        <span className="rounded-full bg-black/25 border border-white/10 px-2 py-1">🥉 {p.bronze}</span>
+                        <span className="rounded-full bg-black/25 border border-white/10 px-2 py-1">💀 {p.last}</span>
                       </div>
                     </div>
                   </div>
-                  <div className={"font-mono text-2xl font-black mt-1 "+(p.total>=0?"text-emerald-400":"text-red-400")}>{p.total>0?"+":""}{fmt(p.total)} ฿</div>
-                  <div className="mt-2 flex flex-wrap gap-1 text-xs">
-                    {p.gold>0   && <span className="bg-amber-500/20 border border-amber-500/30 text-amber-300 px-1.5 py-0.5 rounded-full">🥇×{p.gold}</span>}
-                    {p.silver>0 && <span className=" border border-zinc-400/30 text-zinc-300 px-1.5 py-0.5 rounded-full">🥈×{p.silver}</span>}
-                    {p.bronze>0 && <span className="bg-orange-700/20 border border-orange-700/30 text-orange-300 px-1.5 py-0.5 rounded-full">🥉×{p.bronze}</span>}
-                    {p.last>0   && <span className="bg-red-900/30 border border-red-700/30 text-red-400 px-1.5 py-0.5 rounded-full">💀×{p.last}</span>}
-                    <span className=" border border-zinc-600/40 text-zinc-500 px-1.5 py-0.5 rounded-full">{p.n} เซสชั่น</span>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            </section>
           )}
           <Box className="overflow-hidden p-0">
             <div className="overflow-x-auto">
