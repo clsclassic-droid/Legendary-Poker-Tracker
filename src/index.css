@@ -242,3 +242,27 @@ select:focus-visible, textarea:focus-visible {
  .vip-rank > div:first-child {padding:14px}
  .vip-players > button {min-height:104px}
 }
+
+/* VIP Skill leaderboard */
+.vip-skill-hero {
+ position:relative;overflow:hidden;padding:27px 30px;border-radius:24px;
+ border:1px solid rgba(234,183,91,.58);
+ background:radial-gradient(circle at 85% 15%,rgba(209,151,57,.27),transparent 40%),linear-gradient(115deg,#38241b,#19151a 58%,#0c1015);
+ box-shadow:0 14px 38px rgba(0,0,0,.35),inset 0 1px rgba(255,229,174,.09);
+}
+.vip-skill-hero:after {content:"♠";position:absolute;right:35px;top:-40px;font-size:185px;color:rgba(241,184,89,.08);pointer-events:none}
+.vip-skill-hero h2 {color:#fff0d4;text-shadow:0 2px 20px rgba(235,169,71,.25)}
+.vip-skill-podium {align-items:stretch;gap:16px}
+.vip-skill-card {min-height:224px!important;padding:22px!important;position:relative;overflow:hidden;box-shadow:0 13px 33px rgba(0,0,0,.38),inset 0 1px rgba(255,237,197,.09)}
+.vip-skill-card:before {content:"♠";position:absolute;right:-7px;top:-45px;font-size:145px;color:rgba(255,255,255,.055);pointer-events:none}
+.vip-skill-card:first-child {background:linear-gradient(145deg,#65431f,#2d2119 65%,#15151b)!important;border-color:rgba(248,199,96,.75)!important;box-shadow:0 0 28px rgba(220,157,48,.16),inset 0 1px rgba(255,229,162,.18)}
+.vip-skill-card:nth-child(2) {background:linear-gradient(145deg,#363944,#1b1e25)!important;border-color:rgba(190,195,209,.45)!important}
+.vip-skill-card:nth-child(3) {background:linear-gradient(145deg,#573123,#231a1a)!important;border-color:rgba(195,120,80,.48)!important}
+.vip-skill-card > div {position:relative}
+.vip-skill-card .font-mono {font-variant-numeric:tabular-nums}
+.vip-skill-table {border:1px solid rgba(218,165,76,.35)!important;background:linear-gradient(150deg,#1c1918,#0c0e12)!important;box-shadow:0 14px 32px rgba(0,0,0,.35)}
+.vip-skill-table thead {background:rgba(178,125,49,.16)}
+.vip-skill-table th {color:#e9d3a9!important;border-bottom:1px solid rgba(216,167,88,.28)}
+.vip-skill-table tbody tr:nth-child(odd) {background:rgba(255,255,255,.02)}
+.vip-skill-table tbody tr:hover {background:rgba(215,164,72,.1)!important}
+@media(max-width:639px) {.vip-skill-hero{padding:20px}.vip-skill-card{min-height:185px!important}}
