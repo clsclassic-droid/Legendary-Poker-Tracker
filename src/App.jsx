@@ -391,101 +391,61 @@ function DashboardView({ data, onGoLeader, onGoLatestSes, onGoPot }) {
   ).join(" ");
 
   return (
-    <div className="vip-dashboard vip-redesign space-y-6">
-      <section className="relative overflow-hidden rounded-3xl border border-amber-400/30 p-5 sm:p-7"
-        style={{background:"radial-gradient(circle at 85% 0%, rgba(196,136,48,.27), transparent 45%), linear-gradient(135deg,#242016 0%,#141518 55%,#101114 100%)"}}>
-        <div className="absolute -right-8 -top-12 text-[150px] leading-none opacity-[0.07] pointer-events-none" aria-hidden="true">♠</div>
-        <div className="vip-dash-hero-layout relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
-          <div>
-            <div className="text-amber-300 text-[11px] font-bold tracking-[.25em] mb-2">LEGENDARY SECRETS · POKER CLUB</div>
-            <h2 className="text-2xl sm:text-3xl font-black text-white mb-2">THE LEGENDARY CLUB <span className="vip-hero-subtitle">PRIVATE MEMBERS · LIVE STANDINGS</span></h2>
-            <p className="text-zinc-300 text-sm">The club at a glance. Every session, every champion.</p>
-            <div className="flex flex-wrap gap-2 mt-4">
-              <span className="rounded-full bg-amber-400/10 border border-amber-400/30 px-3 py-1 text-xs text-amber-200">{data.sessions.length} SESSIONS</span>
-              <span className="rounded-full bg-white/5 border border-white/10 px-3 py-1 text-xs text-zinc-200">{data.players.length} PLAYERS</span>
-              <span className="rounded-full bg-white/5 border border-white/10 px-3 py-1 text-xs text-zinc-200">{yearCount} THIS YEAR</span>
-            </div>
+    <div className="lpc-dashboard">
+      <section className="lpc-hero">
+        <div className="lpc-hero-copy">
+          <div className="lpc-eyebrow">LEGENDARY SECRETS · POKER CLUB</div>
+          <h2>THE LEGENDARY CLUB</h2>
+          <div className="lpc-subtitle">PRIVATE MEMBERS · LIVE STANDINGS</div>
+          <p>The club at a glance. Every session, every champion.</p>
+          <div className="lpc-badges">
+            <span><b aria-hidden="true">▤</b><span><strong>{fmt(data.sessions.length)}</strong>SESSIONS</span></span>
+            <span><img src="/vip-icons/profiles.png" alt=""/><span><strong>{fmt(data.players.length)}</strong>PLAYERS</span></span>
+            <span><b aria-hidden="true">▦</b><span><strong>{yearCount}</strong>THIS YEAR</span></span>
           </div>
-          <button onClick={() => leader && onGoLeader(leader.name)} disabled={!leader}
-            className="relative rounded-2xl border border-amber-300/35 bg-black/30 px-5 py-4 text-left sm:min-w-[235px] hover:border-amber-300 transition-colors disabled:opacity-50">
-            <div className="text-amber-300 text-xs font-bold mb-2">♛ CURRENT CLUB LEADER</div>
-            <div className="text-white font-black text-2xl">{leader?.name || "ยังไม่มีข้อมูล"}</div>
-            <div className="mt-1 text-emerald-300 font-mono font-black text-xl">{leader ? (leader.total > 0 ? "+" : "") + fmt(leader.total) + " ฿" : "—"}</div>
-            <div className="text-zinc-400 text-xs mt-2">VIEW PLAYER PROFILE →</div>
-          </button>
+        </div>
+        <button className="lpc-leader lpc-panel" onClick={() => leader && onGoLeader(leader.name)} disabled={!leader}>
+          <div className="lpc-leader-label"><span aria-hidden="true">♛</span> CURRENT CLUB LEADER</div>
+          <div className="lpc-leader-body">
+            <div className="lpc-medallion"><span className="lpc-crown" aria-hidden="true">♛</span><img src={leader ? avatarUrl(leader.name, data.avatars) : '/vip-icons/avatar.png'} onError={e=>{e.currentTarget.onerror=null;e.currentTarget.src='/vip-icons/avatar.png';}} alt=""/><span className="lpc-laurel" aria-hidden="true">❧</span></div>
+            <div><strong className="lpc-leader-name">{leader?.name || "ยังไม่มีข้อมูล"}</strong><div className={"lpc-leader-profit "+(leader?.total<0?'lpc-loss':'')}>{leader ? (leader.total>0?'+':'')+fmt(leader.total)+' ฿':'—'}</div><span className="lpc-link-button">VIEW PLAYER PROFILE →</span></div>
+          </div>
+        </button>
+      </section>
+      <div className="lpc-stat-grid">
+        {[
+          {label:"TOTAL SESSIONS",value:fmt(data.sessions.length),sub:"CLUB HISTORY",icon:"♠",color:"gold"},
+          {label:"TOTAL PLAYERS",value:fmt(data.players.length),sub:"REGISTERED MEMBERS",image:"profiles",icon:"♣",color:"blue"},
+          {label:"LATEST SEASON",value:latest ? "S"+latest.season+"/"+latest.year : "—",sub:latest ? "SESSION "+latest.sessionNo : "NO SESSIONS",image:"streak",icon:"♦",color:"gold"},
+          {label:"CLUB BANKROLL",value:fmt(pot)+" ฿",sub:"VIEW DETAILS →",icon:"▤",color:pot>=0?"purple":"red",action:onGoPot},
+        ].map(card => <button key={card.label} onClick={card.action} disabled={!card.action} className="lpc-stat lpc-panel">
+          <span className="lpc-stat-symbol" aria-hidden="true">{card.image?<img src={'/vip-icons/'+card.image+'.png'} alt=""/>:card.icon}</span>
+          <span className="lpc-stat-copy"><span className="lpc-stat-label">{card.label}</span><strong className={'lpc-value lpc-'+card.color}>{card.value}</strong><span className="lpc-stat-sub">{card.sub}</span></span>
+          <span className="lpc-suit-watermark" aria-hidden="true">{card.icon}</span>
+        </button>)}
+      </div>
+      <section className="lpc-chart lpc-panel">
+        <div className="lpc-panel-heading"><div className="lpc-heading-icon"><img src="/vip-icons/streak.png" alt=""/><div><h3>CUMULATIVE PROFIT</h3><p>PROFIT / LOSS BY SESSION · {leader?.name || 'NO PLAYER DATA'}</p></div></div><span className="lpc-pill">ALL PLAYED SESSIONS</span></div>
+        <div className="lpc-chart-layout">
+          <div className="lpc-y-axis">{[chartMax,(chartMax+chartMin)/2,chartMin].map((v,i)=><span key={i}>{fmt(Math.round(v))}</span>)}</div>
+          <div className="lpc-chart-canvas"><svg viewBox="0 0 640 170" role="img" aria-label={'กำไรสะสมของ '+(leader?.name||'ผู้เล่นอันดับหนึ่ง')} preserveAspectRatio="none">
+            <defs><linearGradient id="lpc-gold-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#ffc746" stopOpacity=".45"/><stop offset="100%" stopColor="#d69217" stopOpacity="0"/></linearGradient></defs>
+            {[25,85,145].map(y=><line key={y} x1="0" y1={y} x2="640" y2={y} stroke="#ffffff18"/>)}
+            {[0,80,160,240,320,400,480,560,640].map(x=><line key={x} x1={x} y1="25" x2={x} y2="145" stroke="#ffffff10"/>)}
+            <polygon points={'0,145 '+chartPoints+' 640,145'} fill="url(#lpc-gold-fill)"/>
+            <polyline points={chartPoints} fill="none" stroke="#ffda6c" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg><div className="lpc-x-axis"><span>เริ่มต้น</span><span>{Math.round(leaderTrend.length/2)}</span><span>{leaderTrend.length} เซสชั่นที่เล่น</span></div></div>
         </div>
       </section>
-
-      <div className="vip-dashboard-stats grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {[
-          {label:"TOTAL SESSIONS",value:fmt(data.sessions.length),sub:"CLUB HISTORY",icon:"♠",color:"text-amber-300"},
-          {label:"TOTAL PLAYERS",value:fmt(data.players.length),sub:"REGISTERED MEMBERS",icon:"♣",color:"text-sky-300"},
-          {label:"LATEST SEASON",value:latest ? "S"+latest.season+"/"+latest.year : "—",sub:latest ? "SESSION "+latest.sessionNo : "NO SESSIONS",icon:"♦",color:"text-amber-300"},
-          {label:"CLUB BANKROLL",value:fmt(pot)+" ฿",sub:"VIEW DETAILS",icon:"♥",color:pot>=0?"text-purple-300":"text-red-300",action:onGoPot},
-        ].map(card => (
-          <button key={card.label} onClick={card.action} disabled={!card.action}
-            className="rounded-2xl border border-white/10 bg-[#1a1b20] p-4 sm:p-5 text-left shadow-lg disabled:cursor-default hover:border-amber-400/40 transition-colors">
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-zinc-300 text-xs font-semibold">{card.label}</span>
-              <span className={card.color+" text-xl"}>{card.icon}</span>
-            </div>
-            <div className={"mt-3 text-xl sm:text-2xl font-black font-mono break-words "+card.color}>{card.value}</div>
-            <div className="text-zinc-400 text-xs mt-2">{card.sub}</div>
-          </button>
-        ))}
-      </div>
-
-      <div className="vip-dash-insights grid grid-cols-1 lg:grid-cols-5 gap-4">
-        <section className="lg:col-span-3 rounded-3xl border border-white/10 bg-[#17181c] p-5 sm:p-6">
-          <div className="flex flex-wrap justify-between items-start gap-3 mb-5">
-            <div>
-              <div className="text-white text-lg font-bold">CUMULATIVE PROFIT</div>
-              <div className="text-zinc-400 text-xs mt-1">{leader ? "LEADER: "+leader.name : "NO PLAYER DATA"}</div>
-            </div>
-            <span className="rounded-full bg-emerald-400/10 border border-emerald-400/20 px-3 py-1 text-emerald-300 text-xs">BY PLAYED SESSION</span>
-          </div>
-          <div className="rounded-2xl bg-[#101215] border border-white/5 p-3">
-            <svg viewBox="0 0 640 170" role="img" aria-label="Leader cumulative profit trend" className="w-full h-auto">
-              {[30,85,140].map(y => <line key={y} x1="0" y1={y} x2="640" y2={y} stroke="#3b3c40" strokeDasharray="4 7" />)}
-              <polyline points={chartPoints} fill="none" stroke="#e5b85f" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </div>
-          <div className="text-zinc-500 text-xs mt-3">Based on the leader’s net profit or loss in each session</div>
+      <div className="lpc-bottom-grid">
+        <section className="lpc-podium-panel lpc-panel"><div className="lpc-panel-heading"><h3><span aria-hidden="true">♛</span> TOP 3 PLAYERS</h3><span className="lpc-small-note">อันดับตามกำไรสะสม</span></div>
+          <div className="lpc-podium">{active.slice(0,3).map((p,i)=><button key={p.name} className={'lpc-champion lpc-place-'+i} onClick={()=>onGoLeader(p.name)}>
+            <div className="lpc-medallion"><span className="lpc-crown" aria-hidden="true">♛</span><img src={avatarUrl(p.name,data.avatars)} onError={e=>{e.currentTarget.onerror=null;e.currentTarget.src='/vip-icons/avatar.png';}} alt=""/><span className="lpc-rank-number">{i+1}</span></div>
+            <strong className="lpc-champion-name">{p.name}</strong><span className={'lpc-champion-profit '+(p.total<0?'lpc-loss':'')}>{p.total>0?'+':''}{fmt(p.total)} ฿</span><span className="lpc-champion-sessions">{p.n} เซสชั่น</span>
+          </button>)}</div>{!active.length&&<p className="lpc-empty">ยังไม่มีอันดับผู้เล่น</p>}
         </section>
-        <section className="lg:col-span-2 rounded-3xl border border-amber-400/20 bg-[#17181c] p-5 sm:p-6">
-          <div className="flex justify-between items-center mb-5">
-            <div>
-              <div className="text-white text-lg font-bold">TOP 3 PLAYERS</div>
-              <div className="text-zinc-400 text-xs mt-1">อันดับตามกำไรสะสม</div>
-            </div>
-            <span className="text-amber-300 text-2xl">♛</span>
-          </div>
-          <div className="vip-dash-leaders space-y-3">
-            {active.slice(0,3).map((p,i) => (
-              <button key={p.name} onClick={() => onGoLeader(p.name)}
-                className="w-full flex items-center gap-3 rounded-xl border border-white/10 bg-white/[.035] p-3 text-left hover:bg-amber-400/10 transition-colors">
-                <span className={"vip-dash-medal w-10 h-10 rounded-xl flex items-center justify-center font-black text-lg "+(["bg-amber-400/20 text-amber-300","bg-zinc-300/15 text-zinc-200","bg-orange-400/15 text-orange-300"][i])}>{["♛","♜","♞"][i]}</span>
-                <span className="flex-1 min-w-0">
-                  <span className="block text-white font-bold truncate"><PlayerName player={p.name} nicknames={data.nicknames}/></span>
-                  <span className="block text-zinc-400 text-xs">{p.n} เซสชั่น · 🥇 {p.gold}</span>
-                </span>
-                <span className={"font-mono font-bold text-sm whitespace-nowrap "+(p.total>=0?"text-emerald-300":"text-red-300")}>{p.total>0?"+":""}{fmt(p.total)} ฿</span>
-              </button>
-            ))}
-            {!active.length && <div className="text-zinc-400 text-sm">ยังไม่มีอันดับผู้เล่น</div>}
-          </div>
-        </section>
+        <section className="lpc-recent lpc-panel"><div className="lpc-panel-heading"><h3><span aria-hidden="true">◷</span> RECENT SESSIONS</h3></div><div className="lpc-table-scroll"><table><thead><tr><th>SESSION</th><th>DATE</th><th>PLAYERS</th><th>SEASON</th></tr></thead><tbody>{data.sessions.slice(-5).reverse().map(s=><tr key={s.internalId}><td><button onClick={()=>onGoLatestSes(s.internalId)} aria-label={'ดูเซสชั่น '+s.sessionNo}>{s.sessionNo} ↗</button></td><td>{String(s.date||'').slice(0,10)}</td><td>{s.entries?.length||0}</td><td>S{s.season}/{s.year}</td></tr>)}</tbody></table></div>{!latest&&<p className="lpc-empty">ยังไม่มีเซสชั่น</p>}</section>
       </div>
-
-      {latest && <button onClick={() => onGoLatestSes(latest.internalId)}
-        className="w-full flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-400/20 bg-[#1a1b20] p-4 sm:p-5 text-left hover:border-amber-400/50 transition-colors">
-        <div>
-          <div className="text-amber-300 text-xs font-bold mb-1">เซสชั่นล่าสุด</div>
-          <div className="text-white font-bold">ปี {latest.year} · S{latest.season} เซสชั่น {latest.sessionNo}</div>
-          <div className="text-zinc-400 text-xs mt-1">{String(latest.date || "").slice(0,10)}</div>
-        </div>
-        <span className="text-amber-300 text-sm font-semibold">ดูรายละเอียด →</span>
-      </button>}
     </div>
   );
 }
@@ -2976,7 +2936,7 @@ export default function App() {
       <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.05)',zIndex:0,pointerEvents:'none'}}/>
       <div style={{position:'relative',zIndex:1,minHeight:'100vh'}}>
       {/* -- DESKTOP header (sm ขึ้นไป) -- */}
-      <header className="hidden sm:block border-b border-zinc-800/60 sticky top-0 z-40" style={{background:"rgba(8,5,1,0.8)",backdropFilter:"blur(16px)"}}>
+      <header className="lpc-header hidden sm:block border-b border-zinc-800/60 sticky top-0 z-40" style={{background:"rgba(8,5,1,0.8)",backdropFilter:"blur(16px)"}}>
         <div className="max-w-7xl mx-auto px-4 flex items-center gap-4">
           <img src={LOGO_SRC} alt="Legendary Secrets Poker Club" className="h-12 w-12 rounded-xl object-cover flex-shrink-0 my-2 ring-1 ring-amber-400/30"/>
           <div className="flex flex-1 items-center justify-between overflow-x-auto gap-3">
@@ -3040,7 +3000,7 @@ export default function App() {
               {TABS.map(t => (
                 <button key={t.id} onClick={() => { setTab(t.id); setMenuOpen(false); if (t.id !== "add") setEditSes(null); }}
                   className={"w-full flex items-center gap-3 px-5 py-3 text-sm font-medium transition-colors " + (tab === t.id ? "text-amber-400 bg-amber-500/10" : "text-zinc-300 hover:text-amber-300 hover:bg-white/5")}>
-                  <span className="text-base">{t.icon}</span>
+                  <span className="lpc-mobile-icon">{["dashboard","leaderboard","profiles","race","skill","luck","calc","streak"].includes(t.id) ? <img src={`/vip-icons/${t.id}.png`} alt=""/> : t.icon}</span>
                   <span>{t.label}</span>
                   {tab === t.id && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-amber-400 flex-shrink-0"/>}
                 </button>
@@ -3087,3 +3047,4 @@ export default function App() {
     </>
   );
 }
+
