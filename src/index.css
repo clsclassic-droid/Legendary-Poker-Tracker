@@ -631,3 +631,19 @@ button:hover .vip-nav-icon,button[aria-current="page"] .vip-nav-icon {stroke:#ff
 .lpc-nav-tools{margin-left:0;gap:0}.lpc-header .lpc-account{min-height:40px;width:40px;height:40px;flex-shrink:0}
 @media(max-width:1100px){.bg-legendary-main .lpc-header-inner{padding:0 12px;gap:10px;min-height:66px}.lpc-header .lpc-logo{width:54px;height:54px}.bg-legendary-main .lpc-header .lpc-nav-button{font-size:11px!important;padding:10px 7px!important;gap:5px}.lpc-header .lpc-nav-button .theme-icon{width:22px;height:22px}}
 @media(max-width:639px){.bg-legendary-main .lpc-header-inner{padding:0 8px;gap:8px;min-height:60px}.lpc-header .lpc-logo{width:44px;height:44px;border-radius:9px}.lpc-header .lpc-account{width:32px;height:36px;min-height:36px}.lpc-account img{width:23px;height:23px}.bg-legendary-main .lpc-page:not(.lpc-page-dashboard){padding:20px 12px 40px}.bg-legendary-main .lpc-page:not(.lpc-page-dashboard) :is(.vip-players-hero,.vip-rank-reference>div:first-child){min-height:130px!important}}
+
+
+/* Compact dashboard and touch overscroll protection. */
+html, body { overscroll-behavior-y: none; }
+.lpc-dashboard .lpc-hero { padding-bottom:20px!important; min-height:0!important; }
+.lpc-dashboard .lpc-stat { min-height:110px!important; padding:15px 18px!important; align-items:center; }
+.lpc-dashboard .lpc-stat-copy { gap:9px; }
+.lpc-dashboard .lpc-stat-symbol img,.lpc-dashboard .lpc-stat-symbol svg { height:39px; width:37px; }
+.lpc-dashboard .lpc-stat-symbol { font-size:43px; }
+.lpc-history-note,.lpc-session-note { font-size:10px; color:#cbb994; line-height:1.5; margin:8px 0; }
+.lpc-gain { color:#20eda5!important; }
+.lpc-recent td:nth-child(2) { white-space:normal!important; overflow-wrap:anywhere; }
+@media(max-width:760px) {
+  .lpc-dashboard .lpc-stat { min-height:98px!important; padding:12px!important; gap:10px; }
+  .lpc-dashboard .lpc-stat-copy { gap:7px; }
+}
