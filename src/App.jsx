@@ -364,7 +364,7 @@ function MiniChart({ player, sessions }) {
 // -----------------------------------------------------------------
 // DASHBOARD
 // -----------------------------------------------------------------
-function DashboardView({ data, onGoLeader, onGoLatestSes, onGoPot }) {
+function DashboardView({ data, onGoLeader, onGoLatestSes, onGoPot, onGoPlayers, onGoSessions }) {
   const latest = data.sessions[data.sessions.length - 1] ?? null;
   const summary = useMemo(() => buildSummary(data.players, data.sessions), [data]);
   const active = summary.filter(p => p.n > 0);
@@ -399,15 +399,15 @@ function DashboardView({ data, onGoLeader, onGoLatestSes, onGoPot }) {
           <div className="lpc-subtitle">PRIVATE MEMBERS · LIVE STANDINGS</div>
           <p>The club at a glance. Every session, every champion.</p>
           <div className="lpc-badges">
-            <span><b aria-hidden="true">▤</b><span><strong>{fmt(data.sessions.length)}</strong>SESSIONS</span></span>
+            <span><svg viewBox="0 0 48 48" className="lpc-coins" aria-hidden="true"><path d="M5 25v13c0 7 30 7 30 0V25" fill="#be811d" stroke="#ffe49c" strokeWidth="1.5"/><path d="M5 31c0 7 30 7 30 0M5 37c0 7 30 7 30 0" fill="none" stroke="#ffe49c" strokeWidth="2"/><ellipse cx="20" cy="25" rx="15" ry="6" fill="#ffdb73" stroke="#fff0b2"/><path d="M14 12v12c0 7 30 7 30 0V12" fill="#b77b18" stroke="#ffe49c" strokeWidth="1.5"/><path d="M14 18c0 7 30 7 30 0" fill="none" stroke="#ffdc7b" strokeWidth="2"/><ellipse cx="29" cy="12" rx="15" ry="6" fill="#ffe49c" stroke="#fff3ca"/><ellipse cx="29" cy="12" rx="11" ry="3.5" fill="none" stroke="#c1912f"/></svg><span><strong>{fmt(data.sessions.length)}</strong>SESSIONS</span></span>
             <span><img src="/vip-icons/profiles.png" alt=""/><span><strong>{fmt(data.players.length)}</strong>PLAYERS</span></span>
-            <span><b aria-hidden="true">▦</b><span><strong>{yearCount}</strong>THIS YEAR</span></span>
+            <span><svg className="lpc-calendar" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 7h22v22H5Z" fill="#e7b746" stroke="#ffe398"/><path d="M5 13h22M10 3v8M22 3v8" stroke="#ffe398" strokeWidth="3"/>{[10,16,22].map(x=>[18,24].map(y=><rect key={x+"-"+y} x={x-1.5} y={y-1.5} width="3" height="3" fill="#3d2807"/>))}</svg><span><strong>{yearCount}</strong>THIS YEAR</span></span>
           </div>
         </div>
         <button className="lpc-leader lpc-panel" onClick={() => leader && onGoLeader(leader.name)} disabled={!leader}>
           <div className="lpc-leader-label"><span aria-hidden="true">♛</span> CURRENT CLUB LEADER</div>
           <div className="lpc-leader-body">
-            <div className="lpc-medallion"><span className="lpc-crown" aria-hidden="true">♛</span><img src={leader ? avatarUrl(leader.name, data.avatars) : '/vip-icons/avatar.png'} onError={e=>{e.currentTarget.onerror=null;e.currentTarget.src='/vip-icons/avatar.png';}} alt=""/><span className="lpc-laurel" aria-hidden="true">❧</span></div>
+            <div className="lpc-portrait"><img className="lpc-portrait-photo" src={leader ? avatarUrl(leader.name, data.avatars) : '/vip-icons/avatar.png'} onError={e=>{e.currentTarget.onerror=null;e.currentTarget.src='/vip-icons/avatar.png';}} alt=""/><img className="lpc-portrait-frame" src="/vip-icons/crowned-frame.webp" alt=""/></div>
             <div><strong className="lpc-leader-name">{leader?.name || "ยังไม่มีข้อมูล"}</strong><div className={"lpc-leader-profit "+(leader?.total<0?'lpc-loss':'')}>{leader ? (leader.total>0?'+':'')+fmt(leader.total)+' ฿':'—'}</div><span className="lpc-link-button">VIEW PLAYER PROFILE →</span></div>
           </div>
         </button>
@@ -419,13 +419,13 @@ function DashboardView({ data, onGoLeader, onGoLatestSes, onGoPot }) {
           {label:"LATEST SEASON",value:latest ? "S"+latest.season+"/"+latest.year : "—",sub:latest ? "SESSION "+latest.sessionNo : "NO SESSIONS",image:"streak",icon:"♦",color:"gold"},
           {label:"CLUB BANKROLL",value:fmt(pot)+" ฿",sub:"VIEW DETAILS →",icon:"▤",color:pot>=0?"purple":"red",action:onGoPot},
         ].map(card => <button key={card.label} onClick={card.action} disabled={!card.action} className="lpc-stat lpc-panel">
-          <span className="lpc-stat-symbol" aria-hidden="true">{card.image?<img src={'/vip-icons/'+card.image+'.png'} alt=""/>:card.icon}</span>
+          <span className="lpc-stat-symbol" aria-hidden="true">{card.image?<img src={'/vip-icons/'+card.image+'.png'} alt=""/>:card.icon==="▤"?<svg viewBox="0 0 48 48" className="lpc-coins" aria-hidden="true"><path d="M5 25v13c0 7 30 7 30 0V25" fill="#be811d" stroke="#ffe49c" strokeWidth="1.5"/><path d="M5 31c0 7 30 7 30 0M5 37c0 7 30 7 30 0" fill="none" stroke="#ffe49c" strokeWidth="2"/><ellipse cx="20" cy="25" rx="15" ry="6" fill="#ffdb73" stroke="#fff0b2"/><path d="M14 12v12c0 7 30 7 30 0V12" fill="#b77b18" stroke="#ffe49c" strokeWidth="1.5"/><path d="M14 18c0 7 30 7 30 0" fill="none" stroke="#ffdc7b" strokeWidth="2"/><ellipse cx="29" cy="12" rx="15" ry="6" fill="#ffe49c" stroke="#fff3ca"/><ellipse cx="29" cy="12" rx="11" ry="3.5" fill="none" stroke="#c1912f"/></svg>:card.icon}</span>
           <span className="lpc-stat-copy"><span className="lpc-stat-label">{card.label}</span><strong className={'lpc-value lpc-'+card.color}>{card.value}</strong><span className="lpc-stat-sub">{card.sub}</span></span>
           <span className="lpc-suit-watermark" aria-hidden="true">{card.icon}</span>
         </button>)}
       </div>
       <section className="lpc-chart lpc-panel">
-        <div className="lpc-panel-heading"><div className="lpc-heading-icon"><img src="/vip-icons/streak.png" alt=""/><div><h3>CUMULATIVE PROFIT</h3><p>PROFIT / LOSS BY SESSION · {leader?.name || 'NO PLAYER DATA'}</p></div></div><span className="lpc-pill">ALL PLAYED SESSIONS</span></div>
+        <div className="lpc-panel-heading"><div className="lpc-heading-icon"><img src="/vip-icons/streak.png" alt=""/><div><h3>CUMULATIVE PROFIT</h3><p>PROFIT / LOSS BY SESSION · {leader?.name || 'NO PLAYER DATA'}</p></div></div><span className="lpc-pill">All Sessions</span></div>
         <div className="lpc-chart-layout">
           <div className="lpc-y-axis">{[chartMax,(chartMax+chartMin)/2,chartMin].map((v,i)=><span key={i}>{fmt(Math.round(v))}</span>)}</div>
           <div className="lpc-chart-canvas"><svg viewBox="0 0 640 170" role="img" aria-label={'กำไรสะสมของ '+(leader?.name||'ผู้เล่นอันดับหนึ่ง')} preserveAspectRatio="none">
@@ -438,13 +438,13 @@ function DashboardView({ data, onGoLeader, onGoLatestSes, onGoPot }) {
         </div>
       </section>
       <div className="lpc-bottom-grid">
-        <section className="lpc-podium-panel lpc-panel"><div className="lpc-panel-heading"><h3><span aria-hidden="true">♛</span> TOP 3 PLAYERS</h3><span className="lpc-small-note">อันดับตามกำไรสะสม</span></div>
+        <section className="lpc-podium-panel lpc-panel"><div className="lpc-panel-heading"><h3><span aria-hidden="true">♛</span> TOP 3 PLAYERS</h3><button className="lpc-view-all" onClick={onGoPlayers}>View All →</button></div>
           <div className="lpc-podium">{active.slice(0,3).map((p,i)=><button key={p.name} className={'lpc-champion lpc-place-'+i} onClick={()=>onGoLeader(p.name)}>
-            <div className="lpc-medallion"><span className="lpc-crown" aria-hidden="true">♛</span><img src={avatarUrl(p.name,data.avatars)} onError={e=>{e.currentTarget.onerror=null;e.currentTarget.src='/vip-icons/avatar.png';}} alt=""/><span className="lpc-rank-number">{i+1}</span></div>
+            <div className="lpc-portrait"><img className="lpc-portrait-photo" src={avatarUrl(p.name,data.avatars)} onError={e=>{e.currentTarget.onerror=null;e.currentTarget.src='/vip-icons/avatar.png';}} alt=""/><img className="lpc-portrait-frame" src="/vip-icons/crowned-frame.webp" alt=""/><span className="lpc-rank-number">{i+1}</span></div>
             <strong className="lpc-champion-name">{p.name}</strong><span className={'lpc-champion-profit '+(p.total<0?'lpc-loss':'')}>{p.total>0?'+':''}{fmt(p.total)} ฿</span><span className="lpc-champion-sessions">{p.n} เซสชั่น</span>
           </button>)}</div>{!active.length&&<p className="lpc-empty">ยังไม่มีอันดับผู้เล่น</p>}
         </section>
-        <section className="lpc-recent lpc-panel"><div className="lpc-panel-heading"><h3><span aria-hidden="true">◷</span> RECENT SESSIONS</h3></div><div className="lpc-table-scroll"><table><thead><tr><th>SESSION</th><th>DATE</th><th>PLAYERS</th><th>SEASON</th></tr></thead><tbody>{data.sessions.slice(-5).reverse().map(s=><tr key={s.internalId}><td><button onClick={()=>onGoLatestSes(s.internalId)} aria-label={'ดูเซสชั่น '+s.sessionNo}>{s.sessionNo} ↗</button></td><td>{String(s.date||'').slice(0,10)}</td><td>{s.entries?.length||0}</td><td>S{s.season}/{s.year}</td></tr>)}</tbody></table></div>{!latest&&<p className="lpc-empty">ยังไม่มีเซสชั่น</p>}</section>
+        <section className="lpc-recent lpc-panel"><div className="lpc-panel-heading"><h3><span aria-hidden="true">◷</span> RECENT SESSIONS</h3><button className="lpc-view-all" onClick={onGoSessions}>View All →</button></div><div className="lpc-table-scroll"><table><thead><tr><th>SESSION</th><th>DATE</th><th>PLAYERS</th><th>SEASON</th></tr></thead><tbody>{data.sessions.slice(-5).reverse().map(s=><tr key={s.internalId}><td><button onClick={()=>onGoLatestSes(s.internalId)} aria-label={'ดูเซสชั่น '+s.sessionNo}>{s.sessionNo} ↗</button></td><td>{String(s.date||'').slice(0,10)}</td><td>{s.entries?.length||0}</td><td>S{s.season}/{s.year}</td></tr>)}</tbody></table></div>{!latest&&<p className="lpc-empty">ยังไม่มีเซสชั่น</p>}</section>
       </div>
     </div>
   );
@@ -2936,34 +2936,23 @@ export default function App() {
       <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.05)',zIndex:0,pointerEvents:'none'}}/>
       <div style={{position:'relative',zIndex:1,minHeight:'100vh'}}>
       {/* -- DESKTOP header (sm ขึ้นไป) -- */}
-      <header className="lpc-header hidden sm:block border-b border-zinc-800/60 sticky top-0 z-40" style={{background:"rgba(8,5,1,0.8)",backdropFilter:"blur(16px)"}}>
-        <div className="max-w-7xl mx-auto px-4 flex items-center gap-4">
-          <img src={LOGO_SRC} alt="Legendary Secrets Poker Club" className="h-12 w-12 rounded-xl object-cover flex-shrink-0 my-2 ring-1 ring-amber-400/30"/>
-          <div className="flex flex-1 items-center justify-between overflow-x-auto gap-3">
-            <div className="flex gap-1">
-              {TABS.map(t => (
-                <button key={t.id} onClick={() => { setTab(t.id); if (t.id !== "add") setEditSes(null); }}
-                  className={"flex items-center gap-2 px-3 py-2.5 my-2 text-xs font-semibold rounded-xl border transition-all whitespace-nowrap " + (tab === t.id ? "border-amber-400/50 bg-amber-400/15 text-amber-200 shadow-[inset_0_1px_0_rgba(255,255,255,.08)]" : "border-transparent text-zinc-400 hover:bg-white/5 hover:text-white")}>
-                  <span className="vip-nav-icon-wrap text-amber-400/90" aria-hidden="true"><span className="vip-nav-icon-slot"><VipNavIcon id={t.id} fallback={t.icon}/>{["dashboard","leaderboard","profiles","race","skill","luck","calc","streak"].includes(t.id) && <img src={`/vip-icons/${t.id}.png`} alt="" className="vip-nav-art" onError={e => {e.currentTarget.style.display="none";}}/>}</span></span>
-                  <span>{t.label}</span>
-                </button>
-              ))}
-            </div>
-            <div className="flex items-center gap-2 flex-shrink-0 pl-2">
-              <span className={"text-xs font-mono " + (potBal >= 0 ? "text-purple-400" : "text-red-400")}>
-                💰 {fmt(potBal)} ฿
-              </span>
-              {isAdmin
-                ? <button onClick={() => { localStorage.removeItem("lspc_admin"); setIsAdmin(false); setTab("dashboard"); }}
-                    className="text-xs px-2 py-1 rounded-lg hover:bg-white/10 text-zinc-400 hover:text-white border border-zinc-700 transition-colors">
-                    🔓 Logout
-                  </button>
-                : <button onClick={() => setTab("login")}
-                    className="text-xs px-2 py-1 rounded-lg hover:bg-white/10 text-zinc-400 hover:text-amber-400 border border-zinc-700 transition-colors">
-                    🔐 Login
-                  </button>
-              }
-            </div>
+      <header className="lpc-header hidden sm:block sticky top-0 z-40">
+        <div className="lpc-header-inner">
+          <img src={LOGO_SRC} alt="Legendary Secrets Poker Club" className="lpc-logo"/>
+          <nav className="lpc-primary-nav" aria-label="เมนูหลัก">
+            {TABS.filter(t => ["dashboard","leaderboard","profiles","race","skill","luck","calc","streak"].includes(t.id)).map(t => (
+              <button key={t.id} onClick={() => { setTab(t.id); if (t.id !== "add") setEditSes(null); }} aria-current={tab===t.id?'page':undefined} className={"lpc-nav-button "+(tab===t.id?'lpc-nav-active':'')}>
+                <img src={`/vip-icons/${t.id}.png`} alt=""/>
+                <span>{t.id==='dashboard'?'Dashboard':t.label}</span>
+              </button>
+            ))}
+          </nav>
+          <div className="lpc-nav-tools">
+            <details className="lpc-more"><summary aria-label="เมนูเพิ่มเติม" title="เซสชั่น บันทึก กองกลาง และตั้งค่า"><span aria-hidden="true">⚙</span></summary><div className="lpc-more-menu">
+              {TABS.filter(t => !["dashboard","leaderboard","profiles","race","skill","luck","calc","streak"].includes(t.id)).map(t => <button key={t.id} onClick={e => { setTab(t.id); if(t.id!=="add")setEditSes(null);e.currentTarget.closest('details').removeAttribute('open'); }}><span>{t.icon}</span>{t.label}</button>)}
+              <div className="lpc-more-balance">กองกลาง {fmt(potBal)} ฿</div>
+            </div></details>
+            {isAdmin ? <button className="lpc-account" aria-label="Logout" title="ออกจากระบบ" onClick={() => { localStorage.removeItem("lspc_admin"); setIsAdmin(false); setTab("dashboard"); }}><img src="/vip-icons/avatar.png" alt=""/></button> : <button className="lpc-account" aria-label="Login" title="เข้าสู่ระบบ" onClick={() => setTab("login")}><img src="/vip-icons/avatar.png" alt=""/></button>}
           </div>
         </div>
       </header>
@@ -3025,6 +3014,8 @@ export default function App() {
           onGoLeader={name => { setProfileSel(name); setTab("profiles"); }}
           onGoLatestSes={id => { setOpenSesId(id); setTab("sessions"); }}
           onGoPot={() => setTab("pot")}
+          onGoPlayers={() => { setProfileSel(null); setTab("profiles"); }}
+          onGoSessions={() => { setOpenSesId(null); setTab("sessions"); }}
         />}
         {tab === "leaderboard" && <LeaderboardView data={data}/>}
         {tab === "profiles"    && <PlayerProfilesView data={data} initialSel={profileSel} onClearSel={()=>setProfileSel(null)}/>}
