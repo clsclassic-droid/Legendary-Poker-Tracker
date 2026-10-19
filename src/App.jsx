@@ -374,7 +374,7 @@ function DashboardView({ data, onGoLeader, onGoLatestSes, onGoPot, onGoPlayers, 
   const leader = active[0] ?? null;
   const pot = data.pot?.balance ?? 0;
   const yearCount = data.sessions.filter(s => s.year === new Date().getFullYear()).length;
-  const history = useMemo(() => ({ points: data.sessions.map(session => ({ session, income: (session.entries?.length || 0) * (Number(session.fee) || 0) })) }), [data.sessions]);
+  const history = useMemo(() => ({ points: data.sessions.map(session => ({ session, income: (session.entries || []).reduce((total, entry) => total + (Number(entry.buyInBaht) || 0), 0) })) }), [data.sessions]);
   const chartValues = history?.points.length ? history.points.map(p => p.income) : [0, 0];
   const previous = data.sessions[data.sessions.length - 2];
   const latestResults = rankMovement(ranked(latest?.entries || []), ranked(previous?.entries || []));
@@ -420,10 +420,10 @@ function DashboardView({ data, onGoLeader, onGoLatestSes, onGoPot, onGoPlayers, 
         </button>)}
       </div>
       <section className="lpc-chart lpc-panel">
-        <div className="lpc-panel-heading"><div className="lpc-heading-icon"><img src="/vip-icons/streak.png" alt=""/><div><h3>SESSION POT</h3><p>เงินเข้ากองกลางแต่ละเซสชั่น</p></div></div><span className="lpc-pill">All Sessions</span></div>
+        <div className="lpc-panel-heading"><div className="lpc-heading-icon"><img src="/vip-icons/streak.png" alt=""/><div><h3>SESSION POT</h3><p>ยอด Pot รวมแต่ละเซสชั่น</p></div></div><span className="lpc-pill">All Sessions</span></div>
         {history && history.points.length > 0 ? <div className="lpc-chart-layout">
           <div className="lpc-y-axis">{[chartMax,(chartMax+chartMin)/2,chartMin].map((v,i)=><span key={i}>{fmt(Math.round(v))}</span>)}</div>
-          <div className="lpc-chart-canvas"><svg viewBox="0 0 640 170" role="img" aria-label="เงินเข้ากองกลางแต่ละเซสชั่น" preserveAspectRatio="none">
+          <div className="lpc-chart-canvas"><svg viewBox="0 0 640 170" role="img" aria-label="ยอด Pot รวมแต่ละเซสชั่น" preserveAspectRatio="none">
             <defs><linearGradient id="lpc-gold-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#ffc746" stopOpacity=".45"/><stop offset="100%" stopColor="#d69217" stopOpacity="0"/></linearGradient></defs>
             {[25,85,145].map(y=><line key={y} x1="0" y1={y} x2="640" y2={y} stroke="#ffffff18"/>)}
             {[0,80,160,240,320,400,480,560,640].map(x=><line key={x} x1={x} y1="25" x2={x} y2="145" stroke="#ffffff10"/>)}
@@ -431,7 +431,7 @@ function DashboardView({ data, onGoLeader, onGoLatestSes, onGoPot, onGoPlayers, 
             <polyline points={chartPoints} fill="none" stroke="#ffda6c" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"/>
           </svg><div className="lpc-x-axis"><span>เซสชั่นแรก</span><span>{Math.round((history?.points.length || 0)/2)}</span><span>{history?.points.length || 0} เซสชั่น</span></div></div>
         </div> : <p className="lpc-empty">{history ? "ยังไม่มีเซสชั่น" : "ข้อมูลวันที่ไม่ครบ จึงยังแสดงกราฟย้อนหลังไม่ได้"}</p>}
-        <p className="lpc-history-note">ค่าส่วนกลางของแต่ละเซสชั่นตามข้อมูลที่บันทึก · ไม่รวมยอดสะสมหรือรายจ่าย</p>
+        <p className="lpc-history-note">ยอดซื้อเข้ารวมของผู้เล่นในแต่ละเซสชั่น (บาท) · ตรงกับ Pot ในหน้าประวัติเซสชั่น</p>
       </section>
       <div className="lpc-bottom-grid">
         <section className="lpc-podium-panel lpc-panel"><div className="lpc-panel-heading"><h3><span aria-hidden="true">{themedLabel("♛")}</span> TOP 3 PLAYERS</h3><button className="lpc-view-all" onClick={onGoPlayers}>View All →</button></div>
