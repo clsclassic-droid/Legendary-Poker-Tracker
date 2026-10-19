@@ -412,7 +412,7 @@ function DashboardView({ data, onGoLeader, onGoLatestSes, onGoPot, onGoPlayers, 
           {label:"TOTAL SESSIONS",value:fmt(data.sessions.length),sub:"CLUB HISTORY",icon:"♠",color:"gold",action:onGoSessions},
           {label:"TOTAL PLAYERS",value:fmt(data.players.length),sub:"REGISTERED MEMBERS",image:"profiles",icon:"♣",color:"blue",action:onGoPlayers},
           {label:"LATEST SEASON",value:latest ? "S"+latest.season+"/"+latest.year : "—",sub:latest ? "SESSION "+latest.sessionNo : "NO SESSIONS",image:"streak",icon:"♦",color:"gold",action:latest ? onGoLatestSeason : null},
-          {label:"CLUB BANKROLL",value:fmt(pot)+" ฿",sub:"VIEW DETAILS →",icon:"▤",color:pot>=0?"purple":"red",action:onGoPot},
+          {label:"CLUB BANKROLL",value:fmt(pot)+" ฿",sub:"VIEW DETAILS →",image:"bankroll",icon:"▤",color:pot>=0?"purple":"red",action:onGoPot},
         ].map(card => <button key={card.label} onClick={card.action} disabled={!card.action} className="lpc-stat lpc-panel">
           <span className="lpc-stat-symbol" aria-hidden="true">{card.image?<img src={'/vip-icons/'+card.image+'.png'} alt=""/>:card.icon==="▤"?<svg viewBox="0 0 48 48" className="lpc-coins" aria-hidden="true"><path d="M5 25v13c0 7 30 7 30 0V25" fill="#be811d" stroke="#ffe49c" strokeWidth="1.5"/><path d="M5 31c0 7 30 7 30 0M5 37c0 7 30 7 30 0" fill="none" stroke="#ffe49c" strokeWidth="2"/><ellipse cx="20" cy="25" rx="15" ry="6" fill="#ffdb73" stroke="#fff0b2"/><path d="M14 12v12c0 7 30 7 30 0V12" fill="#b77b18" stroke="#ffe49c" strokeWidth="1.5"/><path d="M14 18c0 7 30 7 30 0" fill="none" stroke="#ffdc7b" strokeWidth="2"/><ellipse cx="29" cy="12" rx="15" ry="6" fill="#ffe49c" stroke="#fff3ca"/><ellipse cx="29" cy="12" rx="11" ry="3.5" fill="none" stroke="#c1912f"/></svg>:card.icon}</span>
           <span className="lpc-stat-copy"><span className="lpc-stat-label">{card.label}</span><strong className={'lpc-value lpc-'+card.color}>{card.value}</strong><span className="lpc-stat-sub">{card.sub}</span></span>
@@ -482,8 +482,8 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
         <div className="flex items-center gap-3">
           {/* ปุ่ม back: วงกลมสีทอง */}
           <button onClick={()=>{setSel(null);}}
-            className="w-9 h-9 rounded-full bg-amber-400 hover:bg-amber-300 flex items-center justify-center flex-shrink-0 transition-colors">
-            <span className="text-black font-bold text-base">‹</span>
+            aria-label="กลับรายชื่อผู้เล่น" className="player-icon-nav w-9 h-9 rounded-full bg-amber-400 hover:bg-amber-300 flex items-center justify-center flex-shrink-0 transition-colors">
+            <ThemeIcon name="arrowLeft"/>
           </button>
           <div className="flex-1">
             <h2 className="text-xl font-bold text-white">{sel}</h2>
@@ -493,18 +493,18 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
           <div className="flex gap-2 flex-shrink-0">
             {prevPlayer ? (
               <div className="flex flex-col items-center gap-0.5">
-                <button onClick={()=>setSel(prevPlayer.name)}
-                  className="w-10 h-10 rounded-xl border-2 border-amber-400 hover:bg-amber-400/10 flex items-center justify-center transition-colors">
-                  <span className="text-amber-400 font-bold text-lg">‹</span>
+                <button aria-label="ผู้เล่นก่อนหน้า" onClick={()=>setSel(prevPlayer.name)}
+                  className="player-icon-nav w-10 h-10 rounded-xl border-2 border-amber-400 hover:bg-amber-400/10 flex items-center justify-center transition-colors">
+                  <ThemeIcon name="arrowLeft"/>
                 </button>
                 <span className="text-zinc-600 text-[10px]">ก่อนหน้า</span>
               </div>
             ) : <div className="w-10"/>}
             {nextPlayer ? (
               <div className="flex flex-col items-center gap-0.5">
-                <button onClick={()=>setSel(nextPlayer.name)}
-                  className="w-10 h-10 rounded-xl border-2 border-amber-400 hover:bg-amber-400/10 flex items-center justify-center transition-colors">
-                  <span className="text-amber-400 font-bold text-lg">›</span>
+                <button aria-label="ผู้เล่นถัดไป" onClick={()=>setSel(nextPlayer.name)}
+                  className="player-icon-nav w-10 h-10 rounded-xl border-2 border-amber-400 hover:bg-amber-400/10 flex items-center justify-center transition-colors">
+                  <ThemeIcon name="arrowRight"/>
                 </button>
                 <span className="text-zinc-600 text-[10px]">ถัดไป</span>
               </div>
@@ -634,7 +634,7 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
                     fontSize: isSel ? "28px" : "18px",
                     fontWeight: 700,
                     lineHeight: 1,
-                  }}>{rankNum<=3?["🥇","🥈","🥉"][rankNum-1]:rankNum}</span>
+                  }}>{rankNum<=3?<ThemeIcon name="medal" rank={rankNum}/>:rankNum}</span>
                 </div>
                 {/* รูป */}
                 <div className="vip-member-avatar flex-shrink-0 flex items-center justify-center my-2 ml-2 w-[88px] h-[88px] sm:w-[104px] sm:h-[104px] overflow-hidden rounded-xl border border-amber-400/20 bg-[#1b1c20]">
@@ -2898,14 +2898,14 @@ export default function App() {
     { id:"dashboard",   icon:"◈", label:"ภาพรวม",  adminOnly: false },
     { id:"leaderboard", icon:"♛", label:"Rank",     adminOnly: false },
     { id:"profiles",    icon:"♟", label:"Players",  adminOnly: false },
+    { id:"sessions",    icon:"▤", label:"เซสชั่น",  adminOnly: false },
+    { id:"add",         icon:"+", label:"บันทึก",   adminOnly: true  },
+    { id:"pot",         icon:"♦", label:"กองกลาง",  adminOnly: false },
     { id:"race",        icon:"↗", label:"Race",      adminOnly: false },
     { id:"skill",       icon:"✦", label:"Skill",     adminOnly: false },
     { id:"luck",        icon:"♣", label:"Luck",      adminOnly: false },
     { id:"calc",        icon:"▦", label:"Calc",      adminOnly: true, publicToggle: "calc" },
     { id:"streak",      icon:"◎", label:"Streak",    adminOnly: true, publicToggle: "streak" },
-    { id:"sessions",    icon:"▤", label:"เซสชั่น",  adminOnly: false },
-    { id:"add",         icon:"+", label:"บันทึก",   adminOnly: true  },
-    { id:"pot",         icon:"♦", label:"กองกลาง",  adminOnly: false },
     { id:"settings",    icon:"⚙", label:"ตั้งค่า",  adminOnly: true  },
   ];
   const TABS = ALL_TABS.filter(t =>

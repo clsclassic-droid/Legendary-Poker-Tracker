@@ -1,7 +1,7 @@
 import React from 'react';
 
 // Presentation-only icons. Values, handlers and stored data stay with their views.
-const artwork = {dashboard:'dashboard',leaderboard:'leaderboard',profiles:'profiles',race:'race',skill:'skill',luck:'luck',calc:'calc',streak:'streak',avatar:'avatar',sessions:'sessions',add:'add',pot:'pot',settings:'settings'};
+const artwork = {dashboard:'dashboard',leaderboard:'leaderboard',profiles:'profiles',race:'race',skill:'skill',luck:'luck',calc:'calc',streak:'streak',avatar:'avatar',sessions:'sessions',add:'add',pot:'pot',settings:'settings',crown:'crown',crownSmall:'crown',medal:'medal',skull:'skull',arrowLeft:'arrow-left',arrowRight:'arrow-right'};
 const paths = {
   spade:'M12 2C9 6 3 9 3 14c0 5 6 5 9 1-1 4-2 6-3 7h6c-1-1-2-3-3-7 3 4 9 4 9-1 0-5-6-8-9-12z',
   diamond:'M12 2l8 10-8 10-8-10z',
