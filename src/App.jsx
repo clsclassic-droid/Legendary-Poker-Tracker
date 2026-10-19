@@ -1,6 +1,3 @@
-import MobileGestures from './MobileGestures';
-import { rankMovement } from './dashboardPresentation';
-import { ThemeIcon, themedLabel } from './ThemeIcon';
 import { useState, useEffect, useMemo, Fragment } from "react";
 
 // -----------------------------------------------------------------
@@ -117,10 +114,24 @@ async function apiGet() {
   }
   return d;
 }
+// ✅ NEW: บัตรผ่านแอดมิน (token) ที่หลังบ้านออกให้ตอน Login
+const TOKEN_KEY = "lspc_token";
+function getToken()   { try { return localStorage.getItem(TOKEN_KEY) || ""; } catch(e) { return ""; } }
+function setToken(t)  { try { localStorage.setItem(TOKEN_KEY, t); localStorage.removeItem("lspc_admin"); } catch(e) {} }
+function clearToken() { try { localStorage.removeItem(TOKEN_KEY); localStorage.removeItem("lspc_admin"); } catch(e) {} }
+
 async function apiPost(body) {
-  const res = await fetch(API_URL, { method:"POST", body:JSON.stringify(body) });
+  // แนบบัตรผ่านไปกับทุกคำสั่ง → หลังบ้านเป็นคนเช็คสิทธิ์
+  const res = await fetch(API_URL, { method:"POST", body:JSON.stringify({ ...body, token: getToken() }) });
   const json = await res.json();
-  if (!json.ok) throw new Error(json.error);
+  if (!json.ok) {
+    if (json.error === "UNAUTHORIZED") {
+      // บัตรผ่านหมดอายุ/ไม่ถูกต้อง → ออกจากโหมดแอดมินอัตโนมัติ
+      if (getToken()) { clearToken(); window.dispatchEvent(new Event("lspc-logout")); }
+      throw new Error("ไม่มีสิทธิ์ทำรายการนี้ (กรุณา Login แอดมินใหม่)");
+    }
+    throw new Error(json.error);
+  }
   return json;
 }
 
@@ -206,7 +217,7 @@ function NInput({ value, onChange, ph="0" }) {
   );
 }
 function Box({ children, className="" }) {
-  return <div className={"theme-panel border border-zinc-700/25 rounded-2xl p-4 " + className}
+  return <div className={"border border-zinc-700/25 rounded-2xl p-4 " + className}
     style={{background:'rgba(15,10,3,0.40)', backdropFilter:'blur(6px)', WebkitBackdropFilter:'blur(6px)'}}
   >{children}</div>;
 }
@@ -235,7 +246,7 @@ function MiniChart({ player, sessions }) {
 
   if (pts.length < 2) return (
     <div className="border border-zinc-700/25 rounded-2xl p-6 text-center" style={{background:"rgba(15,10,3,0.40)",backdropFilter:"blur(6px)"}}>
-      <div className="text-3xl mb-2">{themedLabel("📈")}</div>
+      <div className="text-3xl mb-2">📈</div>
       <div className="text-zinc-400 text-sm font-medium">ยังไม่มีกราฟ</div>
       <div className="text-zinc-600 text-xs mt-1">ต้องมีอย่างน้อย 2 เซสขึ้นไป<br/>ปัจจุบันเล่นไป {pts.length} เซส</div>
     </div>
@@ -292,12 +303,12 @@ function MiniChart({ player, sessions }) {
   return (
     <Box>
       <div className="flex items-center justify-between mb-2">
-        <span className="text-zinc-400 text-xs font-semibold">{themedLabel(mode==="profit"?"📈 กำไรสะสม":"🏅 อันดับแต่ละเซส")}</span>
+        <span className="text-zinc-400 text-xs font-semibold">{mode==="profit"?"📈 กำไรสะสม":"🏅 อันดับแต่ละเซส"}</span>
         <div className="flex rounded-lg p-0.5 gap-0.5" style={{background:"rgba(255,255,255,0.08)"}}>
           {[["profit","📈"],["rank","🏅"]].map(([id,icon]) => (
             <button key={id} onClick={()=>{setMode(id);setHov(null);}}
               className={"px-2.5 py-1 rounded-md text-xs font-semibold transition-all " + (mode===id?"bg-amber-500 text-black":"text-zinc-400 hover:text-white")}>
-              {themedLabel(icon)}
+              {icon}
             </button>
           ))}
         </div>
@@ -343,10 +354,10 @@ function MiniChart({ player, sessions }) {
             style={{left:Math.min(Math.max((hov/(pts.length-1))*100,8),65)+"%", top:"2px", transform:"translateX(-50%)", minWidth:"110px", background:"rgba(20,12,2,0.9)", backdropFilter:"blur(12px)"}}>
             <div className="text-amber-300 font-bold mb-1">{h.label}</div>
             {mode==="profit"
-              ? <><div className="flex justify-between gap-2"><span className="text-zinc-400">เซสนี้</span><Profit v={h.p} sx=" c"/></div>
-                  <div className="flex justify-between gap-2 mt-0.5"><span className="text-zinc-400">สะสม</span><Profit v={h.cum} sx=" c"/></div></>
+              ? <><div className="flex justify-between gap-2"><span className="text-zinc-400">เซสนี้</span><Profit v={h.p} sx=" ฿"/></div>
+                  <div className="flex justify-between gap-2 mt-0.5"><span className="text-zinc-400">สะสม</span><Profit v={h.cum} sx=" ฿"/></div></>
               : <><div className="flex justify-between gap-2"><span className="text-zinc-400">อันดับ</span><span className="text-amber-300 font-mono font-bold">#{h.rank}/{h.tot}</span></div>
-                  <div className="flex justify-between gap-2 mt-0.5"><span className="text-zinc-400">กำไร</span><Profit v={h.p} sx=" c"/></div></>
+                  <div className="flex justify-between gap-2 mt-0.5"><span className="text-zinc-400">กำไร</span><Profit v={h.p} sx=" ฿"/></div></>
             }
           </div>
         )}
@@ -355,7 +366,7 @@ function MiniChart({ player, sessions }) {
       <div className="flex justify-between mt-1 text-xs font-mono text-zinc-600">
         <span>{pts[0].label}</span>
         <span className={up?(mode==="profit"?"text-emerald-400":"text-amber-400"):(mode==="profit"?"text-red-400":"text-red-400")}>
-          {mode==="profit" ? ((pts[pts.length-1].cum>0?"+":"")+fmt(pts[pts.length-1].cum)+" c")
+          {mode==="profit" ? ((pts[pts.length-1].cum>0?"+":"")+fmt(pts[pts.length-1].cum)+" ฿")
                            : ("เฉลี่ย #"+(pts.reduce((s,p)=>s+p.rank,0)/pts.length).toFixed(1))}
         </span>
         <span>{pts[pts.length-1].label}</span>
@@ -367,85 +378,85 @@ function MiniChart({ player, sessions }) {
 // -----------------------------------------------------------------
 // DASHBOARD
 // -----------------------------------------------------------------
-function DashboardView({ data, onGoLeader, onGoLatestSes, onGoPot, onGoPlayers, onGoSessions, onGoLatestSeason }) {
-  const latest = data.sessions[data.sessions.length - 1] ?? null;
+function DashboardView({ data, onGoLeader, onGoLatestSes, onGoPot }) {
+  const latest  = data.sessions[data.sessions.length-1] ?? null;
   const summary = useMemo(() => buildSummary(data.players, data.sessions), [data]);
-  const active = summary.filter(p => p.n > 0);
-  const leader = active[0] ?? null;
-  const pot = data.pot?.balance ?? 0;
-  const yearCount = data.sessions.filter(s => s.year === new Date().getFullYear()).length;
-  const history = useMemo(() => ({ points: data.sessions.map(session => ({ session, income: (session.entries || []).reduce((total, entry) => total + (Number(entry.buyInBaht) || 0), 0) })) }), [data.sessions]);
-  const chartValues = history?.points.length ? history.points.map(p => p.income) : [0, 0];
-  const previous = data.sessions[data.sessions.length - 2];
-  const latestResults = rankMovement(ranked(latest?.entries || []), ranked(previous?.entries || []));
-  const chartMin = Math.min(0, ...chartValues);
-  const chartMax = Math.max(...chartValues);
-  const chartRange = chartMax - chartMin || 1;
-  const chartPoints = chartValues.map((v,i) =>
-    `${(i / Math.max(chartValues.length - 1, 1)) * 640},${145 - ((v - chartMin) / chartRange) * 120}`
-  ).join(" ");
+  const leader  = summary.find(p => p.n > 0) ?? null;
+  const pot     = data.pot?.balance ?? 0;
 
   return (
-    <div className="lpc-dashboard">
-      <section className="lpc-hero">
-        <div className="lpc-hero-copy">
-          <div className="lpc-eyebrow">LEGENDARY SECRETS · POKER CLUB</div>
-          <h2>THE LEGENDARY CLUB</h2>
-          <div className="lpc-subtitle">PRIVATE MEMBERS · LIVE STANDINGS</div>
-          <p>The club at a glance. Every session, every champion.</p>
-          <div className="lpc-badges">
-            <span><svg viewBox="0 0 48 48" className="lpc-coins" aria-hidden="true"><path d="M5 25v13c0 7 30 7 30 0V25" fill="#be811d" stroke="#ffe49c" strokeWidth="1.5"/><path d="M5 31c0 7 30 7 30 0M5 37c0 7 30 7 30 0" fill="none" stroke="#ffe49c" strokeWidth="2"/><ellipse cx="20" cy="25" rx="15" ry="6" fill="#ffdb73" stroke="#fff0b2"/><path d="M14 12v12c0 7 30 7 30 0V12" fill="#b77b18" stroke="#ffe49c" strokeWidth="1.5"/><path d="M14 18c0 7 30 7 30 0" fill="none" stroke="#ffdc7b" strokeWidth="2"/><ellipse cx="29" cy="12" rx="15" ry="6" fill="#ffe49c" stroke="#fff3ca"/><ellipse cx="29" cy="12" rx="11" ry="3.5" fill="none" stroke="#c1912f"/></svg><span><strong>{fmt(data.sessions.length)}</strong>SESSIONS</span></span>
-            <span><img src="/vip-icons/profiles.png" alt=""/><span><strong>{fmt(data.players.length)}</strong>PLAYERS</span></span>
-            <span><svg className="lpc-calendar" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 7h22v22H5Z" fill="#e7b746" stroke="#ffe398"/><path d="M5 13h22M10 3v8M22 3v8" stroke="#ffe398" strokeWidth="3"/>{[10,16,22].map(x=>[18,24].map(y=><rect key={x+"-"+y} x={x-1.5} y={y-1.5} width="3" height="3" fill="#3d2807"/>))}</svg><span><strong>{yearCount}</strong>THIS YEAR</span></span>
-          </div>
-        </div>
-        <button className="lpc-leader lpc-panel" onClick={() => leader && onGoLeader(leader.name)} disabled={!leader}>
-          <div className="lpc-leader-label"><span aria-hidden="true">{themedLabel("♛")}</span> CURRENT CLUB LEADER</div>
-          <div className="lpc-leader-body">
-            <div className="lpc-portrait"><img className="lpc-portrait-photo" src={leader ? avatarUrl(leader.name, data.avatars) : '/vip-icons/avatar.png'} onError={e=>{e.currentTarget.onerror=null;e.currentTarget.src='/vip-icons/avatar.png';}} alt=""/><img className="lpc-portrait-frame" src="/vip-icons/crowned-frame.webp" alt=""/></div>
-            <div><strong className="lpc-leader-name">{leader?.name || "ยังไม่มีข้อมูล"}</strong><div className={"lpc-leader-profit "+(leader?.total<0?'lpc-loss':'')}>{leader ? (leader.total>0?'+':'')+fmt(leader.total)+' c':'—'}</div><span className="lpc-link-button">VIEW PLAYER PROFILE →</span></div>
-          </div>
+    <div className="space-y-2">
+      <h2 className="text-xl font-bold text-white">📊 ภาพรวม</h2>
+
+      <div className="grid grid-cols-3 gap-3">
+        {/* Leader - กดแล้วไปหน้า profile ผู้นำ */}
+        <button onClick={()=>leader&&onGoLeader(leader.name)}
+          className="border border-amber-500/40 rounded-2xl p-3 text-left hover:border-amber-400/70 transition-colors" style={{background:"rgba(25,14,2,0.06)",backdropFilter:"blur(6px)"}}>
+          <div className="text-amber-400 text-xs font-semibold mb-1">🏆 นำอยู่</div>
+          {leader
+            ? <>
+                <div className="text-white font-black text-lg leading-none">{leader.name}</div>
+                <Profit v={leader.total} sx=" ฿"/>
+                <div className="text-zinc-500 text-[10px] mt-1">{leader.n} เซสชั่น · 🥇×{leader.gold}</div>
+              </>
+            : <div className="text-zinc-600 text-xs">ยังไม่มีข้อมูล</div>}
         </button>
-      </section>
-      <div className="lpc-stat-grid">
+        {/* Latest session - กดแล้วไปหน้าเซสชั่น พร้อมเปิดเซสล่าสุด */}
+        <button onClick={()=>latest&&onGoLatestSes(latest.internalId)}
+          className="border border-zinc-700/25 rounded-2xl p-3 text-left hover:border-zinc-600 transition-colors" style={{background:"rgba(15,10,3,0.05)",backdropFilter:"blur(6px)"}}>
+          <div className="text-sky-400 text-xs font-semibold mb-1">📋 เซสล่าสุด</div>
+          {latest
+            ? <>
+                <div className="text-white font-black text-sm">ปี {latest.year}</div>
+                <div className="text-amber-300 text-sm font-bold">S{latest.season} เซสชั่น {latest.sessionNo}</div>
+                <div className="text-zinc-500 text-[10px] mt-1">{String(latest.date||"").slice(0,10)}</div>
+              </>
+            : <div className="text-zinc-600 text-xs">ยังไม่มีเซส</div>}
+        </button>
+        {/* Pot - กดแล้วไปหน้ากองกลาง */}
+        <button onClick={onGoPot}
+          className="border border-purple-500/30 rounded-2xl p-3 text-left hover:border-purple-400/60 transition-colors" style={{background:"rgba(15,8,25,0.06)",backdropFilter:"blur(6px)"}}>
+          <div className="text-purple-400 text-xs font-semibold mb-1">💰 กองกลาง</div>
+          <div className={"font-mono font-black text-lg " + (pot>=0?"text-purple-300":"text-red-400")}>{fmt(pot)} ฿</div>
+          <div className="text-zinc-600 text-[10px] mt-1">{data.sessions.length} เซสชั่น · {data.players.length} คน</div>
+        </button>
+      </div>
+
+      {/* Quick stats */}
+      <div className="grid grid-cols-4 gap-2">
         {[
-          {label:"TOTAL SESSIONS",value:fmt(data.sessions.length),sub:"CLUB HISTORY",icon:"♠",color:"gold",action:onGoSessions},
-          {label:"TOTAL PLAYERS",value:fmt(data.players.length),sub:"REGISTERED MEMBERS",image:"profiles",icon:"♣",color:"blue",action:onGoPlayers},
-          {label:"LATEST SEASON",value:latest ? "S"+latest.season+"/"+latest.year : "—",sub:latest ? "SESSION "+latest.sessionNo : "NO SESSIONS",image:"streak",icon:"♦",color:"gold",action:latest ? onGoLatestSeason : null},
-          {label:"CLUB BANKROLL",value:fmt(pot)+" c",sub:"VIEW DETAILS →",image:"bankroll",icon:"▤",color:pot>=0?"purple":"red",action:onGoPot},
-        ].map(card => <button key={card.label} onClick={card.action} disabled={!card.action} className="lpc-stat lpc-panel">
-          <span className="lpc-stat-symbol" aria-hidden="true">{card.image?<img src={'/vip-icons/'+card.image+'.png'} alt=""/>:card.icon==="▤"?<svg viewBox="0 0 48 48" className="lpc-coins" aria-hidden="true"><path d="M5 25v13c0 7 30 7 30 0V25" fill="#be811d" stroke="#ffe49c" strokeWidth="1.5"/><path d="M5 31c0 7 30 7 30 0M5 37c0 7 30 7 30 0" fill="none" stroke="#ffe49c" strokeWidth="2"/><ellipse cx="20" cy="25" rx="15" ry="6" fill="#ffdb73" stroke="#fff0b2"/><path d="M14 12v12c0 7 30 7 30 0V12" fill="#b77b18" stroke="#ffe49c" strokeWidth="1.5"/><path d="M14 18c0 7 30 7 30 0" fill="none" stroke="#ffdc7b" strokeWidth="2"/><ellipse cx="29" cy="12" rx="15" ry="6" fill="#ffe49c" stroke="#fff3ca"/><ellipse cx="29" cy="12" rx="11" ry="3.5" fill="none" stroke="#c1912f"/></svg>:card.icon}</span>
-          <span className="lpc-stat-copy"><span className="lpc-stat-label">{card.label}</span><strong className={'lpc-value lpc-'+card.color}>{card.value}</strong><span className="lpc-stat-sub">{card.sub}</span></span>
-          <span className="lpc-suit-watermark" aria-hidden="true">{card.icon}</span>
-        </button>)}
+          ["เซสทั้งหมด", data.sessions.length,                                        "text-white"],
+          ["ผู้เล่น",    data.players.length,                                          "text-white"],
+          ["ซีซั่น",     latest ? "S"+latest.season+"/"+latest.year : "-",             "text-amber-300"],
+          ["ปีนี้",      data.sessions.filter(s=>s.year===new Date().getFullYear()).length, "text-sky-300"],
+        ].map(([label,value,color]) => (
+          <div key={label} className="border border-zinc-700/25 rounded-xl px-2 py-2 text-center" style={{background:"rgba(15,10,3,0.05)",backdropFilter:"blur(6px)"}}>
+            <div className={"font-mono font-black text-lg "+color}>{value}</div>
+            <div className="text-zinc-600 text-[10px] mt-0.5">{label}</div>
+          </div>
+        ))}
       </div>
-      <section className="lpc-chart lpc-panel">
-        <div className="lpc-panel-heading"><div className="lpc-heading-icon"><img src="/vip-icons/streak.png" alt=""/><div><h3>SESSION POT</h3><p>ยอด Pot รวมแต่ละเซสชั่น</p></div></div><span className="lpc-pill">All Sessions</span></div>
-        {history && history.points.length > 0 ? <div className="lpc-chart-layout">
-          <div className="lpc-y-axis">{[chartMax,(chartMax+chartMin)/2,chartMin].map((v,i)=><span key={i}>{fmt(Math.round(v))}</span>)}</div>
-          <div className="lpc-chart-canvas"><svg viewBox="0 0 640 170" role="img" aria-label="ยอด Pot รวมแต่ละเซสชั่น" preserveAspectRatio="none">
-            <defs><linearGradient id="lpc-gold-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#ffc746" stopOpacity=".45"/><stop offset="100%" stopColor="#d69217" stopOpacity="0"/></linearGradient></defs>
-            {[25,85,145].map(y=><line key={y} x1="0" y1={y} x2="640" y2={y} stroke="#ffffff18"/>)}
-            {[0,80,160,240,320,400,480,560,640].map(x=><line key={x} x1={x} y1="25" x2={x} y2="145" stroke="#ffffff10"/>)}
-            <polygon points={'0,145 '+chartPoints+' 640,145'} fill="url(#lpc-gold-fill)"/>
-            <polyline points={chartPoints} fill="none" stroke="#ffda6c" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg><div className="lpc-x-axis"><span>เซสชั่นแรก</span><span>{Math.round((history?.points.length || 0)/2)}</span><span>{history?.points.length || 0} เซสชั่น</span></div></div>
-        </div> : <p className="lpc-empty">{history ? "ยังไม่มีเซสชั่น" : "ข้อมูลวันที่ไม่ครบ จึงยังแสดงกราฟย้อนหลังไม่ได้"}</p>}
-        <p className="lpc-history-note">ยอดซื้อเข้ารวมของผู้เล่นในแต่ละเซสชั่น (เครดิต) · ตรงกับ Pot ในหน้าประวัติเซสชั่น</p>
-      </section>
-      <div className="lpc-bottom-grid">
-        <section className="lpc-podium-panel lpc-panel"><div className="lpc-panel-heading"><h3><span aria-hidden="true">{themedLabel("♛")}</span> TOP 3 PLAYERS</h3><button className="lpc-view-all" onClick={onGoPlayers}>View All →</button></div>
-          <div className="lpc-podium">{active.slice(0,3).map((p,i)=><button key={p.name} className={'lpc-champion lpc-place-'+i} onClick={()=>onGoLeader(p.name)}>
-            <div className="lpc-portrait"><img className="lpc-portrait-photo" src={avatarUrl(p.name,data.avatars)} onError={e=>{e.currentTarget.onerror=null;e.currentTarget.src='/vip-icons/avatar.png';}} alt=""/><img className="lpc-portrait-frame" src="/vip-icons/crowned-frame.webp" alt=""/><span className="lpc-rank-number">{i+1}</span></div>
-            <strong className="lpc-champion-name">{p.name}</strong><span className={'lpc-champion-profit '+(p.total<0?'lpc-loss':'')}>{p.total>0?'+':''}{fmt(p.total)} c</span><span className="lpc-champion-sessions">{p.n} เซสชั่น</span>
-          </button>)}</div>{!active.length&&<p className="lpc-empty">ยังไม่มีอันดับผู้เล่น</p>}
-        </section>
-        <section className="lpc-recent lpc-panel"><div className="lpc-panel-heading"><h3>LATEST SESSION</h3><button className="lpc-view-all" disabled={!latest} onClick={()=>latest && onGoLatestSes(latest.internalId)}>View All →</button></div>
-          {latest && <p className="lpc-session-note">S{latest.season}/{latest.year} · เซสชั่น {latest.sessionNo} · {String(latest.date).slice(0,10)}</p>}
-          <div className="lpc-table-scroll"><table><thead><tr><th>อันดับ</th><th>ผู้เล่น</th><th>กำไร (c)</th><th>เปลี่ยน</th></tr></thead><tbody>{latestResults.map(e=><tr key={e.player}><td>{e.rank}</td><td><PlayerName player={e.player} nicknames={data.nicknames}/></td><td><span className={e.profitBaht>=0?'lpc-gain':'lpc-loss'}>{e.profitBaht>0?'+':''}{fmt(e.profitBaht)}</span></td><td><span className={e.change>0?'lpc-gain':e.change<0?'lpc-loss':''}>{e.change===null?'—':(e.change>0?'+':'')+e.change}</span></td></tr>)}</tbody></table></div>
-          {latest ? <p className="lpc-session-note">เทียบอันดับกับเซสชั่นก่อนหน้า · — ไม่ได้เล่นครั้งก่อน</p> : <p className="lpc-empty">ยังไม่มีเซสชั่น</p>}
-        </section>
-      </div>
+
+      {/* Top 3 */}
+      {summary.filter(p=>p.n>0).length > 0 && (
+        <Box>
+          <div className="text-zinc-400 text-xs font-semibold mb-3">🏅 Top 3 ตอนนี้</div>
+          <div className="space-y-2">
+            {summary.filter(p=>p.n>0).slice(0,3).map((p,i) => (
+              <div key={p.name} className="flex items-center gap-3">
+                <span className="text-lg">{["🥇","🥈","🥉"][i]}</span>
+                <span className="text-white font-semibold flex-1"><PlayerName player={p.name} nicknames={data.nicknames}/></span>
+                <div className="flex gap-1 text-xs">
+                  {p.gold>0   && <span className="text-amber-300">🥇{p.gold}</span>}
+                  {p.silver>0 && <span className="text-zinc-300">🥈{p.silver}</span>}
+                  {p.last>0   && <span className="text-red-400">💀{p.last}</span>}
+                </div>
+                <Profit v={p.total} sx=" ฿"/>
+              </div>
+            ))}
+          </div>
+        </Box>
+      )}
     </div>
   );
 }
@@ -482,8 +493,8 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
         <div className="flex items-center gap-3">
           {/* ปุ่ม back: วงกลมสีทอง */}
           <button onClick={()=>{setSel(null);}}
-            aria-label="กลับรายชื่อผู้เล่น" className="player-icon-nav w-9 h-9 rounded-full bg-amber-400 hover:bg-amber-300 flex items-center justify-center flex-shrink-0 transition-colors">
-            <ThemeIcon name="arrowLeft"/>
+            className="w-9 h-9 rounded-full bg-amber-400 hover:bg-amber-300 flex items-center justify-center flex-shrink-0 transition-colors">
+            <span className="text-black font-bold text-base">‹</span>
           </button>
           <div className="flex-1">
             <h2 className="text-xl font-bold text-white">{sel}</h2>
@@ -493,18 +504,18 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
           <div className="flex gap-2 flex-shrink-0">
             {prevPlayer ? (
               <div className="flex flex-col items-center gap-0.5">
-                <button aria-label="ผู้เล่นก่อนหน้า" onClick={()=>setSel(prevPlayer.name)}
-                  className="player-icon-nav w-10 h-10 rounded-xl border-2 border-amber-400 hover:bg-amber-400/10 flex items-center justify-center transition-colors">
-                  <ThemeIcon name="arrowLeft"/>
+                <button onClick={()=>setSel(prevPlayer.name)}
+                  className="w-10 h-10 rounded-xl border-2 border-amber-400 hover:bg-amber-400/10 flex items-center justify-center transition-colors">
+                  <span className="text-amber-400 font-bold text-lg">‹</span>
                 </button>
                 <span className="text-zinc-600 text-[10px]">ก่อนหน้า</span>
               </div>
             ) : <div className="w-10"/>}
             {nextPlayer ? (
               <div className="flex flex-col items-center gap-0.5">
-                <button aria-label="ผู้เล่นถัดไป" onClick={()=>setSel(nextPlayer.name)}
-                  className="player-icon-nav w-10 h-10 rounded-xl border-2 border-amber-400 hover:bg-amber-400/10 flex items-center justify-center transition-colors">
-                  <ThemeIcon name="arrowRight"/>
+                <button onClick={()=>setSel(nextPlayer.name)}
+                  className="w-10 h-10 rounded-xl border-2 border-amber-400 hover:bg-amber-400/10 flex items-center justify-center transition-colors">
+                  <span className="text-amber-400 font-bold text-lg">›</span>
                 </button>
                 <span className="text-zinc-600 text-[10px]">ถัดไป</span>
               </div>
@@ -535,7 +546,7 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
           })()}
           <div className="text-zinc-500 text-sm mb-1">กำไร / ขาดทุนรวม</div>
           <div className={"font-mono font-black text-4xl "+(stats.total>=0?"text-emerald-400":"text-red-400")}>
-            {stats.total>0?"+":""}{fmt(stats.total)} c
+            {stats.total>0?"+":""}{fmt(stats.total)} ฿
           </div>
           <div className="text-zinc-600 text-xs mt-1">จาก {stats.n} เซสชั่น</div>
         </div>
@@ -547,9 +558,9 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
             ["ดีที่สุด",  stats.best!==null  ? (stats.best>0?"+":"")+fmt(stats.best) : "-", "text-emerald-400"],
             ["แย่ที่สุด", stats.worst!==null ? fmt(stats.worst)     : "-", "text-red-400"],
           ].map(([label,value,color]) => (
-            <div key={themedLabel(label)} className="border border-zinc-700/25 rounded-xl p-3 text-center" style={{background:"rgba(15,10,3,0.40)",backdropFilter:"blur(6px)"}}>
+            <div key={label} className="border border-zinc-700/25 rounded-xl p-3 text-center" style={{background:"rgba(15,10,3,0.40)",backdropFilter:"blur(6px)"}}>
               <div className={"font-mono font-bold text-lg "+color}>{value}</div>
-              <div className="text-zinc-600 text-xs mt-0.5">{themedLabel(label)}</div>
+              <div className="text-zinc-600 text-xs mt-0.5">{label}</div>
             </div>
           ))}
         </div>
@@ -559,14 +570,14 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
 
         {/* Medals */}
         <Box>
-          <div className="text-zinc-400 text-xs font-semibold mb-3">{themedLabel("🏅")} เหรียญรางวัล</div>
+          <div className="text-zinc-400 text-xs font-semibold mb-3">🏅 เหรียญรางวัล</div>
           <div className="grid grid-cols-4 gap-2 text-center">
             {[["🥇",stats.gold,"ทอง","text-amber-300"],["🥈",stats.silver,"เงิน","text-zinc-300"],
               ["🥉",stats.bronze,"ทองแดง","text-orange-300"],["💀",stats.last,"โหล่","text-red-400"]].map(([emoji,count,label,color]) => (
-              <div key={themedLabel(label)} className="rounded-xl p-2" style={{background:"rgba(255,255,255,0.05)"}}>
-                <div className="text-xl">{themedLabel(emoji)}</div>
+              <div key={label} className="rounded-xl p-2" style={{background:"rgba(255,255,255,0.05)"}}>
+                <div className="text-xl">{emoji}</div>
                 <div className={"font-mono font-black text-xl "+color}>{count}</div>
-                <div className="text-zinc-600 text-[10px]">{themedLabel(label)}</div>
+                <div className="text-zinc-600 text-[10px]">{label}</div>
               </div>
             ))}
           </div>
@@ -574,7 +585,7 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
 
         {/* History */}
         <div>
-          <div className="text-zinc-400 text-xs font-semibold mb-2">{themedLabel("📋")} ประวัติแต่ละเซส</div>
+          <div className="text-zinc-400 text-xs font-semibold mb-2">📋 ประวัติแต่ละเซส</div>
           <div className="space-y-1.5">
             {history.map((x,i) => {
               const lastRank = ranked(x.s.entries).length;
@@ -583,13 +594,13 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
               return (
                 <div key={i} className="flex items-center justify-between border border-zinc-700/25 rounded-xl px-3 py-2" style={{background:"rgba(15,10,3,0.40)",backdropFilter:"blur(6px)"}}>
                   <div className="flex items-center gap-2">
-                    <span className="text-base">{themedLabel(em)}</span>
+                    <span className="text-base">{em}</span>
                     <div>
                       <div className="text-xs font-mono text-zinc-400">S{x.s.season} เซสชั่น{x.s.sessionNo}</div>
                       <div className="text-zinc-600 text-[10px]">{x.s.date?.slice(0,10) ?? x.s.date}</div>
                     </div>
                   </div>
-                  <Profit v={x.e.profitBaht} sx=" c"/>
+                  <Profit v={x.e.profitBaht} sx=" ฿"/>
                 </div>
               );
             })}
@@ -602,9 +613,10 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
   // Player list
   const avatarOverflows = data.avatarOverflows || {};
   return (
-    <div className="vip-players vip-redesign space-y-4">
-      <div className="vip-players-hero"><div className="text-amber-300 text-xs font-bold tracking-[.22em] mb-2">LEGENDARY SECRETS · VIP MEMBERS</div><h2 className="text-2xl sm:text-3xl font-black text-white">{themedLabel("♛")} VIP PLAYERS</h2><p className="text-amber-100/65 text-sm mt-2">{summary.length} MEMBERS · SELECT A PLAYER TO VIEW THEIR PROFILE</p></div>
-      <div className="vip-players-list vip-member-grid">
+    <div className="space-y-2">
+      <h2 className="text-xl font-bold text-white">👤 Player Profiles</h2>
+      <p className="text-zinc-500 text-sm">กดเพื่อ select · กดอีกครั้งเพื่อดู profile</p>
+      <div className="space-y-2">
         {summary.map((p, idx) => {
           const isSel      = hovSel === p.name;
           const avatar     = avatarUrl(p.name, data.avatars);
@@ -617,56 +629,57 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
                 if (isSel) { setSel(p.name); }
                 else { setHovSel(p.name); }
               }}
-              className={"vip-player-card w-full text-left transition-all rounded-2xl "+(idx<3?"vip-player-top vip-player-top-"+(idx+1):"")}
+              className="w-full text-left transition-all rounded-2xl"
               style={{
                 background: isSel
-                  ? "linear-gradient(135deg, rgba(201,162,39,0.22), rgba(201,162,39,0.05))"
-                  : undefined,
-                border: isSel ? "1.5px solid rgba(240,192,91,0.8)" : undefined,
+                  ? "linear-gradient(135deg, rgba(201,162,39,0.15), rgba(201,162,39,0.05))"
+                  : "rgba(15,10,3,0.40)",
+                border: isSel
+                  ? "1.5px solid rgba(201,162,39,0.45)"
+                  : "1px solid rgba(255,255,255,0.08)",
                 backdropFilter: "blur(6px)",
-                overflow: "hidden",
+                overflow: doOverflow ? "visible" : "hidden",
               }}>
-              <div className="vip-member-content flex items-stretch">
+              <div className="flex items-stretch">
                 {/* เลขอันดับ - กึ่งกลาง card */}
-                <div className="vip-member-rank flex-shrink-0 flex items-center justify-center" style={{width: isSel?"48px":"40px"}}>
+                <div className="flex-shrink-0 flex items-center justify-center" style={{width: isSel?"48px":"40px"}}>
                   <span style={{
                     color: isSel ? "#c9a227" : "#555",
                     fontSize: isSel ? "28px" : "18px",
                     fontWeight: 700,
                     lineHeight: 1,
-                  }}>{rankNum<=3?<ThemeIcon name="medal" rank={rankNum}/>:rankNum}</span>
+                  }}>{rankNum}</span>
                 </div>
                 {/* รูป */}
-                <div className="vip-member-avatar flex-shrink-0 flex items-center justify-center my-2 ml-2 w-[88px] h-[88px] sm:w-[104px] sm:h-[104px] overflow-hidden rounded-xl border border-amber-400/20 bg-[#1b1c20]">
+                <div className="flex-shrink-0 flex items-center py-2" style={{overflow: doOverflow ? "visible" : "hidden"}}>
                   <img src={avatar} alt={p.name} onError={onAvatarError}
-                    className="object-cover"
+                    className={doOverflow ? "object-contain" : "object-cover"}
                     style={{
-                      width: "100%",
-                      height: "100%",
-                      marginTop: "0px",
+                      width: isSel ? "160px" : "100px",
+                      height: isSel ? "160px" : "100px",
+                      marginTop: doOverflow ? (isSel ? "-60px" : "-40px") : "0px",
                       objectPosition: "top center",
-                      borderRadius: "10px",
+                      borderRadius: doOverflow ? "0px" : "8px",
                       filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.7))",
                       transition: "all 0.2s ease",
                     }}
                   />
                 </div>
                 {/* Info */}
-                <div className="vip-player-info flex-1 flex flex-col justify-center py-3 px-3 pr-4 min-w-0">
-                  <div className="vip-member-name flex items-center justify-between gap-2 mb-1">
+                <div className="flex-1 flex flex-col justify-center py-3 px-3 pr-4 min-w-0">
+                  <div className="flex items-center justify-between gap-2 mb-1">
                     <span className="font-bold" style={{color: isSel?"#f0c040":"#fff", fontSize: isSel?"16px":"15px"}}>
                       <PlayerName player={p.name} nicknames={data.nicknames}/>
                     </span>
-                    <Profit v={p.total} sx=" c"/>
+                    <Profit v={p.total} sx=" ฿"/>
                   </div>
-                  <div className="text-xs mb-1.5" style={{color: isSel?"#e6c995":"#aaa"}}>
-                    {p.n} เซสชั่น · อัตราชนะ {p.n>0?Math.round((p.gold/p.n)*100):0}%
+                  <div className="text-xs mb-1.5" style={{color: isSel?"#888":"#666"}}>
+                    {p.n} เซสชั่น · Win rate {p.n>0?Math.round((p.gold/p.n)*100):0}%
                   </div>
-                  <div className="vip-player-winbar" role="img" aria-label={"อัตราชนะ "+(p.n>0?Math.round((p.gold/p.n)*100):0)+" เปอร์เซ็นต์"}><span style={{width:(p.n>0?Math.round((p.gold/p.n)*100):0)+"%"}} /></div>
-                  <div className="flex gap-1" style={{flexWrap:"wrap"}}>
-                    {p.gold>0   && <span className="bg-amber-500/20 border border-amber-500/30 text-amber-300 px-1.5 py-0.5 rounded-full text-[10px] whitespace-nowrap">{themedLabel("🥇")}{p.gold}</span>}
-                    {p.silver>0 && <span className="border border-zinc-600 text-zinc-300 px-1.5 py-0.5 rounded-full text-[10px] whitespace-nowrap">{themedLabel("🥈")}{p.silver}</span>}
-                    {p.last>0   && <span className="bg-red-900/30 border border-red-700/30 text-red-400 px-1.5 py-0.5 rounded-full text-[10px] whitespace-nowrap">{themedLabel("💀")}{p.last}</span>}
+                  <div className="flex gap-1" style={{flexWrap:"nowrap"}}>
+                    {p.gold>0   && <span className="bg-amber-500/20 border border-amber-500/30 text-amber-300 px-1.5 py-0.5 rounded-full text-[10px] whitespace-nowrap">🥇{p.gold}</span>}
+                    {p.silver>0 && <span className="border border-zinc-600 text-zinc-300 px-1.5 py-0.5 rounded-full text-[10px] whitespace-nowrap">🥈{p.silver}</span>}
+                    {p.last>0   && <span className="bg-red-900/30 border border-red-700/30 text-red-400 px-1.5 py-0.5 rounded-full text-[10px] whitespace-nowrap">💀{p.last}</span>}
                   </div>
                 </div>
               </div>
@@ -786,7 +799,7 @@ function RacingBarChart({ sessions, players, nicknames, avatars }) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <div className="text-white font-bold text-sm">{themedLabel("🏆")} Ranking Race</div>
+          <div className="text-white font-bold text-sm">🏆 Ranking Race</div>
           <div className="text-zinc-500 text-xs">กำไรสะสมแต่ละเซส</div>
         </div>
         <div className="bg-amber-500/15 border border-amber-500/30 rounded-full px-3 py-1 text-amber-400 font-mono font-bold text-xs">
@@ -864,7 +877,7 @@ function RacingBarChart({ sessions, players, nicknames, avatars }) {
                   }}>
                   <span className="text-[10px] font-bold font-mono whitespace-nowrap"
                     style={{color: isPos ? 'rgba(0,0,0,0.75)' : 'rgba(255,255,255,0.9)'}}>
-                    {(displayVals[s.name] ?? 0) >= 0 ? '+' : ''}{fmt(displayVals[s.name] ?? 0)} c
+                    {(displayVals[s.name] ?? 0) >= 0 ? '+' : ''}{fmt(displayVals[s.name] ?? 0)} ฿
                   </span>
                   {/* Avatar at tip */}
                   <div style={{
@@ -912,18 +925,18 @@ function RacingBarChart({ sessions, players, nicknames, avatars }) {
 function RaceView({ data }) {
   return (
     <div className="space-y-2">
-      <h2 className="text-xl font-bold text-white">{themedLabel("🏎️")} Ranking Race</h2>
+      <h2 className="text-xl font-bold text-white">🏎️ Ranking Race</h2>
       <p className="text-zinc-500 text-sm">กำไรสะสมแต่ละเซสชั่น</p>
       {data.sessions.length > 1
         ? <RacingBarChart sessions={data.sessions} players={data.players} nicknames={data.nicknames} avatars={data.avatars||{}}/>
-        : <Box><div className="text-center py-12 text-zinc-600"><div className="text-4xl mb-3">{themedLabel("🏎️")}</div>ต้องมีอย่างน้อย 2 เซสชั่นขึ้นไป</div></Box>
+        : <Box><div className="text-center py-12 text-zinc-600"><div className="text-4xl mb-3">🏎️</div>ต้องมีอย่างน้อย 2 เซสชั่นขึ้นไป</div></Box>
       }
     </div>
   );
 }
 
-function LeaderboardView({ data, initialFilter = "all" }) {
-  const [filter, setFilter] = useState(initialFilter);
+function LeaderboardView({ data }) {
+  const [filter, setFilter] = useState("all");
 
   const seasonKeys = useMemo(() => [...new Set(data.sessions.map(s=>s.year+"-"+s.season))].sort((a,b)=>b.localeCompare(a)), [data.sessions]);
   const yearKeys   = useMemo(() => [...new Set(data.sessions.map(s=>String(s.year)))].sort((a,b)=>b-a), [data.sessions]);
@@ -951,9 +964,9 @@ function LeaderboardView({ data, initialFilter = "all" }) {
     : "-";
 
   return (
-    <div className="vip-rank vip-redesign vip-rank-reference space-y-5">
+    <div className="space-y-5">
       <div>
-        <div className="vip-eyebrow">LEGENDARY SECRETS · HALL OF FAME</div><h2 className="text-xl font-bold text-white">HALL OF FAME <span className="vip-title-en">LEADERBOARD</span></h2><div className="vip-rank-scene" aria-hidden="true"><span>{themedLabel("♛")}</span><span>{themedLabel("♠")}</span><span>{themedLabel("♣")}</span></div>
+        <h2 className="text-xl font-bold text-white">🏆 Leaderboard</h2>
         <p className="text-zinc-500 text-sm mt-0.5">แสดงผล: <span className="text-amber-300">{filterLabel}</span></p>
       </div>
 
@@ -972,7 +985,7 @@ function LeaderboardView({ data, initialFilter = "all" }) {
                   ? "bg-amber-500/15 text-amber-400 border-amber-500/40"
                   : "bg-transparent text-zinc-500 border-zinc-700 hover:text-zinc-300 hover:border-zinc-600"
               )}>
-              {themedLabel(label)}
+              {label}
             </button>
           ))}
         </div>
@@ -1024,36 +1037,29 @@ function LeaderboardView({ data, initialFilter = "all" }) {
       ) : (
         <>
           {top3.length>0 && (
-            <section className="rounded-3xl border border-amber-400/20 bg-[#151619] p-4 sm:p-6">
-              <div className="flex items-center justify-between mb-5">
-                <div>
-                  <div className="text-white font-black text-xl">ทำเนียบผู้ชนะ</div>
-                  <div className="text-zinc-400 text-xs mt-1">อันดับสูงสุดในช่วงที่เลือก</div>
-                </div>
-                <span className="text-amber-300 text-3xl">{themedLabel("♛")}</span>
-              </div>
-              <div className="vip-rank-podium vip-champions vip-ref-podium grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
-                {top3.map((p,i) => (
-                  <div key={p.name} className={"vip-ref-champion relative overflow-hidden rounded-2xl border p-5 "+GRAD[i]+" "+(i===0?"border-amber-300/60 shadow-[0_0_35px_rgba(210,157,65,0.13)]":"")}>
-                    <div className="absolute -right-4 -top-9 text-[120px] opacity-10 pointer-events-none">{themedLabel(["♛","♠","♦"][i])}</div>
-                    <div className="relative">
-                      <div className="vip-ref-medal-row"><span className="vip-podium-medal">{themedLabel(MEDAL[i])}</span><span className="vip-ref-rank-label">RANK 0{i+1}</span></div>
-                      <div className="vip-ref-avatar-wrap"><img src={avatarUrl(p.name,data.avatars)} alt={"รูปโปรไฟล์ "+p.name} loading="lazy" onError={onAvatarError} /></div>
-                      <div className="vip-champion-name text-white text-xl font-black truncate">{p.name}</div>
-                      <div className="vip-ref-session-count">{p.n} เซสชั่น</div>
-                      <div className="vip-rank-winrate">อัตราชนะ {p.n>0?Math.round(p.gold/p.n*100):0}% <span className="vip-rank-bar"><span style={{width:(p.n>0?Math.round(p.gold/p.n*100):0)+"%"}} /></span></div>
-                      <div className={"vip-ref-profit font-mono text-2xl font-black "+(p.total>=0?"text-emerald-300":"text-red-300")}>{p.total>0?"+":""}{fmt(p.total)} c</div>
-                      <div className="flex flex-wrap gap-1.5 mt-4 text-xs">
-                        <span className="rounded-full bg-black/25 border border-white/10 px-2 py-1">{themedLabel("🥇")} {p.gold}</span>
-                        <span className="rounded-full bg-black/25 border border-white/10 px-2 py-1">{themedLabel("🥈")} {p.silver}</span>
-                        <span className="rounded-full bg-black/25 border border-white/10 px-2 py-1">{themedLabel("🥉")} {p.bronze}</span>
-                        <span className="rounded-full bg-black/25 border border-white/10 px-2 py-1">{themedLabel("💀")} {p.last}</span>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {top3.map((p,i) => (
+                <div key={p.name} className={"rounded-2xl border p-4 "+GRAD[i]}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-2xl">{MEDAL[i]}</span>
+                    <div>
+                      <div className="text-white font-bold text-lg leading-tight">{p.name}</div>
+                      <div className="text-xs font-normal" style={{color:"rgba(255,255,255,0.4)"}}>
+                        {(data.nicknames||{})[p.name] ? `"${(data.nicknames||{})[p.name]}"` : "-"}
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
-            </section>
+                  <div className={"font-mono text-2xl font-black mt-1 "+(p.total>=0?"text-emerald-400":"text-red-400")}>{p.total>0?"+":""}{fmt(p.total)} ฿</div>
+                  <div className="mt-2 flex flex-wrap gap-1 text-xs">
+                    {p.gold>0   && <span className="bg-amber-500/20 border border-amber-500/30 text-amber-300 px-1.5 py-0.5 rounded-full">🥇×{p.gold}</span>}
+                    {p.silver>0 && <span className=" border border-zinc-400/30 text-zinc-300 px-1.5 py-0.5 rounded-full">🥈×{p.silver}</span>}
+                    {p.bronze>0 && <span className="bg-orange-700/20 border border-orange-700/30 text-orange-300 px-1.5 py-0.5 rounded-full">🥉×{p.bronze}</span>}
+                    {p.last>0   && <span className="bg-red-900/30 border border-red-700/30 text-red-400 px-1.5 py-0.5 rounded-full">💀×{p.last}</span>}
+                    <span className=" border border-zinc-600/40 text-zinc-500 px-1.5 py-0.5 rounded-full">{p.n} เซสชั่น</span>
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
           <Box className="overflow-hidden p-0">
             <div className="overflow-x-auto">
@@ -1061,9 +1067,9 @@ function LeaderboardView({ data, initialFilter = "all" }) {
                 <thead><tr className="border-b border-zinc-800 text-zinc-400 bg-transparent">
                   <th className="px-2 py-2 text-left">#</th>
                   <th className="px-2 py-2 text-left">ผู้เล่น</th>
-                  <th className="px-2 py-2 text-right">กำไร/ขาดทุน (c)</th>
-                  <th className="px-2 py-2 text-center">{themedLabel("🥇")}</th><th className="px-2 py-2 text-center">{themedLabel("🥈")}</th>
-                  <th className="px-2 py-2 text-center">{themedLabel("🥉")}</th><th className="px-2 py-2 text-center">{themedLabel("💀")}</th>
+                  <th className="px-2 py-2 text-right">กำไร/ขาดทุน (฿)</th>
+                  <th className="px-2 py-2 text-center">🥇</th><th className="px-2 py-2 text-center">🥈</th>
+                  <th className="px-2 py-2 text-center">🥉</th><th className="px-2 py-2 text-center">💀</th>
                   <th className="px-1 py-2 text-right hidden sm:table-cell w-16">เซสชั่น</th>
                 </tr></thead>
                 <tbody>
@@ -1076,7 +1082,7 @@ function LeaderboardView({ data, initialFilter = "all" }) {
                           ? <div className="text-zinc-500 text-xs font-normal">"{(data.nicknames||{})[p.name]}"</div>
                           : null}
                       </td>
-                      <td className="px-2 py-2 text-right"><Profit v={p.total} sx=" c"/></td>
+                      <td className="px-2 py-2 text-right"><Profit v={p.total} sx=" ฿"/></td>
                       <td className="px-2 py-2 text-center font-mono text-amber-400 font-semibold">{p.gold>0?p.gold:<span className="text-zinc-700">-</span>}</td>
                       <td className="px-2 py-2 text-center font-mono text-zinc-300 font-semibold">{p.silver>0?p.silver:<span className="text-zinc-700">-</span>}</td>
                       <td className="px-2 py-2 text-center font-mono text-orange-400 font-semibold">{p.bronze>0?p.bronze:<span className="text-zinc-700">-</span>}</td>
@@ -1103,7 +1109,7 @@ function SessionsView({ data, onEdit, onDelete, initialOpen=null }) {
   const [openStats, setOpenStats] = useState(new Set());
   return (
     <div className="space-y-2">
-      <h2 className="text-xl font-bold text-white">{themedLabel("📋")} ประวัติเซสชั่น</h2>
+      <h2 className="text-xl font-bold text-white">📋 ประวัติเซสชั่น</h2>
       {data.sessions.length===0 && <Box><div className="text-center py-12 text-zinc-600"><div className="text-4xl mb-3">🃏</div>ยังไม่มีเซสชั่น</div></Box>}
       {[...data.sessions].reverse().map(s => {
         const r = ranked(s.entries);
@@ -1120,13 +1126,13 @@ function SessionsView({ data, onEdit, onDelete, initialOpen=null }) {
                 </div>
                 <div>
                   <div className="text-white font-semibold text-sm">{String(s.date || "").slice(0,10)}</div>
-                  <div className="text-zinc-500 text-xs">{s.entries.length} ผู้เล่น · Pot {fmt(pot)} c · <span className="text-purple-400">ส่วนกลาง {fmt(fee)} c</span></div>
+                  <div className="text-zinc-500 text-xs">{s.entries.length} ผู้เล่น · Pot {fmt(pot)} ฿ · <span className="text-purple-400">ส่วนกลาง {fmt(fee)} ฿</span></div>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <div className="text-right hidden sm:block">
-                  <div className="text-emerald-400 text-sm font-semibold">{themedLabel("🥇")} <PlayerName player={r[0]?.player||''} nicknames={data.nicknames}/></div>
-                  <div className="text-emerald-300 text-xs font-mono">+{fmt(r[0]?.profitBaht)} c</div>
+                  <div className="text-emerald-400 text-sm font-semibold">🥇 <PlayerName player={r[0]?.player||''} nicknames={data.nicknames}/></div>
+                  <div className="text-emerald-300 text-xs font-mono">+{fmt(r[0]?.profitBaht)} ฿</div>
                 </div>
                 <span className="text-zinc-500">{isOpen?"▲":"▼"}</span>
               </div>
@@ -1134,16 +1140,16 @@ function SessionsView({ data, onEdit, onDelete, initialOpen=null }) {
             {isOpen && (
               <div className="border-t border-zinc-800 px-4 pb-4">
                 <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                  <span className="bg-amber-900/30 border border-amber-700/40 text-amber-300 px-3 py-1 rounded-full font-mono">{themedLabel("🎰")} {fmt(s.rate.chips)} ชิป = {fmt(s.rate.baht)} c</span>
-                  <span className="bg-purple-900/30 border border-purple-700/40 text-purple-300 px-3 py-1 rounded-full font-mono">{themedLabel("📦")} {fmt(s.fee)} c/คน</span>
+                  <span className="bg-amber-900/30 border border-amber-700/40 text-amber-300 px-3 py-1 rounded-full font-mono">🎰 {fmt(s.rate.chips)} ชิป = {fmt(s.rate.baht)} ฿</span>
+                  <span className="bg-purple-900/30 border border-purple-700/40 text-purple-300 px-3 py-1 rounded-full font-mono">📦 {fmt(s.fee)} ฿/คน</span>
                 </div>
                 <div className="overflow-x-auto mt-3">
                   <table className="w-full text-sm">
                     <thead><tr className="text-zinc-500 border-b border-zinc-800">
                       <th className="py-2 text-left">#</th><th className="py-2 text-left">ผู้เล่น</th>
                       <th className="py-2 text-right">ซื้อ(ชิป)</th><th className="py-2 text-right">แลก(ชิป)</th>
-                      <th className="py-2 text-right hidden sm:table-cell">ซื้อ(c)</th><th className="py-2 text-right hidden sm:table-cell">แลก(c)</th>
-                      <th className="py-2 text-right">กำไร(c)</th>
+                      <th className="py-2 text-right hidden sm:table-cell">ซื้อ(฿)</th><th className="py-2 text-right hidden sm:table-cell">แลก(฿)</th>
+                      <th className="py-2 text-right">กำไร(฿)</th>
                     </tr></thead>
                     <tbody>{r.map(e => {
                       const statKey = s.internalId + "__" + e.player;
@@ -1169,7 +1175,7 @@ function SessionsView({ data, onEdit, onDelete, initialOpen=null }) {
                                 <span className="font-medium text-white"><PlayerName player={e.player} nicknames={data.nicknames}/></span>
                                 <button onClick={() => setOpenStats(prev => { const n = new Set(prev); n.has(statKey) ? n.delete(statKey) : n.add(statKey); return n; })}
                                   className={"text-[10px] px-1.5 py-0.5 rounded border transition-colors " + (statOpen ? "border-amber-500/50 text-amber-400 bg-amber-500/10" : hasStats ? "border-emerald-500/30 text-emerald-400 bg-emerald-500/10" : "border-zinc-700/30 text-zinc-600 hover:text-zinc-400")}>
-                                  {themedLabel(statOpen ? "▲ Stats" : hasStats ? "✦ Stats" : "Stats")}
+                                  {statOpen ? "▲ Stats" : hasStats ? "✦ Stats" : "Stats"}
                                 </button>
                               </div>
                             </td>
@@ -1177,7 +1183,7 @@ function SessionsView({ data, onEdit, onDelete, initialOpen=null }) {
                             <td className="py-2 text-right font-mono text-zinc-400">{fmt(e.cashOutChips)}</td>
                             <td className="py-2 text-right font-mono text-zinc-500 hidden sm:table-cell">{fmt(e.buyInBaht)}</td>
                             <td className="py-2 text-right font-mono text-zinc-500 hidden sm:table-cell">{fmt(e.cashOutBaht)}</td>
-                            <td className="py-2 text-right"><Profit v={e.profitBaht} sx=" c"/></td>
+                            <td className="py-2 text-right"><Profit v={e.profitBaht} sx=" ฿"/></td>
                           </tr>
                           {statOpen && (
                             <tr className="border-b border-zinc-800/30">
@@ -1185,14 +1191,14 @@ function SessionsView({ data, onEdit, onDelete, initialOpen=null }) {
                                 <div className="flex items-center gap-1.5 flex-wrap px-8 py-2" style={{background:"rgba(255,255,255,0.02)"}}>
                                   {BLUFF_FIELDS.map(f => (
                                     <div key={f[0]} className="flex flex-col items-center gap-1 rounded-md border border-zinc-700/20 px-2 py-1.5" style={{background:"rgba(255,255,255,0.04)"}}>
-                                      <span className={"text-[11px] whitespace-nowrap " + f[2]}>{themedLabel(f[1])} {f[3]}</span>
+                                      <span className={"text-[11px] whitespace-nowrap " + f[2]}>{f[1]} {f[3]}</span>
                                       <span className={"font-mono font-bold text-sm " + ((e[f[0]]||0) > 0 ? f[2] : "text-zinc-600")}>{(e[f[0]]||0) > 0 ? e[f[0]] : "-"}</span>
                                     </div>
                                   ))}
                                   <div className="w-px h-8 flex-shrink-0" style={{background:"rgba(255,255,255,0.1)"}}/>
                                   {SET_FIELDS.map(f => (
                                     <div key={f[0]} className="flex flex-col items-center gap-1 rounded-md border border-zinc-700/20 px-2 py-1.5" style={{background:"rgba(255,255,255,0.04)"}}>
-                                      <span className={"text-[11px] whitespace-nowrap " + f[2]}>{themedLabel(f[1])} {f[3]}</span>
+                                      <span className={"text-[11px] whitespace-nowrap " + f[2]}>{f[1]} {f[3]}</span>
                                       <span className={"font-mono font-bold text-sm " + ((e[f[0]]||0) > 0 ? f[2] : "text-zinc-600")}>{(e[f[0]]||0) > 0 ? e[f[0]] : "-"}</span>
                                     </div>
                                   ))}
@@ -1205,11 +1211,11 @@ function SessionsView({ data, onEdit, onDelete, initialOpen=null }) {
                     })}</tbody>
                   </table>
                 </div>
-                {s.note && <p className="mt-3 text-zinc-500 text-sm rounded-lg px-3 py-2" style={{background:"rgba(255,255,255,0.06)"}}>{themedLabel("📝")} {s.note}</p>}
+                {s.note && <p className="mt-3 text-zinc-500 text-sm rounded-lg px-3 py-2" style={{background:"rgba(255,255,255,0.06)"}}>📝 {s.note}</p>}
                 {(onEdit || onDelete) && (
                   <div className="flex gap-2 mt-4 justify-end">
-                    {onEdit   && <button onClick={()=>onEdit(s)} className="px-4 py-1.5 rounded-lg  hover:bg-zinc-600 text-white text-sm">{themedLabel("✏️")} แก้ไข</button>}
-                    {onDelete && <button onClick={()=>onDelete(s.internalId)} className="px-4 py-1.5 rounded-lg bg-red-900/40 hover:bg-red-800/50 text-red-400 text-sm">{themedLabel("🗑️")} ลบ</button>}
+                    {onEdit   && <button onClick={()=>onEdit(s)} className="px-4 py-1.5 rounded-lg  hover:bg-zinc-600 text-white text-sm">✏️ แก้ไข</button>}
+                    {onDelete && <button onClick={()=>onDelete(s.internalId)} className="px-4 py-1.5 rounded-lg bg-red-900/40 hover:bg-red-800/50 text-red-400 text-sm">🗑️ ลบ</button>}
                   </div>
                 )}
               </div>
@@ -1294,7 +1300,7 @@ function SessionForm({ data, editSession, onSave, onCancel, saving, isAdmin, all
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between gap-2">
-        <h2 className="text-xl font-bold text-white">{themedLabel(editSession?"✏️ แก้ไขเซสชั่น":"➕ บันทึกเซสชั่นใหม่")}</h2>
+        <h2 className="text-xl font-bold text-white">{editSession?"✏️ แก้ไขเซสชั่น":"➕ บันทึกเซสชั่นใหม่"}</h2>
         <div className="flex items-center gap-2 flex-shrink-0">
           {isAdmin && !editSession && (
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{background:"rgba(255,255,255,0.08)"}}>
@@ -1304,20 +1310,20 @@ function SessionForm({ data, editSession, onSave, onCancel, saving, isAdmin, all
               </button>
             </div>
           )}
-          {onCancel && <button onClick={onCancel} className="text-zinc-500 hover:text-white text-sm">ยกเลิก {themedLabel("✕")}</button>}
+          {onCancel && <button onClick={onCancel} className="text-zinc-500 hover:text-white text-sm">ยกเลิก ✕</button>}
         </div>
       </div>
 
       {/* Date + Note */}
       <div className="flex gap-2 items-start">
         <div className="flex-shrink-0">
-          <label className="block text-zinc-400 text-xs mb-1">{themedLabel("📅")} วันที่เล่น</label>
+          <label className="block text-zinc-400 text-xs mb-1">📅 วันที่เล่น</label>
           <input type="date" value={date} onChange={e=>setDate(e.target.value)}
             className="border border-zinc-700/40 rounded-lg px-2 py-2 text-white text-sm focus:border-amber-500 focus:outline-none" style={{background:"rgba(255,255,255,0.06)", width:"150px"}}/>
           {errs.date && <p className="text-red-400 text-xs mt-1">{errs.date}</p>}
         </div>
         <div className="flex-1 min-w-0">
-          <label className="block text-zinc-400 text-xs mb-1">{themedLabel("📝")} หมายเหตุ</label>
+          <label className="block text-zinc-400 text-xs mb-1">📝 หมายเหตุ</label>
           <input type="text" value={note} onChange={e=>setNote(e.target.value)} placeholder="เช่น บ้านแนน..."
             className="w-full border border-zinc-700/40 rounded-lg px-3 py-2 text-white text-sm placeholder-zinc-600 focus:border-amber-500 focus:outline-none" style={{background:"rgba(255,255,255,0.06)"}}/>
         </div>
@@ -1328,7 +1334,7 @@ function SessionForm({ data, editSession, onSave, onCancel, saving, isAdmin, all
         <div className="bg-gradient-to-r from-sky-900/30 to-zinc-900/10 border border-sky-700/40 rounded-2xl p-4">
           <div className="flex flex-col sm:flex-row sm:items-center gap-4">
             <div className="flex-1">
-              <div className="text-sky-400 text-xs font-semibold mb-1">{themedLabel("📌")} คำนวณจากวันที่</div>
+              <div className="text-sky-400 text-xs font-semibold mb-1">📌 คำนวณจากวันที่</div>
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-white font-bold text-lg">ปี {year}</span>
                 <span className="bg-sky-500/20 border border-sky-500/40 text-sky-300 px-3 py-0.5 rounded-full font-mono text-sm font-bold">ซีซั่น {season}</span>
@@ -1337,7 +1343,7 @@ function SessionForm({ data, editSession, onSave, onCancel, saving, isAdmin, all
               <div className="text-zinc-600 text-xs mt-1">{sameSes.length>0?"ซีซั่นนี้มี "+sameSes.length+" เซสแล้ว":"เซสแรกของซีซั่นนี้!"}</div>
             </div>
             <div className="sm:w-36">
-              <div className="text-amber-400 text-xs font-semibold mb-1">{themedLabel("🎯")} เซสชั่นที่</div>
+              <div className="text-amber-400 text-xs font-semibold mb-1">🎯 เซสชั่นที่</div>
               <div className="flex items-center gap-1">
                 <button onClick={()=>setSesNo(n=>Math.max(1,n-1))} className="w-8 h-9 rounded-lg  hover:bg-zinc-600 text-white font-bold text-lg flex-shrink-0">−</button>
                 <input type="number" min="1" value={sesNo || ""} onChange={e=>setSesNo(Number(e.target.value)||1)}
@@ -1349,46 +1355,46 @@ function SessionForm({ data, editSession, onSave, onCancel, saving, isAdmin, all
             </div>
           </div>
           <div className="mt-3 rounded-xl px-3 py-2 text-center">
-            <span className="text-amber-300 font-bold font-mono text-sm">{themedLabel("📋")} ปี {year} · ซีซั่น {season} · เซสชั่นที่ {sesNo}</span>
+            <span className="text-amber-300 font-bold font-mono text-sm">📋 ปี {year} · ซีซั่น {season} · เซสชั่นที่ {sesNo}</span>
           </div>
         </div>
       )}
 
       {/* Rate + Fee */}
       <Box className="space-y-3">
-        <div className="text-zinc-300 font-semibold text-sm">{themedLabel("⚙️")} ตั้งค่าเซสชั่นนี้</div>
+        <div className="text-zinc-300 font-semibold text-sm">⚙️ ตั้งค่าเซสชั่นนี้</div>
         <div className="grid grid-cols-1 gap-3">
           <div className="rounded-lg p-2.5" style={{background:"rgba(255,255,255,0.05)"}}>
-            <div className="text-amber-400 text-xs font-semibold mb-2">{themedLabel("🎰")} อัตราแลกชิป</div>
+            <div className="text-amber-400 text-xs font-semibold mb-2">🎰 อัตราแลกชิป</div>
             <div className="flex items-center gap-2">
               <div className="flex-1"><label className="text-zinc-500 text-xs">ชิป</label><NInput value={rate.chips} onChange={v=>setRate(r=>({...r,chips:v}))}/></div>
               <span className="text-zinc-500 pt-5">=</span>
-              <div className="flex-1"><label className="text-zinc-500 text-xs">เครดิต</label><NInput value={rate.baht} onChange={v=>setRate(r=>({...r,baht:v}))}/></div>
+              <div className="flex-1"><label className="text-zinc-500 text-xs">บาท</label><NInput value={rate.baht} onChange={v=>setRate(r=>({...r,baht:v}))}/></div>
             </div>
-            <div className="text-zinc-500 text-xs font-mono mt-1">1 ชิป ≈ {rate.chips>0?(rate.baht/rate.chips).toFixed(4):0} c</div>
+            <div className="text-zinc-500 text-xs font-mono mt-1">1 ชิป ≈ {rate.chips>0?(rate.baht/rate.chips).toFixed(4):0} ฿</div>
             {errs.rate && <p className="text-red-400 text-xs mt-1">{errs.rate}</p>}
           </div>
           <div className="rounded-lg p-2.5" style={{background:"rgba(255,255,255,0.05)"}}>
-            <div className="text-purple-400 text-xs font-semibold mb-2">{themedLabel("📦")} ค่าส่วนกลาง/คน</div>
+            <div className="text-purple-400 text-xs font-semibold mb-2">📦 ค่าส่วนกลาง/คน</div>
             <NInput value={fee} onChange={setFee}/>
-            <div className="text-zinc-500 text-xs font-mono mt-1">{active} คน × {fmt(fee)} = <span className="text-purple-300">{fmt(active*fee)} c</span></div>
+            <div className="text-zinc-500 text-xs font-mono mt-1">{active} คน × {fmt(fee)} = <span className="text-purple-300">{fmt(active*fee)} ฿</span></div>
           </div>
         </div>
       </Box>
 
       {/* Quick Fill */}
       <div className="bg-gradient-to-r from-amber-900/30 to-zinc-900/20 border border-amber-600/40 rounded-2xl p-4">
-        <div className="text-amber-300 text-sm font-bold mb-1">{themedLabel("⚡")} ซื้อชิปเหมือนกันทุกคน</div>
+        <div className="text-amber-300 text-sm font-bold mb-1">⚡ ซื้อชิปเหมือนกันทุกคน</div>
         <div className="text-zinc-600 text-xs mb-3">กรอกครั้งเดียว ใส่ทุกคนพร้อมกัน</div>
         <div className="flex items-end gap-2">
           <div className="flex-1">
-            <label className="text-zinc-500 text-xs">{mode==="baht"?"เครดิต":"ชิป"}ที่ซื้อ</label>
+            <label className="text-zinc-500 text-xs">{mode==="baht"?"บาท":"ชิป"}ที่ซื้อ</label>
             <NInput value={qv} onChange={setQv} ph={mode==="chips"?"1,000":"200"}/>
-            {qv>0 && <div className="text-zinc-600 text-xs mt-0.5 font-mono">= {fmt(mode==="chips"?c2b(qv,rate):b2c(qv,rate))} {mode==="chips"?"c":"ชิป"}/คน</div>}
+            {qv>0 && <div className="text-zinc-600 text-xs mt-0.5 font-mono">= {fmt(mode==="chips"?c2b(qv,rate):b2c(qv,rate))} {mode==="chips"?"฿":"ชิป"}/คน</div>}
           </div>
           <div className="flex flex-col gap-1.5">
             <button onClick={applyQF} className={"px-4 py-2.5 rounded-xl font-bold text-sm transition-all "+(qok?"bg-emerald-500 text-white":"bg-amber-500 hover:bg-amber-400 text-black")}>
-              {themedLabel(qok ? "✅ ใส่แล้ว!" : "ใส่ทุกคน")}
+              {qok ? "✅ ใส่แล้ว!" : "ใส่ทุกคน"}
             </button>
             <button onClick={()=>setRows(rows.map(r=>({...r,buy:0})))} className="px-4 py-1.5 rounded-xl text-zinc-500 hover:text-white text-xs border border-zinc-700 transition-colors">ล้างค่า</button>
           </div>
@@ -1399,8 +1405,8 @@ function SessionForm({ data, editSession, onSave, onCancel, saving, isAdmin, all
       <div className="flex items-center gap-2">
         <span className="text-zinc-500 text-sm">กรอกเป็น:</span>
         <div className="flex rounded-lg p-0.5" style={{background:"rgba(255,255,255,0.08)"}}>
-          {[["chips","🎰 ชิป"],["baht","💵 เครดิต"]].map(([m,label]) => (
-            <button key={m} onClick={()=>setMode(m)} className={"px-4 py-1.5 rounded-md text-sm font-medium transition-colors "+(mode===m?"bg-amber-500 text-black":"text-zinc-400 hover:text-white")}>{themedLabel(label)}</button>
+          {[["chips","🎰 ชิป"],["baht","💵 บาท"]].map(([m,label]) => (
+            <button key={m} onClick={()=>setMode(m)} className={"px-4 py-1.5 rounded-md text-sm font-medium transition-colors "+(mode===m?"bg-amber-500 text-black":"text-zinc-400 hover:text-white")}>{label}</button>
           ))}
         </div>
       </div>
@@ -1408,14 +1414,14 @@ function SessionForm({ data, editSession, onSave, onCancel, saving, isAdmin, all
       {/* Balance */}
       <div className={"rounded-xl px-4 py-3 border "+(bal?"bg-emerald-900/20 border-emerald-700/40":"bg-red-900/20 border-red-700/40")}>
         <div className="flex items-center justify-between gap-4">
-          <span className={"text-sm font-medium flex-shrink-0 "+(bal?"text-emerald-400":"text-red-400")}>{themedLabel(bal?"✅ ยอดสมดุล":"⚠️ ยอดไม่สมดุล")}</span>
+          <span className={"text-sm font-medium flex-shrink-0 "+(bal?"text-emerald-400":"text-red-400")}>{bal?"✅ ยอดสมดุล":"⚠️ ยอดไม่สมดุล"}</span>
           <div className="text-xs font-mono text-right space-y-0.5">
             <div className="text-zinc-400">ซื้อ <span className="text-white">{fmt(totBuy)}</span> ชิป</div>
             <div className="text-zinc-400">แลก <span className="text-white">{fmt(totSell)}</span> ชิป</div>
             {!bal && (
               <div className={"border-t pt-0.5 "+(diff>0?"border-emerald-700/40":"border-red-700/40")}>
                 <span className="text-zinc-500">ต่าง </span>
-                <span className={diff>0?"text-emerald-400 font-bold":"text-red-400 font-bold"}>{diff>0?"+":""}{fmt(diff)} ชิป · {diff>0?"+":"-"}{fmt(c2b(Math.abs(diff),rate))} c</span>
+                <span className={diff>0?"text-emerald-400 font-bold":"text-red-400 font-bold"}>{diff>0?"+":""}{fmt(diff)} ชิป · {diff>0?"+":"-"}{fmt(c2b(Math.abs(diff),rate))} ฿</span>
                 <span className={"ml-1 "+(diff>0?"text-emerald-600":"text-red-600")}>({diff>0?"เกิน":"ขาด"})</span>
               </div>
             )}
@@ -1427,7 +1433,7 @@ function SessionForm({ data, editSession, onSave, onCancel, saving, isAdmin, all
       {/* Entries */}
       <Box className="overflow-hidden p-0">
         <div className="px-4 py-3 border-b border-zinc-800 text-zinc-400 text-sm flex justify-between items-center">
-          <span>บันทึกชิปแต่ละคน ({mode==="chips"?"ชิป":"เครดิต"})</span>
+          <span>บันทึกชิปแต่ละคน ({mode==="chips"?"ชิป":"บาท"})</span>
           <div className="flex items-center gap-2">
             <span className="text-xs text-zinc-600">{active}/{rows.length} คน</span>
             {/* ปุ่มเพิ่มผู้เล่น - แสดงเฉพาะตอนแก้ไข และมีคนที่ยังไม่ได้อยู่ในรายการ */}
@@ -1478,32 +1484,32 @@ function SessionForm({ data, editSession, onSave, onCancel, saving, isAdmin, all
                       <span className={"w-2 h-2 rounded-full flex-shrink-0 "+(pb>0?"bg-emerald-400":pb<0?"bg-red-400":"")}/>
                       <span className="text-white font-medium text-sm truncate"><PlayerName player={r.player} nicknames={data.nicknames}/></span>
                       <button onClick={() => setRows(prev => prev.filter(x => x.player !== r.player))}
-                        className="ml-auto text-zinc-600 hover:text-red-400 text-xs transition-colors flex-shrink-0">{themedLabel("✕")}</button>
+                        className="ml-auto text-zinc-600 hover:text-red-400 text-xs transition-colors flex-shrink-0">✕</button>
                     </div>
                     <button
                       onClick={() => setRows(prev => prev.map((x,j) => j===i ? {...x, _statsOpen: !x._statsOpen} : x))}
                       className={"text-[10px] px-1.5 py-0.5 rounded border transition-colors w-fit " + (r._statsOpen ? "border-amber-500/50 text-amber-400 bg-amber-500/10" : hasStats ? "border-emerald-500/30 text-emerald-400 bg-emerald-500/10" : "border-zinc-700/30 text-zinc-600 hover:text-zinc-400")}>
-                      {themedLabel(r._statsOpen ? "▲ Stats" : (hasStats ? "✦ Stats" : "Stats"))}
+                      {r._statsOpen ? "▲ Stats" : (hasStats ? "✦ Stats" : "Stats")}
                     </button>
                   </div>
                   {/* col 2: ซื้อ */}
                   <div>
-                    <label className="text-zinc-600 text-xs">ซื้อ {mode==="baht"?"(c)":"(ชิป)"}</label>
+                    <label className="text-zinc-600 text-xs">ซื้อ {mode==="baht"?"(฿)":"(ชิป)"}</label>
                     <NInput value={dv(r.buy)} onChange={v=>upd(i,"buy",v)}/>
-                    {r.buy>0 && <div className="text-zinc-600 text-xs mt-0.5 font-mono">= {mode==="chips"?fmt(c2b(r.buy,rate))+" c":fmt(r.buy)+" ชิป"}</div>}
+                    {r.buy>0 && <div className="text-zinc-600 text-xs mt-0.5 font-mono">= {mode==="chips"?fmt(c2b(r.buy,rate))+" ฿":fmt(r.buy)+" ชิป"}</div>}
                   </div>
                   {/* col 3: แลก */}
                   <div>
-                    <label className="text-zinc-600 text-xs">แลก {mode==="baht"?"(c)":"(ชิป)"}</label>
+                    <label className="text-zinc-600 text-xs">แลก {mode==="baht"?"(฿)":"(ชิป)"}</label>
                     <NInput value={dv(r.sell)} onChange={v=>upd(i,"sell",v)}/>
-                    {r.sell>0 && <div className="text-zinc-600 text-xs mt-0.5 font-mono">= {mode==="chips"?fmt(c2b(r.sell,rate))+" c":fmt(r.sell)+" ชิป"}</div>}
+                    {r.sell>0 && <div className="text-zinc-600 text-xs mt-0.5 font-mono">= {mode==="chips"?fmt(c2b(r.sell,rate))+" ฿":fmt(r.sell)+" ชิป"}</div>}
                   </div>
                   {/* col 4: กำไร */}
                   <div className="text-right">
                     <div className="text-xs text-zinc-600">กำไร/ขาดทุน</div>
-                    <Profit v={pb} sx=" c"/>
-                    {act && <div className="text-purple-400 text-xs font-mono">-{fmt(fee)} c ส่วนกลาง</div>}
-                    {act && <Profit v={pb-fee} sx=" c สุทธิ"/>}
+                    <Profit v={pb} sx=" ฿"/>
+                    {act && <div className="text-purple-400 text-xs font-mono">-{fmt(fee)} ฿ ส่วนกลาง</div>}
+                    {act && <Profit v={pb-fee} sx=" ฿ สุทธิ"/>}
                   </div>
                 </div>
                 {/* Stats row - collapsible */}
@@ -1516,7 +1522,7 @@ function SessionForm({ data, editSession, onSave, onCancel, saving, isAdmin, all
                       const [field, emoji, color, label] = f;
                       return (
                         <div key={field} className="flex flex-col items-center gap-1 flex-shrink-0 rounded-md border border-zinc-700/20 px-2 py-1.5" style={{background:"rgba(255,255,255,0.04)"}}>
-                          <span className={"text-[11px] whitespace-nowrap " + color}>{themedLabel(emoji)} {themedLabel(label)}</span>
+                          <span className={"text-[11px] whitespace-nowrap " + color}>{emoji} {label}</span>
                           <div className="flex items-center gap-0.5">
                             <button onClick={() => { const n=[...rows]; n[i]={...n[i],[field]:Math.max(0,(n[i][field]||0)-1)}; setRows(n); }}
                               className="w-5 h-5 rounded text-zinc-400 hover:text-white text-xs flex items-center justify-center border border-zinc-700/30"
@@ -1573,7 +1579,7 @@ function PotView({ data, onAddTx, onDeleteTx, saving, allowPublicPotEdit, setAll
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between gap-2">
-        <div><h2 className="text-xl font-bold text-white">{themedLabel("💰")} กองกลาง</h2><p className="text-zinc-500 text-sm">รายรับ-รายจ่ายเงินส่วนกลาง</p></div>
+        <div><h2 className="text-xl font-bold text-white">💰 กองกลาง</h2><p className="text-zinc-500 text-sm">รายรับ-รายจ่ายเงินส่วนกลาง</p></div>
         <div className="flex items-center gap-2">
           {isAdmin && (
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{background:"rgba(255,255,255,0.08)"}}>
@@ -1587,20 +1593,20 @@ function PotView({ data, onAddTx, onDeleteTx, saving, allowPublicPotEdit, setAll
         </div>
       </div>
       <div className="grid grid-cols-3 gap-3">
-        <div className="bg-emerald-900/20 border border-emerald-700/30 rounded-2xl p-3 text-center"><div className="text-emerald-400 text-xs font-semibold mb-1">รายรับรวม</div><div className="text-emerald-300 font-mono font-black text-lg">{inc>0?"+":""}{fmt(inc)}</div><div className="text-zinc-600 text-xs">c</div></div>
-        <div className="bg-red-900/20 border border-red-700/30 rounded-2xl p-3 text-center"><div className="text-red-400 text-xs font-semibold mb-1">รายจ่ายรวม</div><div className="text-red-400 font-mono font-black text-lg">{exp > 0 ? "-" : ""}{fmt(exp)}</div><div className="text-zinc-600 text-xs">c</div></div>
-        <div className={"border rounded-2xl p-3 text-center "+(pot.balance>=0?"bg-amber-900/20 border-amber-700/30":"bg-red-900/30 border-red-700/40")}><div className="text-amber-400 text-xs font-semibold mb-1">คงเหลือ</div><div className={"font-mono font-black text-xl "+(pot.balance>=0?"text-amber-300":"text-red-400")}>{fmt(pot.balance)}</div><div className="text-zinc-600 text-xs">c</div></div>
+        <div className="bg-emerald-900/20 border border-emerald-700/30 rounded-2xl p-3 text-center"><div className="text-emerald-400 text-xs font-semibold mb-1">รายรับรวม</div><div className="text-emerald-300 font-mono font-black text-lg">{inc>0?"+":""}{fmt(inc)}</div><div className="text-zinc-600 text-xs">฿</div></div>
+        <div className="bg-red-900/20 border border-red-700/30 rounded-2xl p-3 text-center"><div className="text-red-400 text-xs font-semibold mb-1">รายจ่ายรวม</div><div className="text-red-400 font-mono font-black text-lg">{exp > 0 ? "-" : ""}{fmt(exp)}</div><div className="text-zinc-600 text-xs">฿</div></div>
+        <div className={"border rounded-2xl p-3 text-center "+(pot.balance>=0?"bg-amber-900/20 border-amber-700/30":"bg-red-900/30 border-red-700/40")}><div className="text-amber-400 text-xs font-semibold mb-1">คงเหลือ</div><div className={"font-mono font-black text-xl "+(pot.balance>=0?"text-amber-300":"text-red-400")}>{fmt(pot.balance)}</div><div className="text-zinc-600 text-xs">฿</div></div>
       </div>
       {add && (
         <Box className="space-y-3">
           <div className="text-zinc-300 font-semibold text-sm">เพิ่มรายการ</div>
           <div className="flex rounded-lg p-0.5" style={{background:"rgba(255,255,255,0.08)"}}>
-            <button onClick={()=>setType("income")}  className={"flex-1 py-2 rounded-md text-sm font-medium transition-colors "+(type==="income"?"bg-emerald-600 text-white":"text-zinc-400 hover:text-white")}>{themedLabel("➕")} รายรับ</button>
-            <button onClick={()=>setType("expense")} className={"flex-1 py-2 rounded-md text-sm font-medium transition-colors "+(type==="expense"?"bg-red-600 text-white":"text-zinc-400 hover:text-white")}>{themedLabel("➖")} รายจ่าย</button>
+            <button onClick={()=>setType("income")}  className={"flex-1 py-2 rounded-md text-sm font-medium transition-colors "+(type==="income"?"bg-emerald-600 text-white":"text-zinc-400 hover:text-white")}>➕ รายรับ</button>
+            <button onClick={()=>setType("expense")} className={"flex-1 py-2 rounded-md text-sm font-medium transition-colors "+(type==="expense"?"bg-red-600 text-white":"text-zinc-400 hover:text-white")}>➖ รายจ่าย</button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div><label className="text-zinc-500 text-xs">วันที่</label><input type="date" value={dt} onChange={e=>setDt(e.target.value)} className="w-full border border-zinc-600/60 rounded-lg px-3 py-2 text-white text-sm focus:border-amber-500 focus:outline-none" style={{background:"rgba(255,255,255,0.06)"}}/></div>
-            <div><label className="text-zinc-500 text-xs">จำนวนเงิน (c)</label><NInput value={amt} onChange={setAmt}/></div>
+            <div><label className="text-zinc-500 text-xs">จำนวนเงิน (฿)</label><NInput value={amt} onChange={setAmt}/></div>
           </div>
           <div><label className="text-zinc-500 text-xs">รายการ</label><input type="text" value={txt} onChange={e=>setTxt(e.target.value)} placeholder="เช่น ค่าอาหาร..." className="w-full border border-zinc-600/60 rounded-lg px-3 py-2 text-black text-sm placeholder-zinc-600 focus:border-amber-500 focus:outline-none"/></div>
           {err && <p className="text-red-400 text-xs">{err}</p>}
@@ -1613,12 +1619,12 @@ function PotView({ data, onAddTx, onDeleteTx, saving, allowPublicPotEdit, setAll
         {[...pot.transactions].reverse().map(tx => (
           <div key={tx.id} className="flex items-center justify-between border border-zinc-700/25 rounded-xl px-4 py-3" style={{background:"rgba(15,10,3,0.40)",backdropFilter:"blur(6px)"}}>
             <div className="flex items-center gap-3">
-              <span className={"text-lg "+(tx.type==="income"?"text-emerald-400":"text-red-400")}>{themedLabel(tx.type==="income"?"➕":"➖")}</span>
-              <div><div className="text-white text-sm font-medium">{typeof tx.note === 'string' ? tx.note.replace(/฿/g, 'c').replace(/บาท/g, 'เครดิต') : tx.note}</div><div className="text-zinc-600 text-xs">{String(tx.date||"").slice(0,10)}</div></div>
+              <span className={"text-lg "+(tx.type==="income"?"text-emerald-400":"text-red-400")}>{tx.type==="income"?"➕":"➖"}</span>
+              <div><div className="text-white text-sm font-medium">{tx.note}</div><div className="text-zinc-600 text-xs">{String(tx.date||"").slice(0,10)}</div></div>
             </div>
             <div className="flex items-center gap-3">
-              <span className={"font-mono font-semibold text-sm "+(tx.type==="income"?"text-emerald-400":"text-red-400")}>{tx.type==="income"?"+":"-"}{fmt(tx.amount)} c</span>
-              {onDeleteTx && <button onClick={()=>del(tx.id)} className="text-zinc-700 hover:text-red-400 text-xs">{themedLabel("🗑")}</button>}
+              <span className={"font-mono font-semibold text-sm "+(tx.type==="income"?"text-emerald-400":"text-red-400")}>{tx.type==="income"?"+":"-"}{fmt(tx.amount)} ฿</span>
+              {onDeleteTx && <button onClick={()=>del(tx.id)} className="text-zinc-700 hover:text-red-400 text-xs">🗑</button>}
             </div>
           </div>
         ))}
@@ -1638,7 +1644,7 @@ function SettingsView({ data, onUpdate, saving }) {
   const [nicknames,     setNicknames]     = useState({...( data.nicknames||{} )});
   const [avatars,          setAvatars]          = useState({...( data.avatars||{} )});
   const [avatarOverflows,  setAvatarOverflows]  = useState({...( data.avatarOverflows||{} )});
-  const [adminPassword,    setAdminPassword]    = useState(data.adminPassword || "");
+  const [adminPassword,    setAdminPassword]    = useState(""); // ✅ NEW: ไม่โหลดรหัสเดิมมาแสดง (เว้นว่าง = ใช้รหัสเดิม)
   const [showPw,           setShowPw]           = useState(false);
   const [saved,            setSaved]            = useState(false);
 
@@ -1654,23 +1660,23 @@ function SettingsView({ data, onUpdate, saving }) {
 
   return (
     <div className="space-y-5">
-      <h2 className="text-xl font-bold text-white">{themedLabel("⚙️")} ตั้งค่า</h2>
+      <h2 className="text-xl font-bold text-white">⚙️ ตั้งค่า</h2>
       <Box className="space-y-3">
-        <div className="text-amber-400 font-semibold text-sm">{themedLabel("🎰")} อัตราแลกชิป (ค่าเริ่มต้น)</div>
+        <div className="text-amber-400 font-semibold text-sm">🎰 อัตราแลกชิป (ค่าเริ่มต้น)</div>
         <div className="flex items-center gap-3">
           <div className="flex-1"><label className="text-zinc-500 text-xs">ชิป</label><NInput value={rate.chips} onChange={v=>setRate(r=>({...r,chips:v}))}/></div>
           <span className="text-zinc-400 mt-4 font-bold">=</span>
-          <div className="flex-1"><label className="text-zinc-500 text-xs">เครดิต</label><NInput value={rate.baht} onChange={v=>setRate(r=>({...r,baht:v}))}/></div>
+          <div className="flex-1"><label className="text-zinc-500 text-xs">บาท</label><NInput value={rate.baht} onChange={v=>setRate(r=>({...r,baht:v}))}/></div>
         </div>
-        <div className="bg-amber-900/20 border border-amber-700/30 rounded-xl px-4 py-2 text-amber-300 text-sm font-mono">{fmt(rate.chips)} ชิป = {fmt(rate.baht)} c · 1 ชิป ≈ {rate.chips>0?(rate.baht/rate.chips).toFixed(4):0} c</div>
+        <div className="bg-amber-900/20 border border-amber-700/30 rounded-xl px-4 py-2 text-amber-300 text-sm font-mono">{fmt(rate.chips)} ชิป = {fmt(rate.baht)} ฿ · 1 ชิป ≈ {rate.chips>0?(rate.baht/rate.chips).toFixed(4):0} ฿</div>
       </Box>
       <Box className="space-y-3">
-        <div className="text-purple-400 font-semibold text-sm">{themedLabel("📦")} ค่าส่วนกลางต่อคน (ค่าเริ่มต้น)</div>
+        <div className="text-purple-400 font-semibold text-sm">📦 ค่าส่วนกลางต่อคน (ค่าเริ่มต้น)</div>
         <NInput value={fee} onChange={setFee}/>
-        <div className="bg-purple-900/20 border border-purple-700/30 rounded-xl px-4 py-2 text-purple-300 text-sm font-mono">ทุกคนจ่าย {fmt(fee)} c/เซสชั่น</div>
+        <div className="bg-purple-900/20 border border-purple-700/30 rounded-xl px-4 py-2 text-purple-300 text-sm font-mono">ทุกคนจ่าย {fmt(fee)} ฿/เซสชั่น</div>
       </Box>
       <Box className="space-y-3">
-        <div className="text-zinc-300 font-semibold text-sm">{themedLabel("👥")} ผู้เล่น</div>
+        <div className="text-zinc-300 font-semibold text-sm">👥 ผู้เล่น</div>
         <div className="flex gap-2">
           <input value={newName} onChange={e=>setNewName(e.target.value)} onKeyDown={e=>e.key==="Enter"&&addPlayer()} placeholder="ชื่อผู้เล่นใหม่..."
             className="flex-1 border border-zinc-600/60 rounded-xl px-4 py-2.5 text-white placeholder-zinc-600 focus:border-amber-500 focus:outline-none" style={{background:"rgba(255,255,255,0.06)"}}/>
@@ -1702,7 +1708,7 @@ function SettingsView({ data, onUpdate, saving }) {
                     ใน
                   </button>
                 </div>
-                <button onClick={()=>rmPlayer(p)} className="text-zinc-600 hover:text-red-400 text-xs flex-shrink-0">{themedLabel("✕")}</button>
+                <button onClick={()=>rmPlayer(p)} className="text-zinc-600 hover:text-red-400 text-xs flex-shrink-0">✕</button>
               </div>
               <input
                 value={avatars[p] || ""}
@@ -1715,7 +1721,7 @@ function SettingsView({ data, onUpdate, saving }) {
         </div>
       </Box>
       <Box className="space-y-2">
-        <div className="text-zinc-400 font-semibold text-sm">{themedLabel("📅")} ช่วงซีซั่น</div>
+        <div className="text-zinc-400 font-semibold text-sm">📅 ช่วงซีซั่น</div>
         {[1,2,3,4].map(s => (
           <div key={s} className="flex items-center gap-3 text-sm">
             <span className="bg-sky-500/20 border border-sky-500/30 text-sky-300 px-2 py-0.5 rounded-full text-xs w-16 text-center">ซีซั่น {s}</span>
@@ -1724,13 +1730,13 @@ function SettingsView({ data, onUpdate, saving }) {
         ))}
       </Box>
       <Box className="space-y-3">
-        <div className="text-red-400 font-semibold text-sm">{themedLabel("🔐")} Admin Password</div>
+        <div className="text-red-400 font-semibold text-sm">🔐 Admin Password</div>
         <div className="relative">
           <input
             type={showPw ? "text" : "password"}
             value={adminPassword}
             onChange={e => setAdminPassword(e.target.value)}
-            placeholder="ตั้ง password สำหรับ admin..."
+            placeholder="กรอกรหัสใหม่ (เว้นว่าง = ใช้รหัสเดิม)"
             className="w-full border border-zinc-600/60 rounded-xl px-4 py-2.5 text-white placeholder-zinc-600 focus:border-amber-500 focus:outline-none pr-16" style={{background:"rgba(255,255,255,0.08)"}}
           />
           <button onClick={()=>setShowPw(p=>!p)}
@@ -1738,10 +1744,10 @@ function SettingsView({ data, onUpdate, saving }) {
             {showPw ? "ซ่อน" : "แสดง"}
           </button>
         </div>
-        <div className="text-zinc-600 text-xs">ใช้ password นี้สำหรับกด Login ในแอป</div>
+        <div className="text-zinc-600 text-xs">ใช้ password นี้สำหรับกด Login ในแอป · เปลี่ยนรหัสแล้วเครื่องอื่นที่ Login ค้างไว้จะหลุดทั้งหมด</div>
       </Box>
       <button onClick={save} className={"w-full py-3 rounded-xl font-bold text-base transition-all "+(saved?"bg-emerald-500 text-white":"bg-amber-500 hover:bg-amber-400 text-black")}>
-        {themedLabel(saved?"✅ บันทึกแล้ว!":"💾 บันทึกการตั้งค่า")}
+        {saved?"✅ บันทึกแล้ว!":"💾 บันทึกการตั้งค่า"}
       </button>
     </div>
   );
@@ -1785,7 +1791,7 @@ function StreetOutCard({ street, desc, mult, outsNeeded, isOk, validHands, allHa
           {/* fail hands - faded */}
           {failHands.map((h, i) => (
             <div key={i} className="flex items-center gap-2 px-1 py-1 opacity-30">
-              <span className="w-6 text-center text-xs">{themedLabel("♠♥♦♣"[i%4])}</span>
+              <span className="w-6 text-center text-xs">{"♠♥♦♣"[i%4]}</span>
               <span className="flex-1 text-xs text-zinc-500">{h.name}</span>
               <span className="w-8 text-right text-xs font-mono text-red-500">{h.out}</span>
             </div>
@@ -1795,7 +1801,7 @@ function StreetOutCard({ street, desc, mult, outsNeeded, isOk, validHands, allHa
             <div className="relative my-1.5">
               <div className={"border-t border-dashed " + (isOk ? "border-emerald-600/50" : "border-red-600/50")}/>
               <span className={"absolute right-0 -top-2.5 text-[9px] px-1 " + (isOk ? "text-emerald-500" : "text-red-500")}
-                style={{background:"rgba(0,0,0,0.5)"}}>≥ {outsNeeded} out {themedLabel("✓")}</span>
+                style={{background:"rgba(0,0,0,0.5)"}}>≥ {outsNeeded} out ✓</span>
             </div>
           )}
           {/* valid hands - highlighted */}
@@ -1803,7 +1809,7 @@ function StreetOutCard({ street, desc, mult, outsNeeded, isOk, validHands, allHa
             ? <div className="text-center text-zinc-600 text-xs py-2">ต้องการ out มากเกินไป</div>
             : validHands.map((h, i) => (
               <div key={i} className={"flex items-center gap-2 px-1 py-1.5 rounded-lg " + (isOk ? "text-emerald-300" : "text-red-300")}>
-                <span className="w-6 text-center text-sm">{themedLabel("♠♥♦♣"[i%4])}</span>
+                <span className="w-6 text-center text-sm">{"♠♥♦♣"[i%4]}</span>
                 <span className="flex-1 text-xs font-medium">{h.name}</span>
                 <span className={"w-8 text-right text-xs font-mono font-bold " + (isOk ? "text-emerald-400" : "text-red-400")}>{h.out}</span>
               </div>
@@ -1888,7 +1894,7 @@ function StreakView({ allowPublicStreak, setAllowPublicStreak, isAdmin, saving }
     <div className="space-y-2">
       <div className="flex items-start justify-between gap-2">
         <div>
-          <h2 className="text-lg font-bold text-white">{themedLabel("🎯")} Streak</h2>
+          <h2 className="text-lg font-bold text-white">🎯 Streak</h2>
           <p className="text-zinc-500 text-[10px] mt-0.5 leading-tight">
             กด “เล่นมือนี้” ทุกครั้งที่ลง แล้วกด Hit เมื่อติด · นับว่าแต่ละมือยังไม่ติดมากี่ครั้งแล้ว
           </p>
@@ -1905,7 +1911,7 @@ function StreakView({ allowPublicStreak, setAllowPublicStreak, isAdmin, saving }
           <button onClick={resetAll}
             className="px-2.5 py-1 rounded-lg text-[10px] text-zinc-500 hover:text-red-400 border border-zinc-700/30 transition-colors whitespace-nowrap flex-shrink-0"
             style={{background:"rgba(255,255,255,0.04)"}}>
-            {themedLabel("🔄")} Reset
+            🔄 Reset
           </button>
         </div>
       </div>
@@ -1919,7 +1925,7 @@ function StreakView({ allowPublicStreak, setAllowPublicStreak, isAdmin, saving }
           {/* หัวการ์ด */}
           <div className="flex items-center justify-between gap-1.5 mb-2">
             <div className="text-xs font-semibold text-amber-400 flex items-center gap-1 min-w-0">
-              <span className="text-[12px] flex-shrink-0">{themedLabel(g.icon)}</span>
+              <span className="text-[12px] flex-shrink-0">{g.icon}</span>
               <span className="truncate">{g.name}</span>
             </div>
             <button onClick={() => played(g.key)}
@@ -1950,14 +1956,14 @@ function StreakView({ allowPublicStreak, setAllowPublicStreak, isAdmin, saving }
                   <button onClick={() => hit(g.key, st)}
                     className="w-full text-[9px] font-bold text-emerald-400 border border-emerald-500/30 py-1.5 rounded-md hover:bg-emerald-500/15 transition-colors"
                     style={{background:"rgba(5,30,15,0.4)"}}>
-                    {themedLabel("✅")} Hit
+                    ✅ Hit
                   </button>
                   <div className="w-full h-[2px] rounded-full overflow-hidden" style={{background:"rgba(255,255,255,0.06)"}}>
                     <div className="h-full rounded-full transition-all" style={{width: pct + "%", background: barColor(pct)}}/>
                   </div>
                   <button onClick={() => att > 0 && setOpenHist(openHist === id ? null : id)}
                     className={"text-[8px] transition-colors leading-tight " + (att > 0 ? "text-zinc-500 hover:text-zinc-300 cursor-pointer" : "text-zinc-700 cursor-default")}>
-                    {themedLabel(att > 0 ? `📋 ${att}× · เฉลี่ย ${avgStr}` : "📋 No data")}
+                    {att > 0 ? `📋 ${att}× · เฉลี่ย ${avgStr}` : "📋 No data"}
                   </button>
                 </div>
               );
@@ -1999,7 +2005,7 @@ function StreakView({ allowPublicStreak, setAllowPublicStreak, isAdmin, saving }
                 })}
                 <button onClick={() => clearHistory(id)}
                   className="w-full text-[9px] text-zinc-600 hover:text-red-400 py-1 transition-colors border-t border-white/5">
-                  {themedLabel("🗑")} ล้างประวัติ {STAGE_LABEL[st]}
+                  🗑 ล้างประวัติ {STAGE_LABEL[st]}
                 </button>
               </div>
             );
@@ -2059,7 +2065,7 @@ function CalcView({ allowPublicCalc, setAllowPublicCalc, isAdmin, saving }) {
     <div className="space-y-5">
       <div className="flex items-center justify-between gap-2">
         <div>
-          <h2 className="text-xl font-bold text-white">{themedLabel("🧮")} Pot Odds Calculator</h2>
+          <h2 className="text-xl font-bold text-white">🧮 Pot Odds Calculator</h2>
           <p className="text-zinc-500 text-sm mt-0.5">คำนวณ % equity ที่ต้องการเพื่อ call คุ้ม</p>
         </div>
         {isAdmin && (
@@ -2076,7 +2082,7 @@ function CalcView({ allowPublicCalc, setAllowPublicCalc, isAdmin, saving }) {
       <Box className="space-y-4">
         {/* Pot */}
         <div>
-          <label className="block text-zinc-400 text-sm font-semibold mb-2">{themedLabel("💰")} Pot ปัจจุบัน</label>
+          <label className="block text-zinc-400 text-sm font-semibold mb-2">💰 Pot ปัจจุบัน</label>
           <div className="flex items-center gap-2">
             <button onClick={() => setPot(v => Math.max(0, v - 5))}
               className="w-10 h-10 rounded-xl border border-zinc-700/30 text-zinc-300 text-lg font-bold hover:text-white hover:border-amber-500/40 transition-colors flex-shrink-0 flex items-center justify-center"
@@ -2102,7 +2108,7 @@ function CalcView({ allowPublicCalc, setAllowPublicCalc, isAdmin, saving }) {
 
         {/* Call + Hand dropdown */}
         <div>
-          <label className="block text-zinc-400 text-sm font-semibold mb-2">{themedLabel("📞")} Call Amount + 🃏 Hand ที่ถือ</label>
+          <label className="block text-zinc-400 text-sm font-semibold mb-2">📞 Call Amount + 🃏 Hand ที่ถือ</label>
           <div className="flex items-center gap-2">
             <button onClick={() => setCall(v => Math.max(0, v - 5))}
               className="w-10 h-10 rounded-xl border border-zinc-700/30 text-zinc-300 text-lg font-bold hover:text-white hover:border-amber-500/40 transition-colors flex-shrink-0 flex items-center justify-center"
@@ -2156,7 +2162,7 @@ function CalcView({ allowPublicCalc, setAllowPublicCalc, isAdmin, saving }) {
                 </div>
                 {pot > 0 && (
                   <div className={"mt-1 pt-1 border-t border-white/5 font-semibold " + (handOk ? "text-emerald-400" : "text-red-400")}>
-                    {themedLabel(handOk ? "✅ Pot ถึงแล้ว - call คุ้ม" : "❌ Pot ยังไม่ถึง - ควร fold")}
+                    {handOk ? "✅ Pot ถึงแล้ว - call คุ้ม" : "❌ Pot ยังไม่ถึง - ควร fold"}
                   </div>
                 )}
               </div>
@@ -2168,7 +2174,7 @@ function CalcView({ allowPublicCalc, setAllowPublicCalc, isAdmin, saving }) {
       {/* Formula display */}
       {total > 0 && (
         <Box>
-          <div className="text-zinc-400 text-xs font-semibold mb-3">{themedLabel("📐")} สูตรคำนวณ</div>
+          <div className="text-zinc-400 text-xs font-semibold mb-3">📐 สูตรคำนวณ</div>
           <div className="text-center py-2">
             <div className="text-zinc-400 text-sm font-mono">
               ({call.toLocaleString()} ÷ ({pot.toLocaleString()} + {call.toLocaleString()})) × 100
@@ -2295,7 +2301,7 @@ function CalcView({ allowPublicCalc, setAllowPublicCalc, isAdmin, saving }) {
       <button onClick={reset}
         className="w-full py-2.5 rounded-xl text-sm text-zinc-500 hover:text-white border border-zinc-700/30 transition-colors"
         style={{background:"rgba(255,255,255,0.04)"}}>
-        {themedLabel("🔄")} รีเซ็ต
+        🔄 รีเซ็ต
       </button>
     </div>
   );
@@ -2342,12 +2348,11 @@ function SkillView({ data }) {
   const hasData = summary.some(p => p.bluffWin+p.bluffLose+p.catchBluff+p.gotBluffed > 0);
 
   return (
-    <div className="vip-skill space-y-5">
-      <div className="vip-skill-hero">
-        <div className="text-amber-300 text-xs font-bold tracking-[.24em] mb-2">LEGENDARY SECRETS · SKILL RANKING</div>
-        <h2 className="text-2xl sm:text-3xl font-black text-white">{themedLabel("🎭")} Skill · เจ้าแห่งการบลัฟ</h2>
+    <div className="space-y-5">
+      <div>
+        <h2 className="text-xl font-bold text-white">🎭 Skill</h2>
         <p className="text-zinc-500 text-sm mt-0.5">สถิติ Bluff แต่ละผู้เล่น</p>
-        <p className="text-zinc-600 text-xs mt-1">Score = {themedLabel("🎭")} บลัฟผ่าน <span className="text-emerald-500">+1</span> · {themedLabel("❌")} บลัฟไม่ผ่าน <span className="text-red-500">-1</span> · {themedLabel("🔍")} จับบลัฟได้ <span className="text-emerald-500">+1</span> · {themedLabel("😵")} โดนบลัฟ <span className="text-red-500">-1</span></p>
+        <p className="text-zinc-600 text-xs mt-1">Score = 🎭 บลัฟผ่าน <span className="text-emerald-500">+1</span> · ❌ บลัฟไม่ผ่าน <span className="text-red-500">-1</span> · 🔍 จับบลัฟได้ <span className="text-emerald-500">+1</span> · 😵 โดนบลัฟ <span className="text-red-500">-1</span></p>
       </div>
 
       {/* Filter */}
@@ -2357,53 +2362,53 @@ function SkillView({ data }) {
             className={"px-3 py-1.5 rounded-full text-xs font-medium border transition-colors flex-shrink-0 " + (
               filter===key ? "bg-amber-500/15 text-amber-400 border-amber-500/40"
                            : "bg-transparent text-zinc-500 border-zinc-700 hover:text-zinc-300")}>
-            {themedLabel(label)}
+            {label}
           </button>
         ))}
       </div>
 
       {!hasData ? (
         <div className="border border-zinc-700/25 rounded-2xl p-8 text-center" style={{background:"rgba(255,255,255,0.06)"}}>
-          <div className="text-4xl mb-3">{themedLabel("🎭")}</div>
+          <div className="text-4xl mb-3">🎭</div>
           <div className="text-zinc-500 text-sm">ยังไม่มีข้อมูล Bluff</div>
           <div className="text-zinc-700 text-xs mt-1">กรอกข้อมูล Bluff ตอนบันทึกเซสชั่น</div>
         </div>
       ) : (
         <>
           {/* Top 3 cards */}
-          <div className="vip-skill-podium grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {summary.slice(0,3).map((p,i) => {
               const total = p.bluffWin + p.bluffLose;
               const GRAD  = ["bg-gradient-to-br from-amber-900/40 to-amber-700/10 border-amber-500/40","bg-gradient-to-br from-zinc-700/40 to-zinc-600/10 border-zinc-500/40","bg-gradient-to-br from-orange-900/30 to-orange-800/10 border-orange-700/40"];
               const BG    = ["rgba(25,14,2,0.15)","rgba(20,20,20,0.15)","rgba(25,12,2,0.15)"];
               const MEDAL = ["🥇","🥈","🥉"];
               return (
-                <div key={p.name} className={"vip-skill-card rounded-2xl border p-4 " + GRAD[i]}
+                <div key={p.name} className={"rounded-2xl border p-4 " + GRAD[i]}
                   style={{background:BG[i]}}>
-                  <div className="flex items-center gap-2 mb-3"><span className="text-[10px] text-amber-200/70 tracking-widest ml-auto order-last">RANK 0{i+1}</span>
-                    <span className="text-2xl">{themedLabel(MEDAL[i])}</span>
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-2xl">{MEDAL[i]}</span>
                     <div className="text-white font-bold text-lg">{p.name}</div>
                   </div>
                   <div className="grid grid-cols-4 gap-2 text-center">
                     <div>
                       <div className="text-emerald-400 font-black text-xl font-mono">{p.bluffWin}</div>
-                      <div className="text-zinc-400 text-[10px]">{themedLabel("🎭")} บลัฟผ่าน</div>
+                      <div className="text-zinc-600 text-[10px]">🎭 บลัฟผ่าน</div>
                     </div>
                     <div>
                       <div className="text-red-400 font-black text-xl font-mono">{p.bluffLose}</div>
-                      <div className="text-zinc-600 text-[10px]">{themedLabel("❌")} บลัฟไม่ผ่าน</div>
+                      <div className="text-zinc-600 text-[10px]">❌ บลัฟไม่ผ่าน</div>
                     </div>
                     <div>
                       <div className="text-amber-400 font-black text-xl font-mono">{p.catchBluff}</div>
-                      <div className="text-zinc-600 text-[10px]">{themedLabel("🔍")} จับบลัฟได้</div>
+                      <div className="text-zinc-600 text-[10px]">🔍 จับบลัฟได้</div>
                     </div>
                     <div>
                       <div className="text-purple-400 font-black text-xl font-mono">{p.gotBluffed}</div>
-                      <div className="text-zinc-600 text-[10px]">{themedLabel("😵")} โดนบลัฟ</div>
+                      <div className="text-zinc-600 text-[10px]">😵 โดนบลัฟ</div>
                     </div>
                   </div>
-                  <div className="mt-4 pt-3 border-t border-amber-200/15 flex justify-between items-center">
-                    <span className="text-xs text-amber-200">SKILL SCORE</span>
+                  <div className="mt-3 pt-2 border-t border-white/5 text-center">
+                    <span className="text-xs text-zinc-500">Score </span>
                     <span className={"text-sm font-bold font-mono " + (p.score>0?"text-emerald-400":p.score<0?"text-red-400":"text-zinc-500")}>{p.score>0?"+":""}{p.score}</span>
                   </div>
                 </div>
@@ -2412,17 +2417,17 @@ function SkillView({ data }) {
           </div>
 
           {/* Full table */}
-          <Box className="vip-skill-table overflow-hidden p-0">
+          <Box className="overflow-hidden p-0">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-zinc-800 text-zinc-500 text-xs">
                     <th className="px-3 py-2.5 text-left">#</th>
                     <th className="px-3 py-2.5 text-left">ผู้เล่น</th>
-                    <th className="px-2 py-2.5 text-center">{themedLabel("🎭")} บลัฟผ่าน</th>
-                    <th className="px-2 py-2.5 text-center">{themedLabel("❌")} บลัฟไม่ผ่าน</th>
-                    <th className="px-2 py-2.5 text-center">{themedLabel("🔍")} จับบลัฟได้</th>
-                    <th className="px-2 py-2.5 text-center">{themedLabel("😵")} โดนบลัฟ</th>
+                    <th className="px-2 py-2.5 text-center">🎭 บลัฟผ่าน</th>
+                    <th className="px-2 py-2.5 text-center">❌ บลัฟไม่ผ่าน</th>
+                    <th className="px-2 py-2.5 text-center">🔍 จับบลัฟได้</th>
+                    <th className="px-2 py-2.5 text-center">😵 โดนบลัฟ</th>
                     <th className="px-2 py-2.5 text-center">Score</th>
                   </tr>
                 </thead>
@@ -2498,9 +2503,9 @@ function LuckView({ data }) {
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-xl font-bold text-white">{themedLabel("🍀")} Luck</h2>
+        <h2 className="text-xl font-bold text-white">🍀 Luck</h2>
         <p className="text-zinc-500 text-sm mt-0.5">สถิติไพ่พิเศษแต่ละผู้เล่น</p>
-        <p className="text-zinc-600 text-xs mt-1">Score = 🃏 4 Card <span className="text-emerald-500">+1</span> · {themedLabel("♠️")} Straight Flush <span className="text-emerald-500">+2</span> · {themedLabel("👑")} Royal Straight Flush <span className="text-emerald-500">+4</span></p>
+        <p className="text-zinc-600 text-xs mt-1">Score = 🃏 4 Card <span className="text-emerald-500">+1</span> · ♠️ Straight Flush <span className="text-emerald-500">+2</span> · 👑 Royal Straight Flush <span className="text-emerald-500">+4</span></p>
       </div>
 
       {/* Filter */}
@@ -2510,14 +2515,14 @@ function LuckView({ data }) {
             className={"px-3 py-1.5 rounded-full text-xs font-medium border transition-colors flex-shrink-0 " + (
               filter===key ? "bg-amber-500/15 text-amber-400 border-amber-500/40"
                            : "bg-transparent text-zinc-500 border-zinc-700 hover:text-zinc-300")}>
-            {themedLabel(label)}
+            {label}
           </button>
         ))}
       </div>
 
       {!hasData ? (
         <div className="border border-zinc-700/25 rounded-2xl p-8 text-center" style={{background:"rgba(255,255,255,0.06)"}}>
-          <div className="text-4xl mb-3">{themedLabel("🍀")}</div>
+          <div className="text-4xl mb-3">🍀</div>
           <div className="text-zinc-500 text-sm">ยังไม่มีข้อมูล Luck</div>
           <div className="text-zinc-700 text-xs mt-1">กรอกข้อมูลไพ่พิเศษตอนบันทึกเซสชั่น</div>
         </div>
@@ -2532,7 +2537,7 @@ function LuckView({ data }) {
               return (
                 <div key={p.name} className={"rounded-2xl border p-4 " + GRAD[i]} style={{background:BG[i]}}>
                   <div className="flex items-center gap-2 mb-3">
-                    <span className="text-2xl">{themedLabel(MEDAL[i])}</span>
+                    <span className="text-2xl">{MEDAL[i]}</span>
                     <div className="text-white font-bold text-lg">{p.name}</div>
                   </div>
                   <div className="grid grid-cols-3 gap-2 text-center">
@@ -2542,11 +2547,11 @@ function LuckView({ data }) {
                     </div>
                     <div>
                       <div className="text-violet-400 font-black text-xl font-mono">{p.straightFlush}</div>
-                      <div className="text-zinc-600 text-[10px]">{themedLabel("♠️")} Str. Flush</div>
+                      <div className="text-zinc-600 text-[10px]">♠️ Str. Flush</div>
                     </div>
                     <div>
                       <div className="text-amber-400 font-black text-xl font-mono">{p.royalStraightFlush}</div>
-                      <div className="text-zinc-600 text-[10px]">{themedLabel("👑")} Royal</div>
+                      <div className="text-zinc-600 text-[10px]">👑 Royal</div>
                     </div>
                   </div>
                   <div className="mt-3 pt-2 border-t border-white/5 text-center">
@@ -2567,8 +2572,8 @@ function LuckView({ data }) {
                     <th className="px-3 py-2.5 text-left">#</th>
                     <th className="px-3 py-2.5 text-left">ผู้เล่น</th>
                     <th className="px-2 py-2.5 text-center">🃏 4 Card</th>
-                    <th className="px-2 py-2.5 text-center">{themedLabel("♠️")} Straight Flush</th>
-                    <th className="px-2 py-2.5 text-center">{themedLabel("👑")} Royal Straight Flush</th>
+                    <th className="px-2 py-2.5 text-center">♠️ Straight Flush</th>
+                    <th className="px-2 py-2.5 text-center">👑 Royal Straight Flush</th>
                     <th className="px-2 py-2.5 text-center">Score</th>
                   </tr>
                 </thead>
@@ -2617,18 +2622,13 @@ function LoginView({ data, onLogin, onCancel }) {
     setChecking(true);
     setErr("");
     try {
-      const stored = data?.settings?.adminPassword || data?.adminPassword || "";
-      // ถ้า password ใน Sheets ว่างเปล่า → login ได้เลย
-      if (stored === "" || pw === stored) {
-        localStorage.setItem("lspc_admin", "1");
-        onLogin();
-      } else if (!pw.trim()) {
-        setErr("กรุณากรอก password");
-      } else {
-        setErr("Password ไม่ถูกต้อง");
-      }
+      // ✅ NEW: ส่งรหัสไปให้หลังบ้านเช็ค (ถ้า password ใน Sheets ว่างเปล่า → หลังบ้านให้ login ได้เลย)
+      const res = await apiPost({ action: "login", password: pw });
+      setToken(res.token);
+      onLogin();
     } catch(e) {
-      setErr("เกิดข้อผิดพลาด");
+      if (e.message === "WRONG_PASSWORD") setErr(pw.trim() ? "Password ไม่ถูกต้อง" : "กรุณากรอก password");
+      else setErr("เกิดข้อผิดพลาด: " + e.message);
     } finally {
       setChecking(false);
     }
@@ -2637,8 +2637,8 @@ function LoginView({ data, onLogin, onCancel }) {
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-white">{themedLabel("🔐")} Admin Login</h2>
-        <button onClick={onCancel} className="text-zinc-500 hover:text-white text-sm">ยกเลิก {themedLabel("✕")}</button>
+        <h2 className="text-xl font-bold text-white">🔐 Admin Login</h2>
+        <button onClick={onCancel} className="text-zinc-500 hover:text-white text-sm">ยกเลิก ✕</button>
       </div>
       <Box className="space-y-4">
         <div>
@@ -2667,11 +2667,30 @@ export default function App() {
   const [editSes,   setEditSes]   = useState(null);
   const [profileSel, setProfileSel] = useState(null);
   const [openSesId,  setOpenSesId]  = useState(null);
-  const [rankInitialFilter, setRankInitialFilter] = useState("all");
   const [loading, setLoading] = useState(true);
   const [saving,  setSaving]  = useState(false);
   const [error,   setError]   = useState(null);
-  const [isAdmin, setIsAdmin] = useState(() => localStorage.getItem("lspc_admin") === "1");
+  const [isAdmin, setIsAdmin] = useState(() => !!getToken());
+
+  // ✅ NEW: ถ้าหลังบ้านบอกว่าบัตรผ่านใช้ไม่ได้ → ออกจากโหมดแอดมิน
+  useEffect(() => {
+    const onLogout = () => setIsAdmin(false);
+    window.addEventListener("lspc-logout", onLogout);
+    // เปิดเว็บมา → เช็คบัตรผ่านกับหลังบ้านหนึ่งครั้ง
+    if (getToken()) {
+      apiPost({ action: "checkToken" })
+        .then(r => { if (!r.admin) { clearToken(); setIsAdmin(false); } })
+        .catch(() => {});
+    }
+    return () => window.removeEventListener("lspc-logout", onLogout);
+  }, []);
+
+  // ✅ NEW: Logout → ยกเลิกบัตรผ่านที่หลังบ้านด้วย
+  function logout() {
+    apiPost({ action: "logout" }).catch(() => {});
+    clearToken();
+    setIsAdmin(false);
+  }
 
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -2693,11 +2712,9 @@ export default function App() {
       const isEdit = data.sessions.some(s => s.internalId === ses.internalId);
       await apiPost({ action: "saveSession", session: ses });
       if (!isEdit) {
-        // สร้างใหม่ → เพิ่ม nextInternalId + บันทึก pot เต็มจำนวน
-        await apiPost({ action: "saveSettings", settings: {
-          players: data.players, chipRate: data.chipRate,
-          defaultFee: data.defaultFee, nextInternalId: data.nextInternalId + 1
-        }});
+        // สร้างใหม่ → บันทึก pot เต็มจำนวน
+        // ✅ NEW: ไม่ต้องเรียก saveSettings แล้ว — หลังบ้าน (saveSession) เพิ่ม nextInternalId ให้เอง
+        //         (ของเดิมทำให้ nicknames/avatars/สวิตช์ ถูกล้าง และผู้เล่นทั่วไปบันทึกไม่ได้)
         const ft = ses.entries.length * ses.fee;
         if (ft > 0) {
           const tx = { id: Date.now(), type: "income", amount: ft, date: ses.date,
@@ -2739,18 +2756,19 @@ export default function App() {
   async function saveSettings(cfg) {
     setSaving(true);
     try {
-      await apiPost({ action: "saveSettings", settings: {
+      const res = await apiPost({ action: "saveSettings", settings: {
         ...cfg,
         nextInternalId: data.nextInternalId,
         nicknames: cfg.nicknames||{},
         avatars: cfg.avatars||{},
         avatarOverflows: cfg.avatarOverflows||{},
-        adminPassword: cfg.adminPassword !== undefined ? cfg.adminPassword : (data.adminPassword || ""),
+        adminPassword: cfg.adminPassword ? cfg.adminPassword : undefined, // ✅ NEW: ส่งเฉพาะตอนตั้งรหัสใหม่
         allowPublicPotEdit: cfg.allowPublicPotEdit !== undefined ? cfg.allowPublicPotEdit : (data.allowPublicPotEdit || false),
         allowPublicCalc: cfg.allowPublicCalc !== undefined ? cfg.allowPublicCalc : (data.allowPublicCalc || false),
         allowPublicStreak: cfg.allowPublicStreak !== undefined ? cfg.allowPublicStreak : (data.allowPublicStreak || false),
         allowPublicAdd: cfg.allowPublicAdd !== undefined ? cfg.allowPublicAdd : (data.allowPublicAdd || false),
       }});
+      if (res.token) setToken(res.token); // เปลี่ยนรหัสแล้ว หลังบ้านออกบัตรผ่านใบใหม่ให้
       await refresh();
     } catch(e) { alert("บันทึกไม่สำเร็จ: " + e.message); }
     finally { setSaving(false); }
@@ -2767,7 +2785,6 @@ export default function App() {
         nicknames: data.nicknames || {},
         avatars: data.avatars || {},
         avatarOverflows: data.avatarOverflows || {},
-        adminPassword: data.adminPassword || "",
         allowPublicPotEdit: !data.allowPublicPotEdit,
         allowPublicCalc: data.allowPublicCalc || false,
         allowPublicStreak: data.allowPublicStreak || false,
@@ -2789,7 +2806,6 @@ export default function App() {
         nicknames: data.nicknames || {},
         avatars: data.avatars || {},
         avatarOverflows: data.avatarOverflows || {},
-        adminPassword: data.adminPassword || "",
         allowPublicPotEdit: data.allowPublicPotEdit || false,
         allowPublicCalc: !data.allowPublicCalc,
         allowPublicStreak: data.allowPublicStreak || false,
@@ -2811,7 +2827,6 @@ export default function App() {
         nicknames: data.nicknames || {},
         avatars: data.avatars || {},
         avatarOverflows: data.avatarOverflows || {},
-        adminPassword: data.adminPassword || "",
         allowPublicPotEdit: data.allowPublicPotEdit || false,
         allowPublicCalc: data.allowPublicCalc || false,
         allowPublicStreak: !data.allowPublicStreak,
@@ -2833,7 +2848,6 @@ export default function App() {
         nicknames: data.nicknames || {},
         avatars: data.avatars || {},
         avatarOverflows: data.avatarOverflows || {},
-        adminPassword: data.adminPassword || "",
         allowPublicPotEdit: data.allowPublicPotEdit || false,
         allowPublicCalc: data.allowPublicCalc || false,
         allowPublicStreak: data.allowPublicStreak || false,
@@ -2869,7 +2883,7 @@ export default function App() {
 
   if (error) return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-6" style={{backgroundImage:`url(${BG_SRC})`,backgroundSize:"cover",backgroundPosition:"center"}}>
-      <div className="text-4xl">{themedLabel("⚠️")}</div>
+      <div className="text-4xl">⚠️</div>
       <div className="text-red-400 text-center text-sm">{error}</div>
       <div className="text-zinc-600 text-xs text-center">ตรวจสอบว่า Apps Script Deploy ถูกต้องแล้วหรือยัง</div>
       <button onClick={() => { setLoading(true); refresh().finally(() => setLoading(false)); }}
@@ -2878,35 +2892,19 @@ export default function App() {
   );
 
   const potBal = data.pot?.balance ?? 0;
-  const VipNavIcon = ({id, fallback}) => {
-    const paths = {
-      dashboard:<><path d="m3 11 9-8 9 8"/><path d="M5 10v11h14V10M10 21v-7h4v7"/></>,
-      leaderboard:<><path d="M7 3h10v8a5 5 0 0 1-10 0V3ZM7 5H3v3a4 4 0 0 0 4 4m10-7h4v3a4 4 0 0 1-4 4M12 16v4m-5 1h10"/></>,
-      profiles:<><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M2 21v-3a7 7 0 0 1 14 0v3m1-9a5 5 0 0 1 5 5v4"/></>,
-      race:<><path d="M5 22V3m0 1c5-4 9 4 15 0v10c-6 4-10-4-15 0"/></>,
-      skill:<><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/><path d="m12 12 8-9"/></>,
-      luck:<><path d="M12 12C2 10 4 2 9 3c3 0 3 4 3 9Zm0 0c0-10 8-10 9-5 1 4-4 5-9 5Zm0 0c10 0 10 8 5 9-4 1-5-4-5-9Zm0 0c0 10-8 10-9 5-1-4 4-5 9-5Z"/></>,
-      calc:<><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M7 7h10M8 12h2m4 0h2m-8 4h2m4 0h2"/></>,
-      streak:<><path d="M4 21V14h3v7m3 0V9h3v12m3 0V4h3v17"/></>,
-      sessions:<><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8m-8 4h8m-8 4h5"/></>,
-      add:<path d="M12 4v16M4 12h16"/>,
-      pot:<><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v5c0 4 16 4 16 0V6M4 11v6c0 4 16 4 16 0v-6"/></>,
-    };
-    return paths[id] ? <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="vip-nav-icon">{paths[id]}</svg> : <>{fallback}</>;
-  };
   const ALL_TABS = [
-    { id:"dashboard",   icon:"◈", label:"ภาพรวม",  adminOnly: false },
-    { id:"leaderboard", icon:"♛", label:"Rank",     adminOnly: false },
-    { id:"profiles",    icon:"♟", label:"Players",  adminOnly: false },
-    { id:"sessions",    icon:"▤", label:"เซสชั่น",  adminOnly: false },
-    { id:"add",         icon:"+", label:"บันทึก",   adminOnly: true  },
-    { id:"pot",         icon:"♦", label:"กองกลาง",  adminOnly: false },
-    { id:"race",        icon:"↗", label:"Race",      adminOnly: false },
-    { id:"skill",       icon:"✦", label:"Skill",     adminOnly: false },
-    { id:"luck",        icon:"♣", label:"Luck",      adminOnly: false },
-    { id:"calc",        icon:"▦", label:"Calc",      adminOnly: true, publicToggle: "calc" },
-    { id:"streak",      icon:"◎", label:"Streak",    adminOnly: true, publicToggle: "streak" },
-    { id:"settings",    icon:"⚙", label:"ตั้งค่า",  adminOnly: true  },
+    { id:"dashboard",   icon:"📊", label:"ภาพรวม",  adminOnly: false },
+    { id:"leaderboard", icon:"🏆", label:"Rank",     adminOnly: false },
+    { id:"profiles",    icon:"👤", label:"Players",  adminOnly: false },
+    { id:"race",        icon:"🏎️", label:"Race",      adminOnly: false },
+    { id:"skill",       icon:"🎭", label:"Skill",     adminOnly: false },
+    { id:"luck",        icon:"🍀", label:"Luck",      adminOnly: false },
+    { id:"calc",        icon:"🧮", label:"Calc",      adminOnly: true, publicToggle: "calc" },
+    { id:"streak",      icon:"🎯", label:"Streak",    adminOnly: true, publicToggle: "streak" },
+    { id:"sessions",    icon:"📋", label:"เซสชั่น",  adminOnly: false },
+    { id:"add",         icon:"➕", label:"บันทึก",   adminOnly: true  },
+    { id:"pot",         icon:"💰", label:"กองกลาง",  adminOnly: false },
+    { id:"settings",    icon:"⚙️", label:"ตั้งค่า",  adminOnly: true  },
   ];
   const TABS = ALL_TABS.filter(t =>
     !t.adminOnly || isAdmin ||
@@ -2932,39 +2930,102 @@ export default function App() {
         }
       }
     `}</style>
-    <MobileGestures tab={tab} ids={TABS.map(t=>t.id)} onNavigate={id=>{ setRankInitialFilter("all"); setProfileSel(null); setOpenSesId(null); setEditSes(null); setTab(id); window.scrollTo({top:0,behavior:'auto'}); }}/>
     <div className="min-h-screen text-white bg-legendary-main">
       {/* dark overlay */}
       <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.05)',zIndex:0,pointerEvents:'none'}}/>
       <div style={{position:'relative',zIndex:1,minHeight:'100vh'}}>
       {/* -- DESKTOP header (sm ขึ้นไป) -- */}
-      <header className="lpc-header sticky top-0 z-40">
-        <div className="lpc-header-inner">
-          <span className="lpc-logo-wrap"><img src={LOGO_SRC} alt="Legendary Secrets Poker Club" className="lpc-logo"/></span>
-          <nav className="lpc-primary-nav" aria-label="เมนูหลัก">
-            {TABS.map(t => (
-              <button key={t.id} onClick={() => { setRankInitialFilter("all"); setTab(t.id); if (t.id !== "add") setEditSes(null); }} aria-current={tab===t.id?'page':undefined} className={"lpc-nav-button "+(tab===t.id?'lpc-nav-active':'')}>
-                <ThemeIcon name={t.id}/>
-                <span>{t.id==='dashboard'?'Dashboard':t.label}</span>
-              </button>
-            ))}
-          </nav>
-          <div className="lpc-nav-tools">
-            {isAdmin ? <button className="lpc-account" aria-label="Logout" title="ออกจากระบบ" onClick={() => { localStorage.removeItem("lspc_admin"); setIsAdmin(false); setTab("dashboard"); }}><img src="/vip-icons/avatar.png" alt=""/></button> : <button className="lpc-account" aria-label="Login" title="เข้าสู่ระบบ" onClick={() => setTab("login")}><img src="/vip-icons/avatar.png" alt=""/></button>}
+      <header className="hidden sm:block border-b border-zinc-800/60 sticky top-0 z-40" style={{background:"rgba(8,5,1,0.8)",backdropFilter:"blur(16px)"}}>
+        <div className="max-w-3xl mx-auto px-3 flex items-center gap-2">
+          <img src={LOGO_SRC} alt="Legendary Secrets Poker Club" className="h-14 w-14 rounded-xl object-cover flex-shrink-0 my-1"/>
+          <div className="flex flex-1 items-center justify-between overflow-x-auto">
+            <div className="flex">
+              {TABS.map(t => (
+                <button key={t.id} onClick={() => { setTab(t.id); if (t.id !== "add") setEditSes(null); }}
+                  className={"flex items-center gap-1 px-2 sm:px-2.5 py-4 text-xs font-medium border-b-2 transition-colors whitespace-nowrap " + (tab === t.id ? "border-amber-400 text-amber-400" : "border-transparent text-zinc-500 hover:text-zinc-300")}>
+                  <span>{t.icon}</span>
+                  <span>{t.label}</span>
+                </button>
+              ))}
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0 pl-2">
+              <span className={"text-xs font-mono " + (potBal >= 0 ? "text-purple-400" : "text-red-400")}>
+                💰 {fmt(potBal)} ฿
+              </span>
+              {isAdmin
+                ? <button onClick={() => { logout(); setTab("dashboard"); }}
+                    className="text-xs px-2 py-1 rounded-lg hover:bg-white/10 text-zinc-400 hover:text-white border border-zinc-700 transition-colors">
+                    🔓 Logout
+                  </button>
+                : <button onClick={() => setTab("login")}
+                    className="text-xs px-2 py-1 rounded-lg hover:bg-white/10 text-zinc-400 hover:text-amber-400 border border-zinc-700 transition-colors">
+                    🔐 Login
+                  </button>
+              }
+            </div>
           </div>
         </div>
       </header>
 
-      <main className={"lpc-page lpc-page-"+tab+" max-w-3xl mx-auto px-4 py-6"} style={{position:"relative",zIndex:1}}>
+      {/* -- MOBILE header (< sm) -- */}
+      <div className="sm:hidden sticky top-0 z-40" style={{background:"rgba(8,5,1,0.85)",backdropFilter:"blur(16px)"}}>
+        {/* Top bar */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800/60">
+          {/* Hamburger ซ้าย */}
+          <button onClick={() => setMenuOpen(o => !o)}
+            className="w-9 h-9 rounded-xl border border-zinc-700/30 flex flex-col items-center justify-center gap-1.5 flex-shrink-0" style={{background:"rgba(255,255,255,0.08)"}}>
+            <span className={"block w-4 h-0.5 bg-zinc-300 transition-all duration-200 " + (menuOpen ? "rotate-45 translate-y-1.5" : "")}/>
+            <span className={"block w-4 h-0.5 bg-zinc-300 transition-all duration-200 " + (menuOpen ? "opacity-0" : "")}/>
+            <span className={"block w-4 h-0.5 bg-zinc-300 transition-all duration-200 " + (menuOpen ? "-rotate-45 -translate-y-1.5" : "")}/>
+          </button>
+          {/* Logo + ชื่อ กลาง */}
+          <div className="flex items-center gap-2">
+            <img src={LOGO_SRC} alt="logo" className="h-9 w-9 rounded-lg object-cover"/>
+            <div className="leading-tight">
+              <div className="text-amber-400 font-bold text-xs tracking-widest">LEGENDARY</div>
+              <div className="text-zinc-400 text-[10px] tracking-widest">SECRETS POKER</div>
+            </div>
+          </div>
+          {/* กองกลาง ขวา */}
+          <button onClick={() => { setTab("pot"); setMenuOpen(false); }}
+            className={"text-sm font-mono font-bold px-3 py-1.5 rounded-xl border transition-colors " + (potBal >= 0 ? "text-amber-400 border-amber-500/30 bg-amber-500/10" : "text-red-400 border-red-500/30 bg-red-500/10")}>
+            💰 {fmt(potBal)} ฿
+          </button>
+        </div>
+        {/* Dropdown - อยู่ใน flow ไม่ทับ content */}
+        {menuOpen && (
+          <div className="border-b border-amber-900/30" style={{background:"rgba(20,12,2,0.92)",backdropFilter:"blur(20px)"}}>
+            <div className="py-1">
+              {TABS.map(t => (
+                <button key={t.id} onClick={() => { setTab(t.id); setMenuOpen(false); if (t.id !== "add") setEditSes(null); }}
+                  className={"w-full flex items-center gap-3 px-5 py-3 text-sm font-medium transition-colors " + (tab === t.id ? "text-amber-400 bg-amber-500/10" : "text-zinc-300 hover:text-amber-300 hover:bg-white/5")}>
+                  <span className="text-base">{t.icon}</span>
+                  <span>{t.label}</span>
+                  {tab === t.id && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-amber-400 flex-shrink-0"/>}
+                </button>
+              ))}
+              <div className="mx-4 my-1 border-t border-amber-900/30"/>
+              {isAdmin
+                ? <button onClick={() => { logout(); setTab("dashboard"); setMenuOpen(false); }}
+                    className="w-full flex items-center gap-3 px-5 py-3 text-sm text-zinc-500 hover:text-white hover:bg-white/5 transition-colors">
+                    <span className="text-base">🔓</span><span>Logout</span>
+                  </button>
+                : <button onClick={() => { setTab("login"); setMenuOpen(false); }}
+                    className="w-full flex items-center gap-3 px-5 py-3 text-sm text-zinc-500 hover:text-amber-400 hover:bg-white/5 transition-colors">
+                    <span className="text-base">🔐</span><span>Admin Login</span>
+                  </button>
+              }
+            </div>
+          </div>
+        )}
+      </div>
+      <main className="max-w-3xl mx-auto px-4 py-6" style={{position:"relative",zIndex:1}}>
         {tab === "dashboard"   && <DashboardView data={data}
           onGoLeader={name => { setProfileSel(name); setTab("profiles"); }}
           onGoLatestSes={id => { setOpenSesId(id); setTab("sessions"); }}
-          onGoLatestSeason={() => { const latest = data.sessions[data.sessions.length-1]; setRankInitialFilter(latest ? 'sea:'+latest.year+'-'+latest.season : 'all'); setTab("leaderboard"); }}
           onGoPot={() => setTab("pot")}
-          onGoPlayers={() => { setProfileSel(null); setTab("profiles"); }}
-          onGoSessions={() => { setOpenSesId(null); setTab("sessions"); }}
         />}
-        {tab === "leaderboard" && <LeaderboardView data={data} initialFilter={rankInitialFilter}/>}
+        {tab === "leaderboard" && <LeaderboardView data={data}/>}
         {tab === "profiles"    && <PlayerProfilesView data={data} initialSel={profileSel} onClearSel={()=>setProfileSel(null)}/>}
         {tab === "race"        && <RaceView data={data}/>}
         {tab === "skill"       && <SkillView data={data}/>}
@@ -2985,5 +3046,3 @@ export default function App() {
     </>
   );
 }
-
-
