@@ -343,10 +343,10 @@ function MiniChart({ player, sessions }) {
             style={{left:Math.min(Math.max((hov/(pts.length-1))*100,8),65)+"%", top:"2px", transform:"translateX(-50%)", minWidth:"110px", background:"rgba(20,12,2,0.9)", backdropFilter:"blur(12px)"}}>
             <div className="text-amber-300 font-bold mb-1">{h.label}</div>
             {mode==="profit"
-              ? <><div className="flex justify-between gap-2"><span className="text-zinc-400">เซสนี้</span><Profit v={h.p} sx=" ฿"/></div>
-                  <div className="flex justify-between gap-2 mt-0.5"><span className="text-zinc-400">สะสม</span><Profit v={h.cum} sx=" ฿"/></div></>
+              ? <><div className="flex justify-between gap-2"><span className="text-zinc-400">เซสนี้</span><Profit v={h.p} sx=" c"/></div>
+                  <div className="flex justify-between gap-2 mt-0.5"><span className="text-zinc-400">สะสม</span><Profit v={h.cum} sx=" c"/></div></>
               : <><div className="flex justify-between gap-2"><span className="text-zinc-400">อันดับ</span><span className="text-amber-300 font-mono font-bold">#{h.rank}/{h.tot}</span></div>
-                  <div className="flex justify-between gap-2 mt-0.5"><span className="text-zinc-400">กำไร</span><Profit v={h.p} sx=" ฿"/></div></>
+                  <div className="flex justify-between gap-2 mt-0.5"><span className="text-zinc-400">กำไร</span><Profit v={h.p} sx=" c"/></div></>
             }
           </div>
         )}
@@ -355,7 +355,7 @@ function MiniChart({ player, sessions }) {
       <div className="flex justify-between mt-1 text-xs font-mono text-zinc-600">
         <span>{pts[0].label}</span>
         <span className={up?(mode==="profit"?"text-emerald-400":"text-amber-400"):(mode==="profit"?"text-red-400":"text-red-400")}>
-          {mode==="profit" ? ((pts[pts.length-1].cum>0?"+":"")+fmt(pts[pts.length-1].cum)+" ฿")
+          {mode==="profit" ? ((pts[pts.length-1].cum>0?"+":"")+fmt(pts[pts.length-1].cum)+" c")
                            : ("เฉลี่ย #"+(pts.reduce((s,p)=>s+p.rank,0)/pts.length).toFixed(1))}
         </span>
         <span>{pts[pts.length-1].label}</span>
@@ -403,7 +403,7 @@ function DashboardView({ data, onGoLeader, onGoLatestSes, onGoPot, onGoPlayers, 
           <div className="lpc-leader-label"><span aria-hidden="true">{themedLabel("♛")}</span> CURRENT CLUB LEADER</div>
           <div className="lpc-leader-body">
             <div className="lpc-portrait"><img className="lpc-portrait-photo" src={leader ? avatarUrl(leader.name, data.avatars) : '/vip-icons/avatar.png'} onError={e=>{e.currentTarget.onerror=null;e.currentTarget.src='/vip-icons/avatar.png';}} alt=""/><img className="lpc-portrait-frame" src="/vip-icons/crowned-frame.webp" alt=""/></div>
-            <div><strong className="lpc-leader-name">{leader?.name || "ยังไม่มีข้อมูล"}</strong><div className={"lpc-leader-profit "+(leader?.total<0?'lpc-loss':'')}>{leader ? (leader.total>0?'+':'')+fmt(leader.total)+' ฿':'—'}</div><span className="lpc-link-button">VIEW PLAYER PROFILE →</span></div>
+            <div><strong className="lpc-leader-name">{leader?.name || "ยังไม่มีข้อมูล"}</strong><div className={"lpc-leader-profit "+(leader?.total<0?'lpc-loss':'')}>{leader ? (leader.total>0?'+':'')+fmt(leader.total)+' c':'—'}</div><span className="lpc-link-button">VIEW PLAYER PROFILE →</span></div>
           </div>
         </button>
       </section>
@@ -412,7 +412,7 @@ function DashboardView({ data, onGoLeader, onGoLatestSes, onGoPot, onGoPlayers, 
           {label:"TOTAL SESSIONS",value:fmt(data.sessions.length),sub:"CLUB HISTORY",icon:"♠",color:"gold",action:onGoSessions},
           {label:"TOTAL PLAYERS",value:fmt(data.players.length),sub:"REGISTERED MEMBERS",image:"profiles",icon:"♣",color:"blue",action:onGoPlayers},
           {label:"LATEST SEASON",value:latest ? "S"+latest.season+"/"+latest.year : "—",sub:latest ? "SESSION "+latest.sessionNo : "NO SESSIONS",image:"streak",icon:"♦",color:"gold",action:latest ? onGoLatestSeason : null},
-          {label:"CLUB BANKROLL",value:fmt(pot)+" ฿",sub:"VIEW DETAILS →",image:"bankroll",icon:"▤",color:pot>=0?"purple":"red",action:onGoPot},
+          {label:"CLUB BANKROLL",value:fmt(pot)+" c",sub:"VIEW DETAILS →",image:"bankroll",icon:"▤",color:pot>=0?"purple":"red",action:onGoPot},
         ].map(card => <button key={card.label} onClick={card.action} disabled={!card.action} className="lpc-stat lpc-panel">
           <span className="lpc-stat-symbol" aria-hidden="true">{card.image?<img src={'/vip-icons/'+card.image+'.png'} alt=""/>:card.icon==="▤"?<svg viewBox="0 0 48 48" className="lpc-coins" aria-hidden="true"><path d="M5 25v13c0 7 30 7 30 0V25" fill="#be811d" stroke="#ffe49c" strokeWidth="1.5"/><path d="M5 31c0 7 30 7 30 0M5 37c0 7 30 7 30 0" fill="none" stroke="#ffe49c" strokeWidth="2"/><ellipse cx="20" cy="25" rx="15" ry="6" fill="#ffdb73" stroke="#fff0b2"/><path d="M14 12v12c0 7 30 7 30 0V12" fill="#b77b18" stroke="#ffe49c" strokeWidth="1.5"/><path d="M14 18c0 7 30 7 30 0" fill="none" stroke="#ffdc7b" strokeWidth="2"/><ellipse cx="29" cy="12" rx="15" ry="6" fill="#ffe49c" stroke="#fff3ca"/><ellipse cx="29" cy="12" rx="11" ry="3.5" fill="none" stroke="#c1912f"/></svg>:card.icon}</span>
           <span className="lpc-stat-copy"><span className="lpc-stat-label">{card.label}</span><strong className={'lpc-value lpc-'+card.color}>{card.value}</strong><span className="lpc-stat-sub">{card.sub}</span></span>
@@ -431,18 +431,18 @@ function DashboardView({ data, onGoLeader, onGoLatestSes, onGoPot, onGoPlayers, 
             <polyline points={chartPoints} fill="none" stroke="#ffda6c" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"/>
           </svg><div className="lpc-x-axis"><span>เซสชั่นแรก</span><span>{Math.round((history?.points.length || 0)/2)}</span><span>{history?.points.length || 0} เซสชั่น</span></div></div>
         </div> : <p className="lpc-empty">{history ? "ยังไม่มีเซสชั่น" : "ข้อมูลวันที่ไม่ครบ จึงยังแสดงกราฟย้อนหลังไม่ได้"}</p>}
-        <p className="lpc-history-note">ยอดซื้อเข้ารวมของผู้เล่นในแต่ละเซสชั่น (บาท) · ตรงกับ Pot ในหน้าประวัติเซสชั่น</p>
+        <p className="lpc-history-note">ยอดซื้อเข้ารวมของผู้เล่นในแต่ละเซสชั่น (เครดิต) · ตรงกับ Pot ในหน้าประวัติเซสชั่น</p>
       </section>
       <div className="lpc-bottom-grid">
         <section className="lpc-podium-panel lpc-panel"><div className="lpc-panel-heading"><h3><span aria-hidden="true">{themedLabel("♛")}</span> TOP 3 PLAYERS</h3><button className="lpc-view-all" onClick={onGoPlayers}>View All →</button></div>
           <div className="lpc-podium">{active.slice(0,3).map((p,i)=><button key={p.name} className={'lpc-champion lpc-place-'+i} onClick={()=>onGoLeader(p.name)}>
             <div className="lpc-portrait"><img className="lpc-portrait-photo" src={avatarUrl(p.name,data.avatars)} onError={e=>{e.currentTarget.onerror=null;e.currentTarget.src='/vip-icons/avatar.png';}} alt=""/><img className="lpc-portrait-frame" src="/vip-icons/crowned-frame.webp" alt=""/><span className="lpc-rank-number">{i+1}</span></div>
-            <strong className="lpc-champion-name">{p.name}</strong><span className={'lpc-champion-profit '+(p.total<0?'lpc-loss':'')}>{p.total>0?'+':''}{fmt(p.total)} ฿</span><span className="lpc-champion-sessions">{p.n} เซสชั่น</span>
+            <strong className="lpc-champion-name">{p.name}</strong><span className={'lpc-champion-profit '+(p.total<0?'lpc-loss':'')}>{p.total>0?'+':''}{fmt(p.total)} c</span><span className="lpc-champion-sessions">{p.n} เซสชั่น</span>
           </button>)}</div>{!active.length&&<p className="lpc-empty">ยังไม่มีอันดับผู้เล่น</p>}
         </section>
         <section className="lpc-recent lpc-panel"><div className="lpc-panel-heading"><h3>LATEST SESSION</h3><button className="lpc-view-all" disabled={!latest} onClick={()=>latest && onGoLatestSes(latest.internalId)}>View All →</button></div>
           {latest && <p className="lpc-session-note">S{latest.season}/{latest.year} · เซสชั่น {latest.sessionNo} · {String(latest.date).slice(0,10)}</p>}
-          <div className="lpc-table-scroll"><table><thead><tr><th>อันดับ</th><th>ผู้เล่น</th><th>กำไร (฿)</th><th>เปลี่ยน</th></tr></thead><tbody>{latestResults.map(e=><tr key={e.player}><td>{e.rank}</td><td><PlayerName player={e.player} nicknames={data.nicknames}/></td><td><span className={e.profitBaht>=0?'lpc-gain':'lpc-loss'}>{e.profitBaht>0?'+':''}{fmt(e.profitBaht)}</span></td><td><span className={e.change>0?'lpc-gain':e.change<0?'lpc-loss':''}>{e.change===null?'—':(e.change>0?'+':'')+e.change}</span></td></tr>)}</tbody></table></div>
+          <div className="lpc-table-scroll"><table><thead><tr><th>อันดับ</th><th>ผู้เล่น</th><th>กำไร (c)</th><th>เปลี่ยน</th></tr></thead><tbody>{latestResults.map(e=><tr key={e.player}><td>{e.rank}</td><td><PlayerName player={e.player} nicknames={data.nicknames}/></td><td><span className={e.profitBaht>=0?'lpc-gain':'lpc-loss'}>{e.profitBaht>0?'+':''}{fmt(e.profitBaht)}</span></td><td><span className={e.change>0?'lpc-gain':e.change<0?'lpc-loss':''}>{e.change===null?'—':(e.change>0?'+':'')+e.change}</span></td></tr>)}</tbody></table></div>
           {latest ? <p className="lpc-session-note">เทียบอันดับกับเซสชั่นก่อนหน้า · — ไม่ได้เล่นครั้งก่อน</p> : <p className="lpc-empty">ยังไม่มีเซสชั่น</p>}
         </section>
       </div>
@@ -535,7 +535,7 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
           })()}
           <div className="text-zinc-500 text-sm mb-1">กำไร / ขาดทุนรวม</div>
           <div className={"font-mono font-black text-4xl "+(stats.total>=0?"text-emerald-400":"text-red-400")}>
-            {stats.total>0?"+":""}{fmt(stats.total)} ฿
+            {stats.total>0?"+":""}{fmt(stats.total)} c
           </div>
           <div className="text-zinc-600 text-xs mt-1">จาก {stats.n} เซสชั่น</div>
         </div>
@@ -589,7 +589,7 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
                       <div className="text-zinc-600 text-[10px]">{x.s.date?.slice(0,10) ?? x.s.date}</div>
                     </div>
                   </div>
-                  <Profit v={x.e.profitBaht} sx=" ฿"/>
+                  <Profit v={x.e.profitBaht} sx=" c"/>
                 </div>
               );
             })}
@@ -657,7 +657,7 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
                     <span className="font-bold" style={{color: isSel?"#f0c040":"#fff", fontSize: isSel?"16px":"15px"}}>
                       <PlayerName player={p.name} nicknames={data.nicknames}/>
                     </span>
-                    <Profit v={p.total} sx=" ฿"/>
+                    <Profit v={p.total} sx=" c"/>
                   </div>
                   <div className="text-xs mb-1.5" style={{color: isSel?"#e6c995":"#aaa"}}>
                     {p.n} เซสชั่น · อัตราชนะ {p.n>0?Math.round((p.gold/p.n)*100):0}%
@@ -864,7 +864,7 @@ function RacingBarChart({ sessions, players, nicknames, avatars }) {
                   }}>
                   <span className="text-[10px] font-bold font-mono whitespace-nowrap"
                     style={{color: isPos ? 'rgba(0,0,0,0.75)' : 'rgba(255,255,255,0.9)'}}>
-                    {(displayVals[s.name] ?? 0) >= 0 ? '+' : ''}{fmt(displayVals[s.name] ?? 0)} ฿
+                    {(displayVals[s.name] ?? 0) >= 0 ? '+' : ''}{fmt(displayVals[s.name] ?? 0)} c
                   </span>
                   {/* Avatar at tip */}
                   <div style={{
@@ -1042,7 +1042,7 @@ function LeaderboardView({ data, initialFilter = "all" }) {
                       <div className="vip-champion-name text-white text-xl font-black truncate">{p.name}</div>
                       <div className="vip-ref-session-count">{p.n} เซสชั่น</div>
                       <div className="vip-rank-winrate">อัตราชนะ {p.n>0?Math.round(p.gold/p.n*100):0}% <span className="vip-rank-bar"><span style={{width:(p.n>0?Math.round(p.gold/p.n*100):0)+"%"}} /></span></div>
-                      <div className={"vip-ref-profit font-mono text-2xl font-black "+(p.total>=0?"text-emerald-300":"text-red-300")}>{p.total>0?"+":""}{fmt(p.total)} ฿</div>
+                      <div className={"vip-ref-profit font-mono text-2xl font-black "+(p.total>=0?"text-emerald-300":"text-red-300")}>{p.total>0?"+":""}{fmt(p.total)} c</div>
                       <div className="flex flex-wrap gap-1.5 mt-4 text-xs">
                         <span className="rounded-full bg-black/25 border border-white/10 px-2 py-1">{themedLabel("🥇")} {p.gold}</span>
                         <span className="rounded-full bg-black/25 border border-white/10 px-2 py-1">{themedLabel("🥈")} {p.silver}</span>
@@ -1061,7 +1061,7 @@ function LeaderboardView({ data, initialFilter = "all" }) {
                 <thead><tr className="border-b border-zinc-800 text-zinc-400 bg-transparent">
                   <th className="px-2 py-2 text-left">#</th>
                   <th className="px-2 py-2 text-left">ผู้เล่น</th>
-                  <th className="px-2 py-2 text-right">กำไร/ขาดทุน (฿)</th>
+                  <th className="px-2 py-2 text-right">กำไร/ขาดทุน (c)</th>
                   <th className="px-2 py-2 text-center">{themedLabel("🥇")}</th><th className="px-2 py-2 text-center">{themedLabel("🥈")}</th>
                   <th className="px-2 py-2 text-center">{themedLabel("🥉")}</th><th className="px-2 py-2 text-center">{themedLabel("💀")}</th>
                   <th className="px-1 py-2 text-right hidden sm:table-cell w-16">เซสชั่น</th>
@@ -1076,7 +1076,7 @@ function LeaderboardView({ data, initialFilter = "all" }) {
                           ? <div className="text-zinc-500 text-xs font-normal">"{(data.nicknames||{})[p.name]}"</div>
                           : null}
                       </td>
-                      <td className="px-2 py-2 text-right"><Profit v={p.total} sx=" ฿"/></td>
+                      <td className="px-2 py-2 text-right"><Profit v={p.total} sx=" c"/></td>
                       <td className="px-2 py-2 text-center font-mono text-amber-400 font-semibold">{p.gold>0?p.gold:<span className="text-zinc-700">-</span>}</td>
                       <td className="px-2 py-2 text-center font-mono text-zinc-300 font-semibold">{p.silver>0?p.silver:<span className="text-zinc-700">-</span>}</td>
                       <td className="px-2 py-2 text-center font-mono text-orange-400 font-semibold">{p.bronze>0?p.bronze:<span className="text-zinc-700">-</span>}</td>
@@ -1120,13 +1120,13 @@ function SessionsView({ data, onEdit, onDelete, initialOpen=null }) {
                 </div>
                 <div>
                   <div className="text-white font-semibold text-sm">{String(s.date || "").slice(0,10)}</div>
-                  <div className="text-zinc-500 text-xs">{s.entries.length} ผู้เล่น · Pot {fmt(pot)} ฿ · <span className="text-purple-400">ส่วนกลาง {fmt(fee)} ฿</span></div>
+                  <div className="text-zinc-500 text-xs">{s.entries.length} ผู้เล่น · Pot {fmt(pot)} c · <span className="text-purple-400">ส่วนกลาง {fmt(fee)} c</span></div>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <div className="text-right hidden sm:block">
                   <div className="text-emerald-400 text-sm font-semibold">{themedLabel("🥇")} <PlayerName player={r[0]?.player||''} nicknames={data.nicknames}/></div>
-                  <div className="text-emerald-300 text-xs font-mono">+{fmt(r[0]?.profitBaht)} ฿</div>
+                  <div className="text-emerald-300 text-xs font-mono">+{fmt(r[0]?.profitBaht)} c</div>
                 </div>
                 <span className="text-zinc-500">{isOpen?"▲":"▼"}</span>
               </div>
@@ -1134,16 +1134,16 @@ function SessionsView({ data, onEdit, onDelete, initialOpen=null }) {
             {isOpen && (
               <div className="border-t border-zinc-800 px-4 pb-4">
                 <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                  <span className="bg-amber-900/30 border border-amber-700/40 text-amber-300 px-3 py-1 rounded-full font-mono">{themedLabel("🎰")} {fmt(s.rate.chips)} ชิป = {fmt(s.rate.baht)} ฿</span>
-                  <span className="bg-purple-900/30 border border-purple-700/40 text-purple-300 px-3 py-1 rounded-full font-mono">{themedLabel("📦")} {fmt(s.fee)} ฿/คน</span>
+                  <span className="bg-amber-900/30 border border-amber-700/40 text-amber-300 px-3 py-1 rounded-full font-mono">{themedLabel("🎰")} {fmt(s.rate.chips)} ชิป = {fmt(s.rate.baht)} c</span>
+                  <span className="bg-purple-900/30 border border-purple-700/40 text-purple-300 px-3 py-1 rounded-full font-mono">{themedLabel("📦")} {fmt(s.fee)} c/คน</span>
                 </div>
                 <div className="overflow-x-auto mt-3">
                   <table className="w-full text-sm">
                     <thead><tr className="text-zinc-500 border-b border-zinc-800">
                       <th className="py-2 text-left">#</th><th className="py-2 text-left">ผู้เล่น</th>
                       <th className="py-2 text-right">ซื้อ(ชิป)</th><th className="py-2 text-right">แลก(ชิป)</th>
-                      <th className="py-2 text-right hidden sm:table-cell">ซื้อ(฿)</th><th className="py-2 text-right hidden sm:table-cell">แลก(฿)</th>
-                      <th className="py-2 text-right">กำไร(฿)</th>
+                      <th className="py-2 text-right hidden sm:table-cell">ซื้อ(c)</th><th className="py-2 text-right hidden sm:table-cell">แลก(c)</th>
+                      <th className="py-2 text-right">กำไร(c)</th>
                     </tr></thead>
                     <tbody>{r.map(e => {
                       const statKey = s.internalId + "__" + e.player;
@@ -1177,7 +1177,7 @@ function SessionsView({ data, onEdit, onDelete, initialOpen=null }) {
                             <td className="py-2 text-right font-mono text-zinc-400">{fmt(e.cashOutChips)}</td>
                             <td className="py-2 text-right font-mono text-zinc-500 hidden sm:table-cell">{fmt(e.buyInBaht)}</td>
                             <td className="py-2 text-right font-mono text-zinc-500 hidden sm:table-cell">{fmt(e.cashOutBaht)}</td>
-                            <td className="py-2 text-right"><Profit v={e.profitBaht} sx=" ฿"/></td>
+                            <td className="py-2 text-right"><Profit v={e.profitBaht} sx=" c"/></td>
                           </tr>
                           {statOpen && (
                             <tr className="border-b border-zinc-800/30">
@@ -1363,15 +1363,15 @@ function SessionForm({ data, editSession, onSave, onCancel, saving, isAdmin, all
             <div className="flex items-center gap-2">
               <div className="flex-1"><label className="text-zinc-500 text-xs">ชิป</label><NInput value={rate.chips} onChange={v=>setRate(r=>({...r,chips:v}))}/></div>
               <span className="text-zinc-500 pt-5">=</span>
-              <div className="flex-1"><label className="text-zinc-500 text-xs">บาท</label><NInput value={rate.baht} onChange={v=>setRate(r=>({...r,baht:v}))}/></div>
+              <div className="flex-1"><label className="text-zinc-500 text-xs">เครดิต</label><NInput value={rate.baht} onChange={v=>setRate(r=>({...r,baht:v}))}/></div>
             </div>
-            <div className="text-zinc-500 text-xs font-mono mt-1">1 ชิป ≈ {rate.chips>0?(rate.baht/rate.chips).toFixed(4):0} ฿</div>
+            <div className="text-zinc-500 text-xs font-mono mt-1">1 ชิป ≈ {rate.chips>0?(rate.baht/rate.chips).toFixed(4):0} c</div>
             {errs.rate && <p className="text-red-400 text-xs mt-1">{errs.rate}</p>}
           </div>
           <div className="rounded-lg p-2.5" style={{background:"rgba(255,255,255,0.05)"}}>
             <div className="text-purple-400 text-xs font-semibold mb-2">{themedLabel("📦")} ค่าส่วนกลาง/คน</div>
             <NInput value={fee} onChange={setFee}/>
-            <div className="text-zinc-500 text-xs font-mono mt-1">{active} คน × {fmt(fee)} = <span className="text-purple-300">{fmt(active*fee)} ฿</span></div>
+            <div className="text-zinc-500 text-xs font-mono mt-1">{active} คน × {fmt(fee)} = <span className="text-purple-300">{fmt(active*fee)} c</span></div>
           </div>
         </div>
       </Box>
@@ -1382,9 +1382,9 @@ function SessionForm({ data, editSession, onSave, onCancel, saving, isAdmin, all
         <div className="text-zinc-600 text-xs mb-3">กรอกครั้งเดียว ใส่ทุกคนพร้อมกัน</div>
         <div className="flex items-end gap-2">
           <div className="flex-1">
-            <label className="text-zinc-500 text-xs">{mode==="baht"?"บาท":"ชิป"}ที่ซื้อ</label>
+            <label className="text-zinc-500 text-xs">{mode==="baht"?"เครดิต":"ชิป"}ที่ซื้อ</label>
             <NInput value={qv} onChange={setQv} ph={mode==="chips"?"1,000":"200"}/>
-            {qv>0 && <div className="text-zinc-600 text-xs mt-0.5 font-mono">= {fmt(mode==="chips"?c2b(qv,rate):b2c(qv,rate))} {mode==="chips"?"฿":"ชิป"}/คน</div>}
+            {qv>0 && <div className="text-zinc-600 text-xs mt-0.5 font-mono">= {fmt(mode==="chips"?c2b(qv,rate):b2c(qv,rate))} {mode==="chips"?"c":"ชิป"}/คน</div>}
           </div>
           <div className="flex flex-col gap-1.5">
             <button onClick={applyQF} className={"px-4 py-2.5 rounded-xl font-bold text-sm transition-all "+(qok?"bg-emerald-500 text-white":"bg-amber-500 hover:bg-amber-400 text-black")}>
@@ -1399,7 +1399,7 @@ function SessionForm({ data, editSession, onSave, onCancel, saving, isAdmin, all
       <div className="flex items-center gap-2">
         <span className="text-zinc-500 text-sm">กรอกเป็น:</span>
         <div className="flex rounded-lg p-0.5" style={{background:"rgba(255,255,255,0.08)"}}>
-          {[["chips","🎰 ชิป"],["baht","💵 บาท"]].map(([m,label]) => (
+          {[["chips","🎰 ชิป"],["baht","💵 เครดิต"]].map(([m,label]) => (
             <button key={m} onClick={()=>setMode(m)} className={"px-4 py-1.5 rounded-md text-sm font-medium transition-colors "+(mode===m?"bg-amber-500 text-black":"text-zinc-400 hover:text-white")}>{themedLabel(label)}</button>
           ))}
         </div>
@@ -1415,7 +1415,7 @@ function SessionForm({ data, editSession, onSave, onCancel, saving, isAdmin, all
             {!bal && (
               <div className={"border-t pt-0.5 "+(diff>0?"border-emerald-700/40":"border-red-700/40")}>
                 <span className="text-zinc-500">ต่าง </span>
-                <span className={diff>0?"text-emerald-400 font-bold":"text-red-400 font-bold"}>{diff>0?"+":""}{fmt(diff)} ชิป · {diff>0?"+":"-"}{fmt(c2b(Math.abs(diff),rate))} ฿</span>
+                <span className={diff>0?"text-emerald-400 font-bold":"text-red-400 font-bold"}>{diff>0?"+":""}{fmt(diff)} ชิป · {diff>0?"+":"-"}{fmt(c2b(Math.abs(diff),rate))} c</span>
                 <span className={"ml-1 "+(diff>0?"text-emerald-600":"text-red-600")}>({diff>0?"เกิน":"ขาด"})</span>
               </div>
             )}
@@ -1427,7 +1427,7 @@ function SessionForm({ data, editSession, onSave, onCancel, saving, isAdmin, all
       {/* Entries */}
       <Box className="overflow-hidden p-0">
         <div className="px-4 py-3 border-b border-zinc-800 text-zinc-400 text-sm flex justify-between items-center">
-          <span>บันทึกชิปแต่ละคน ({mode==="chips"?"ชิป":"บาท"})</span>
+          <span>บันทึกชิปแต่ละคน ({mode==="chips"?"ชิป":"เครดิต"})</span>
           <div className="flex items-center gap-2">
             <span className="text-xs text-zinc-600">{active}/{rows.length} คน</span>
             {/* ปุ่มเพิ่มผู้เล่น - แสดงเฉพาะตอนแก้ไข และมีคนที่ยังไม่ได้อยู่ในรายการ */}
@@ -1488,22 +1488,22 @@ function SessionForm({ data, editSession, onSave, onCancel, saving, isAdmin, all
                   </div>
                   {/* col 2: ซื้อ */}
                   <div>
-                    <label className="text-zinc-600 text-xs">ซื้อ {mode==="baht"?"(฿)":"(ชิป)"}</label>
+                    <label className="text-zinc-600 text-xs">ซื้อ {mode==="baht"?"(c)":"(ชิป)"}</label>
                     <NInput value={dv(r.buy)} onChange={v=>upd(i,"buy",v)}/>
-                    {r.buy>0 && <div className="text-zinc-600 text-xs mt-0.5 font-mono">= {mode==="chips"?fmt(c2b(r.buy,rate))+" ฿":fmt(r.buy)+" ชิป"}</div>}
+                    {r.buy>0 && <div className="text-zinc-600 text-xs mt-0.5 font-mono">= {mode==="chips"?fmt(c2b(r.buy,rate))+" c":fmt(r.buy)+" ชิป"}</div>}
                   </div>
                   {/* col 3: แลก */}
                   <div>
-                    <label className="text-zinc-600 text-xs">แลก {mode==="baht"?"(฿)":"(ชิป)"}</label>
+                    <label className="text-zinc-600 text-xs">แลก {mode==="baht"?"(c)":"(ชิป)"}</label>
                     <NInput value={dv(r.sell)} onChange={v=>upd(i,"sell",v)}/>
-                    {r.sell>0 && <div className="text-zinc-600 text-xs mt-0.5 font-mono">= {mode==="chips"?fmt(c2b(r.sell,rate))+" ฿":fmt(r.sell)+" ชิป"}</div>}
+                    {r.sell>0 && <div className="text-zinc-600 text-xs mt-0.5 font-mono">= {mode==="chips"?fmt(c2b(r.sell,rate))+" c":fmt(r.sell)+" ชิป"}</div>}
                   </div>
                   {/* col 4: กำไร */}
                   <div className="text-right">
                     <div className="text-xs text-zinc-600">กำไร/ขาดทุน</div>
-                    <Profit v={pb} sx=" ฿"/>
-                    {act && <div className="text-purple-400 text-xs font-mono">-{fmt(fee)} ฿ ส่วนกลาง</div>}
-                    {act && <Profit v={pb-fee} sx=" ฿ สุทธิ"/>}
+                    <Profit v={pb} sx=" c"/>
+                    {act && <div className="text-purple-400 text-xs font-mono">-{fmt(fee)} c ส่วนกลาง</div>}
+                    {act && <Profit v={pb-fee} sx=" c สุทธิ"/>}
                   </div>
                 </div>
                 {/* Stats row - collapsible */}
@@ -1587,9 +1587,9 @@ function PotView({ data, onAddTx, onDeleteTx, saving, allowPublicPotEdit, setAll
         </div>
       </div>
       <div className="grid grid-cols-3 gap-3">
-        <div className="bg-emerald-900/20 border border-emerald-700/30 rounded-2xl p-3 text-center"><div className="text-emerald-400 text-xs font-semibold mb-1">รายรับรวม</div><div className="text-emerald-300 font-mono font-black text-lg">{inc>0?"+":""}{fmt(inc)}</div><div className="text-zinc-600 text-xs">฿</div></div>
-        <div className="bg-red-900/20 border border-red-700/30 rounded-2xl p-3 text-center"><div className="text-red-400 text-xs font-semibold mb-1">รายจ่ายรวม</div><div className="text-red-400 font-mono font-black text-lg">{exp > 0 ? "-" : ""}{fmt(exp)}</div><div className="text-zinc-600 text-xs">฿</div></div>
-        <div className={"border rounded-2xl p-3 text-center "+(pot.balance>=0?"bg-amber-900/20 border-amber-700/30":"bg-red-900/30 border-red-700/40")}><div className="text-amber-400 text-xs font-semibold mb-1">คงเหลือ</div><div className={"font-mono font-black text-xl "+(pot.balance>=0?"text-amber-300":"text-red-400")}>{fmt(pot.balance)}</div><div className="text-zinc-600 text-xs">฿</div></div>
+        <div className="bg-emerald-900/20 border border-emerald-700/30 rounded-2xl p-3 text-center"><div className="text-emerald-400 text-xs font-semibold mb-1">รายรับรวม</div><div className="text-emerald-300 font-mono font-black text-lg">{inc>0?"+":""}{fmt(inc)}</div><div className="text-zinc-600 text-xs">c</div></div>
+        <div className="bg-red-900/20 border border-red-700/30 rounded-2xl p-3 text-center"><div className="text-red-400 text-xs font-semibold mb-1">รายจ่ายรวม</div><div className="text-red-400 font-mono font-black text-lg">{exp > 0 ? "-" : ""}{fmt(exp)}</div><div className="text-zinc-600 text-xs">c</div></div>
+        <div className={"border rounded-2xl p-3 text-center "+(pot.balance>=0?"bg-amber-900/20 border-amber-700/30":"bg-red-900/30 border-red-700/40")}><div className="text-amber-400 text-xs font-semibold mb-1">คงเหลือ</div><div className={"font-mono font-black text-xl "+(pot.balance>=0?"text-amber-300":"text-red-400")}>{fmt(pot.balance)}</div><div className="text-zinc-600 text-xs">c</div></div>
       </div>
       {add && (
         <Box className="space-y-3">
@@ -1600,7 +1600,7 @@ function PotView({ data, onAddTx, onDeleteTx, saving, allowPublicPotEdit, setAll
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div><label className="text-zinc-500 text-xs">วันที่</label><input type="date" value={dt} onChange={e=>setDt(e.target.value)} className="w-full border border-zinc-600/60 rounded-lg px-3 py-2 text-white text-sm focus:border-amber-500 focus:outline-none" style={{background:"rgba(255,255,255,0.06)"}}/></div>
-            <div><label className="text-zinc-500 text-xs">จำนวนเงิน (฿)</label><NInput value={amt} onChange={setAmt}/></div>
+            <div><label className="text-zinc-500 text-xs">จำนวนเงิน (c)</label><NInput value={amt} onChange={setAmt}/></div>
           </div>
           <div><label className="text-zinc-500 text-xs">รายการ</label><input type="text" value={txt} onChange={e=>setTxt(e.target.value)} placeholder="เช่น ค่าอาหาร..." className="w-full border border-zinc-600/60 rounded-lg px-3 py-2 text-black text-sm placeholder-zinc-600 focus:border-amber-500 focus:outline-none"/></div>
           {err && <p className="text-red-400 text-xs">{err}</p>}
@@ -1614,10 +1614,10 @@ function PotView({ data, onAddTx, onDeleteTx, saving, allowPublicPotEdit, setAll
           <div key={tx.id} className="flex items-center justify-between border border-zinc-700/25 rounded-xl px-4 py-3" style={{background:"rgba(15,10,3,0.40)",backdropFilter:"blur(6px)"}}>
             <div className="flex items-center gap-3">
               <span className={"text-lg "+(tx.type==="income"?"text-emerald-400":"text-red-400")}>{themedLabel(tx.type==="income"?"➕":"➖")}</span>
-              <div><div className="text-white text-sm font-medium">{tx.note}</div><div className="text-zinc-600 text-xs">{String(tx.date||"").slice(0,10)}</div></div>
+              <div><div className="text-white text-sm font-medium">{typeof tx.note === 'string' ? tx.note.replace(/฿/g, 'c').replace(/บาท/g, 'เครดิต') : tx.note}</div><div className="text-zinc-600 text-xs">{String(tx.date||"").slice(0,10)}</div></div>
             </div>
             <div className="flex items-center gap-3">
-              <span className={"font-mono font-semibold text-sm "+(tx.type==="income"?"text-emerald-400":"text-red-400")}>{tx.type==="income"?"+":"-"}{fmt(tx.amount)} ฿</span>
+              <span className={"font-mono font-semibold text-sm "+(tx.type==="income"?"text-emerald-400":"text-red-400")}>{tx.type==="income"?"+":"-"}{fmt(tx.amount)} c</span>
               {onDeleteTx && <button onClick={()=>del(tx.id)} className="text-zinc-700 hover:text-red-400 text-xs">{themedLabel("🗑")}</button>}
             </div>
           </div>
@@ -1660,14 +1660,14 @@ function SettingsView({ data, onUpdate, saving }) {
         <div className="flex items-center gap-3">
           <div className="flex-1"><label className="text-zinc-500 text-xs">ชิป</label><NInput value={rate.chips} onChange={v=>setRate(r=>({...r,chips:v}))}/></div>
           <span className="text-zinc-400 mt-4 font-bold">=</span>
-          <div className="flex-1"><label className="text-zinc-500 text-xs">บาท</label><NInput value={rate.baht} onChange={v=>setRate(r=>({...r,baht:v}))}/></div>
+          <div className="flex-1"><label className="text-zinc-500 text-xs">เครดิต</label><NInput value={rate.baht} onChange={v=>setRate(r=>({...r,baht:v}))}/></div>
         </div>
-        <div className="bg-amber-900/20 border border-amber-700/30 rounded-xl px-4 py-2 text-amber-300 text-sm font-mono">{fmt(rate.chips)} ชิป = {fmt(rate.baht)} ฿ · 1 ชิป ≈ {rate.chips>0?(rate.baht/rate.chips).toFixed(4):0} ฿</div>
+        <div className="bg-amber-900/20 border border-amber-700/30 rounded-xl px-4 py-2 text-amber-300 text-sm font-mono">{fmt(rate.chips)} ชิป = {fmt(rate.baht)} c · 1 ชิป ≈ {rate.chips>0?(rate.baht/rate.chips).toFixed(4):0} c</div>
       </Box>
       <Box className="space-y-3">
         <div className="text-purple-400 font-semibold text-sm">{themedLabel("📦")} ค่าส่วนกลางต่อคน (ค่าเริ่มต้น)</div>
         <NInput value={fee} onChange={setFee}/>
-        <div className="bg-purple-900/20 border border-purple-700/30 rounded-xl px-4 py-2 text-purple-300 text-sm font-mono">ทุกคนจ่าย {fmt(fee)} ฿/เซสชั่น</div>
+        <div className="bg-purple-900/20 border border-purple-700/30 rounded-xl px-4 py-2 text-purple-300 text-sm font-mono">ทุกคนจ่าย {fmt(fee)} c/เซสชั่น</div>
       </Box>
       <Box className="space-y-3">
         <div className="text-zinc-300 font-semibold text-sm">{themedLabel("👥")} ผู้เล่น</div>
