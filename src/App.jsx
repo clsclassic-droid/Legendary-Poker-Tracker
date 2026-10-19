@@ -408,7 +408,7 @@ function DashboardView({ data, onGoLeader, onGoLatestSes, onGoPot, onGoPlayers, 
           <div className="lpc-subtitle">PRIVATE MEMBERS · LIVE STANDINGS</div>
           <p>The club at a glance. Every session, every champion.</p>
           <div className="lpc-badges">
-            <span><svg viewBox="0 0 48 48" className="lpc-coins" aria-hidden="true"><path d="M5 25v13c0 7 30 7 30 0V25" fill="#be811d" stroke="#ffe49c" strokeWidth="1.5"/><path d="M5 31c0 7 30 7 30 0M5 37c0 7 30 7 30 0" fill="none" stroke="#ffe49c" strokeWidth="2"/><ellipse cx="20" cy="25" rx="15" ry="6" fill="#ffdb73" stroke="#fff0b2"/><path d="M14 12v12c0 7 30 7 30 0V12" fill="#b77b18" stroke="#ffe49c" strokeWidth="1.5"/><path d="M14 18c0 7 30 7 30 0" fill="none" stroke="#ffdc7b" strokeWidth="2"/><ellipse cx="29" cy="12" rx="15" ry="6" fill="#ffe49c" stroke="#fff3ca"/><ellipse cx="29" cy="12" rx="11" ry="3.5" fill="none" stroke="#c1912f"/></svg><span><strong>{fmt(data.sessions.length)}</strong>SESSIONS</span></span>
+            <span><img src="/vip-icons/bankroll.png" className="lpc-coins" alt="" aria-hidden="true"/><span><strong>{fmt(data.sessions.length)}</strong>SESSIONS</span></span>
             <span><img src="/vip-icons/profiles.png" alt=""/><span><strong>{fmt(data.players.length)}</strong>PLAYERS</span></span>
             <span><svg className="lpc-calendar" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 7h22v22H5Z" fill="#e7b746" stroke="#ffe398"/><path d="M5 13h22M10 3v8M22 3v8" stroke="#ffe398" strokeWidth="3"/>{[10,16,22].map(x=>[18,24].map(y=><rect key={x+"-"+y} x={x-1.5} y={y-1.5} width="3" height="3" fill="#3d2807"/>))}</svg><span><strong>{yearCount}</strong>THIS YEAR</span></span>
           </div>
