@@ -1,3 +1,4 @@
+import { ThemeIcon, themedLabel } from './ThemeIcon';
 import { useState, useEffect, useMemo, Fragment } from "react";
 
 // -----------------------------------------------------------------
@@ -203,7 +204,7 @@ function NInput({ value, onChange, ph="0" }) {
   );
 }
 function Box({ children, className="" }) {
-  return <div className={"border border-zinc-700/25 rounded-2xl p-4 " + className}
+  return <div className={"theme-panel border border-zinc-700/25 rounded-2xl p-4 " + className}
     style={{background:'rgba(15,10,3,0.40)', backdropFilter:'blur(6px)', WebkitBackdropFilter:'blur(6px)'}}
   >{children}</div>;
 }
@@ -232,7 +233,7 @@ function MiniChart({ player, sessions }) {
 
   if (pts.length < 2) return (
     <div className="border border-zinc-700/25 rounded-2xl p-6 text-center" style={{background:"rgba(15,10,3,0.40)",backdropFilter:"blur(6px)"}}>
-      <div className="text-3xl mb-2">📈</div>
+      <div className="text-3xl mb-2">{themedLabel("📈")}</div>
       <div className="text-zinc-400 text-sm font-medium">ยังไม่มีกราฟ</div>
       <div className="text-zinc-600 text-xs mt-1">ต้องมีอย่างน้อย 2 เซสขึ้นไป<br/>ปัจจุบันเล่นไป {pts.length} เซส</div>
     </div>
@@ -289,12 +290,12 @@ function MiniChart({ player, sessions }) {
   return (
     <Box>
       <div className="flex items-center justify-between mb-2">
-        <span className="text-zinc-400 text-xs font-semibold">{mode==="profit"?"📈 กำไรสะสม":"🏅 อันดับแต่ละเซส"}</span>
+        <span className="text-zinc-400 text-xs font-semibold">{themedLabel(mode==="profit"?"📈 กำไรสะสม":"🏅 อันดับแต่ละเซส")}</span>
         <div className="flex rounded-lg p-0.5 gap-0.5" style={{background:"rgba(255,255,255,0.08)"}}>
           {[["profit","📈"],["rank","🏅"]].map(([id,icon]) => (
             <button key={id} onClick={()=>{setMode(id);setHov(null);}}
               className={"px-2.5 py-1 rounded-md text-xs font-semibold transition-all " + (mode===id?"bg-amber-500 text-black":"text-zinc-400 hover:text-white")}>
-              {icon}
+              {themedLabel(icon)}
             </button>
           ))}
         </div>
@@ -405,7 +406,7 @@ function DashboardView({ data, onGoLeader, onGoLatestSes, onGoPot, onGoPlayers, 
           </div>
         </div>
         <button className="lpc-leader lpc-panel" onClick={() => leader && onGoLeader(leader.name)} disabled={!leader}>
-          <div className="lpc-leader-label"><span aria-hidden="true">♛</span> CURRENT CLUB LEADER</div>
+          <div className="lpc-leader-label"><span aria-hidden="true">{themedLabel("♛")}</span> CURRENT CLUB LEADER</div>
           <div className="lpc-leader-body">
             <div className="lpc-portrait"><img className="lpc-portrait-photo" src={leader ? avatarUrl(leader.name, data.avatars) : '/vip-icons/avatar.png'} onError={e=>{e.currentTarget.onerror=null;e.currentTarget.src='/vip-icons/avatar.png';}} alt=""/><img className="lpc-portrait-frame" src="/vip-icons/crowned-frame.webp" alt=""/></div>
             <div><strong className="lpc-leader-name">{leader?.name || "ยังไม่มีข้อมูล"}</strong><div className={"lpc-leader-profit "+(leader?.total<0?'lpc-loss':'')}>{leader ? (leader.total>0?'+':'')+fmt(leader.total)+' ฿':'—'}</div><span className="lpc-link-button">VIEW PLAYER PROFILE →</span></div>
@@ -438,7 +439,7 @@ function DashboardView({ data, onGoLeader, onGoLatestSes, onGoPot, onGoPlayers, 
         </div>
       </section>
       <div className="lpc-bottom-grid">
-        <section className="lpc-podium-panel lpc-panel"><div className="lpc-panel-heading"><h3><span aria-hidden="true">♛</span> TOP 3 PLAYERS</h3><button className="lpc-view-all" onClick={onGoPlayers}>View All →</button></div>
+        <section className="lpc-podium-panel lpc-panel"><div className="lpc-panel-heading"><h3><span aria-hidden="true">{themedLabel("♛")}</span> TOP 3 PLAYERS</h3><button className="lpc-view-all" onClick={onGoPlayers}>View All →</button></div>
           <div className="lpc-podium">{active.slice(0,3).map((p,i)=><button key={p.name} className={'lpc-champion lpc-place-'+i} onClick={()=>onGoLeader(p.name)}>
             <div className="lpc-portrait"><img className="lpc-portrait-photo" src={avatarUrl(p.name,data.avatars)} onError={e=>{e.currentTarget.onerror=null;e.currentTarget.src='/vip-icons/avatar.png';}} alt=""/><img className="lpc-portrait-frame" src="/vip-icons/crowned-frame.webp" alt=""/><span className="lpc-rank-number">{i+1}</span></div>
             <strong className="lpc-champion-name">{p.name}</strong><span className={'lpc-champion-profit '+(p.total<0?'lpc-loss':'')}>{p.total>0?'+':''}{fmt(p.total)} ฿</span><span className="lpc-champion-sessions">{p.n} เซสชั่น</span>
@@ -547,9 +548,9 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
             ["ดีที่สุด",  stats.best!==null  ? (stats.best>0?"+":"")+fmt(stats.best) : "-", "text-emerald-400"],
             ["แย่ที่สุด", stats.worst!==null ? fmt(stats.worst)     : "-", "text-red-400"],
           ].map(([label,value,color]) => (
-            <div key={label} className="border border-zinc-700/25 rounded-xl p-3 text-center" style={{background:"rgba(15,10,3,0.40)",backdropFilter:"blur(6px)"}}>
+            <div key={themedLabel(label)} className="border border-zinc-700/25 rounded-xl p-3 text-center" style={{background:"rgba(15,10,3,0.40)",backdropFilter:"blur(6px)"}}>
               <div className={"font-mono font-bold text-lg "+color}>{value}</div>
-              <div className="text-zinc-600 text-xs mt-0.5">{label}</div>
+              <div className="text-zinc-600 text-xs mt-0.5">{themedLabel(label)}</div>
             </div>
           ))}
         </div>
@@ -559,14 +560,14 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
 
         {/* Medals */}
         <Box>
-          <div className="text-zinc-400 text-xs font-semibold mb-3">🏅 เหรียญรางวัล</div>
+          <div className="text-zinc-400 text-xs font-semibold mb-3">{themedLabel("🏅")} เหรียญรางวัล</div>
           <div className="grid grid-cols-4 gap-2 text-center">
             {[["🥇",stats.gold,"ทอง","text-amber-300"],["🥈",stats.silver,"เงิน","text-zinc-300"],
               ["🥉",stats.bronze,"ทองแดง","text-orange-300"],["💀",stats.last,"โหล่","text-red-400"]].map(([emoji,count,label,color]) => (
-              <div key={label} className="rounded-xl p-2" style={{background:"rgba(255,255,255,0.05)"}}>
-                <div className="text-xl">{emoji}</div>
+              <div key={themedLabel(label)} className="rounded-xl p-2" style={{background:"rgba(255,255,255,0.05)"}}>
+                <div className="text-xl">{themedLabel(emoji)}</div>
                 <div className={"font-mono font-black text-xl "+color}>{count}</div>
-                <div className="text-zinc-600 text-[10px]">{label}</div>
+                <div className="text-zinc-600 text-[10px]">{themedLabel(label)}</div>
               </div>
             ))}
           </div>
@@ -574,7 +575,7 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
 
         {/* History */}
         <div>
-          <div className="text-zinc-400 text-xs font-semibold mb-2">📋 ประวัติแต่ละเซส</div>
+          <div className="text-zinc-400 text-xs font-semibold mb-2">{themedLabel("📋")} ประวัติแต่ละเซส</div>
           <div className="space-y-1.5">
             {history.map((x,i) => {
               const lastRank = ranked(x.s.entries).length;
@@ -583,7 +584,7 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
               return (
                 <div key={i} className="flex items-center justify-between border border-zinc-700/25 rounded-xl px-3 py-2" style={{background:"rgba(15,10,3,0.40)",backdropFilter:"blur(6px)"}}>
                   <div className="flex items-center gap-2">
-                    <span className="text-base">{em}</span>
+                    <span className="text-base">{themedLabel(em)}</span>
                     <div>
                       <div className="text-xs font-mono text-zinc-400">S{x.s.season} เซสชั่น{x.s.sessionNo}</div>
                       <div className="text-zinc-600 text-[10px]">{x.s.date?.slice(0,10) ?? x.s.date}</div>
@@ -603,7 +604,7 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
   const avatarOverflows = data.avatarOverflows || {};
   return (
     <div className="vip-players vip-redesign space-y-4">
-      <div className="vip-players-hero"><div className="text-amber-300 text-xs font-bold tracking-[.22em] mb-2">LEGENDARY SECRETS · VIP MEMBERS</div><h2 className="text-2xl sm:text-3xl font-black text-white">♛ VIP PLAYERS</h2><p className="text-amber-100/65 text-sm mt-2">{summary.length} MEMBERS · SELECT A PLAYER TO VIEW THEIR PROFILE</p></div>
+      <div className="vip-players-hero"><div className="text-amber-300 text-xs font-bold tracking-[.22em] mb-2">LEGENDARY SECRETS · VIP MEMBERS</div><h2 className="text-2xl sm:text-3xl font-black text-white">{themedLabel("♛")} VIP PLAYERS</h2><p className="text-amber-100/65 text-sm mt-2">{summary.length} MEMBERS · SELECT A PLAYER TO VIEW THEIR PROFILE</p></div>
       <div className="vip-players-list vip-member-grid">
         {summary.map((p, idx) => {
           const isSel      = hovSel === p.name;
@@ -664,9 +665,9 @@ function PlayerProfilesView({ data, initialSel=null, onClearSel }) {
                   </div>
                   <div className="vip-player-winbar" role="img" aria-label={"อัตราชนะ "+(p.n>0?Math.round((p.gold/p.n)*100):0)+" เปอร์เซ็นต์"}><span style={{width:(p.n>0?Math.round((p.gold/p.n)*100):0)+"%"}} /></div>
                   <div className="flex gap-1" style={{flexWrap:"wrap"}}>
-                    {p.gold>0   && <span className="bg-amber-500/20 border border-amber-500/30 text-amber-300 px-1.5 py-0.5 rounded-full text-[10px] whitespace-nowrap">🥇{p.gold}</span>}
-                    {p.silver>0 && <span className="border border-zinc-600 text-zinc-300 px-1.5 py-0.5 rounded-full text-[10px] whitespace-nowrap">🥈{p.silver}</span>}
-                    {p.last>0   && <span className="bg-red-900/30 border border-red-700/30 text-red-400 px-1.5 py-0.5 rounded-full text-[10px] whitespace-nowrap">💀{p.last}</span>}
+                    {p.gold>0   && <span className="bg-amber-500/20 border border-amber-500/30 text-amber-300 px-1.5 py-0.5 rounded-full text-[10px] whitespace-nowrap">{themedLabel("🥇")}{p.gold}</span>}
+                    {p.silver>0 && <span className="border border-zinc-600 text-zinc-300 px-1.5 py-0.5 rounded-full text-[10px] whitespace-nowrap">{themedLabel("🥈")}{p.silver}</span>}
+                    {p.last>0   && <span className="bg-red-900/30 border border-red-700/30 text-red-400 px-1.5 py-0.5 rounded-full text-[10px] whitespace-nowrap">{themedLabel("💀")}{p.last}</span>}
                   </div>
                 </div>
               </div>
@@ -786,7 +787,7 @@ function RacingBarChart({ sessions, players, nicknames, avatars }) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <div className="text-white font-bold text-sm">🏆 Ranking Race</div>
+          <div className="text-white font-bold text-sm">{themedLabel("🏆")} Ranking Race</div>
           <div className="text-zinc-500 text-xs">กำไรสะสมแต่ละเซส</div>
         </div>
         <div className="bg-amber-500/15 border border-amber-500/30 rounded-full px-3 py-1 text-amber-400 font-mono font-bold text-xs">
@@ -912,11 +913,11 @@ function RacingBarChart({ sessions, players, nicknames, avatars }) {
 function RaceView({ data }) {
   return (
     <div className="space-y-2">
-      <h2 className="text-xl font-bold text-white">🏎️ Ranking Race</h2>
+      <h2 className="text-xl font-bold text-white">{themedLabel("🏎️")} Ranking Race</h2>
       <p className="text-zinc-500 text-sm">กำไรสะสมแต่ละเซสชั่น</p>
       {data.sessions.length > 1
         ? <RacingBarChart sessions={data.sessions} players={data.players} nicknames={data.nicknames} avatars={data.avatars||{}}/>
-        : <Box><div className="text-center py-12 text-zinc-600"><div className="text-4xl mb-3">🏎️</div>ต้องมีอย่างน้อย 2 เซสชั่นขึ้นไป</div></Box>
+        : <Box><div className="text-center py-12 text-zinc-600"><div className="text-4xl mb-3">{themedLabel("🏎️")}</div>ต้องมีอย่างน้อย 2 เซสชั่นขึ้นไป</div></Box>
       }
     </div>
   );
@@ -953,7 +954,7 @@ function LeaderboardView({ data }) {
   return (
     <div className="vip-rank vip-redesign vip-rank-reference space-y-5">
       <div>
-        <div className="vip-eyebrow">LEGENDARY SECRETS · HALL OF FAME</div><h2 className="text-xl font-bold text-white">HALL OF FAME <span className="vip-title-en">LEADERBOARD</span></h2><div className="vip-rank-scene" aria-hidden="true"><span>♛</span><span>♠</span><span>♣</span></div>
+        <div className="vip-eyebrow">LEGENDARY SECRETS · HALL OF FAME</div><h2 className="text-xl font-bold text-white">HALL OF FAME <span className="vip-title-en">LEADERBOARD</span></h2><div className="vip-rank-scene" aria-hidden="true"><span>{themedLabel("♛")}</span><span>{themedLabel("♠")}</span><span>{themedLabel("♣")}</span></div>
         <p className="text-zinc-500 text-sm mt-0.5">แสดงผล: <span className="text-amber-300">{filterLabel}</span></p>
       </div>
 
@@ -972,7 +973,7 @@ function LeaderboardView({ data }) {
                   ? "bg-amber-500/15 text-amber-400 border-amber-500/40"
                   : "bg-transparent text-zinc-500 border-zinc-700 hover:text-zinc-300 hover:border-zinc-600"
               )}>
-              {label}
+              {themedLabel(label)}
             </button>
           ))}
         </div>
@@ -1030,24 +1031,24 @@ function LeaderboardView({ data }) {
                   <div className="text-white font-black text-xl">ทำเนียบผู้ชนะ</div>
                   <div className="text-zinc-400 text-xs mt-1">อันดับสูงสุดในช่วงที่เลือก</div>
                 </div>
-                <span className="text-amber-300 text-3xl">♛</span>
+                <span className="text-amber-300 text-3xl">{themedLabel("♛")}</span>
               </div>
               <div className="vip-rank-podium vip-champions vip-ref-podium grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
                 {top3.map((p,i) => (
                   <div key={p.name} className={"vip-ref-champion relative overflow-hidden rounded-2xl border p-5 "+GRAD[i]+" "+(i===0?"border-amber-300/60 shadow-[0_0_35px_rgba(210,157,65,0.13)]":"")}>
-                    <div className="absolute -right-4 -top-9 text-[120px] opacity-10 pointer-events-none">{["♛","♠","♦"][i]}</div>
+                    <div className="absolute -right-4 -top-9 text-[120px] opacity-10 pointer-events-none">{themedLabel(["♛","♠","♦"][i])}</div>
                     <div className="relative">
-                      <div className="vip-ref-medal-row"><span className="vip-podium-medal">{MEDAL[i]}</span><span className="vip-ref-rank-label">RANK 0{i+1}</span></div>
+                      <div className="vip-ref-medal-row"><span className="vip-podium-medal">{themedLabel(MEDAL[i])}</span><span className="vip-ref-rank-label">RANK 0{i+1}</span></div>
                       <div className="vip-ref-avatar-wrap"><img src={avatarUrl(p.name,data.avatars)} alt={"รูปโปรไฟล์ "+p.name} loading="lazy" onError={onAvatarError} /></div>
                       <div className="vip-champion-name text-white text-xl font-black truncate">{p.name}</div>
                       <div className="vip-ref-session-count">{p.n} เซสชั่น</div>
                       <div className="vip-rank-winrate">อัตราชนะ {p.n>0?Math.round(p.gold/p.n*100):0}% <span className="vip-rank-bar"><span style={{width:(p.n>0?Math.round(p.gold/p.n*100):0)+"%"}} /></span></div>
                       <div className={"vip-ref-profit font-mono text-2xl font-black "+(p.total>=0?"text-emerald-300":"text-red-300")}>{p.total>0?"+":""}{fmt(p.total)} ฿</div>
                       <div className="flex flex-wrap gap-1.5 mt-4 text-xs">
-                        <span className="rounded-full bg-black/25 border border-white/10 px-2 py-1">🥇 {p.gold}</span>
-                        <span className="rounded-full bg-black/25 border border-white/10 px-2 py-1">🥈 {p.silver}</span>
-                        <span className="rounded-full bg-black/25 border border-white/10 px-2 py-1">🥉 {p.bronze}</span>
-                        <span className="rounded-full bg-black/25 border border-white/10 px-2 py-1">💀 {p.last}</span>
+                        <span className="rounded-full bg-black/25 border border-white/10 px-2 py-1">{themedLabel("🥇")} {p.gold}</span>
+                        <span className="rounded-full bg-black/25 border border-white/10 px-2 py-1">{themedLabel("🥈")} {p.silver}</span>
+                        <span className="rounded-full bg-black/25 border border-white/10 px-2 py-1">{themedLabel("🥉")} {p.bronze}</span>
+                        <span className="rounded-full bg-black/25 border border-white/10 px-2 py-1">{themedLabel("💀")} {p.last}</span>
                       </div>
                     </div>
                   </div>
@@ -1062,8 +1063,8 @@ function LeaderboardView({ data }) {
                   <th className="px-2 py-2 text-left">#</th>
                   <th className="px-2 py-2 text-left">ผู้เล่น</th>
                   <th className="px-2 py-2 text-right">กำไร/ขาดทุน (฿)</th>
-                  <th className="px-2 py-2 text-center">🥇</th><th className="px-2 py-2 text-center">🥈</th>
-                  <th className="px-2 py-2 text-center">🥉</th><th className="px-2 py-2 text-center">💀</th>
+                  <th className="px-2 py-2 text-center">{themedLabel("🥇")}</th><th className="px-2 py-2 text-center">{themedLabel("🥈")}</th>
+                  <th className="px-2 py-2 text-center">{themedLabel("🥉")}</th><th className="px-2 py-2 text-center">{themedLabel("💀")}</th>
                   <th className="px-1 py-2 text-right hidden sm:table-cell w-16">เซสชั่น</th>
                 </tr></thead>
                 <tbody>
@@ -1103,7 +1104,7 @@ function SessionsView({ data, onEdit, onDelete, initialOpen=null }) {
   const [openStats, setOpenStats] = useState(new Set());
   return (
     <div className="space-y-2">
-      <h2 className="text-xl font-bold text-white">📋 ประวัติเซสชั่น</h2>
+      <h2 className="text-xl font-bold text-white">{themedLabel("📋")} ประวัติเซสชั่น</h2>
       {data.sessions.length===0 && <Box><div className="text-center py-12 text-zinc-600"><div className="text-4xl mb-3">🃏</div>ยังไม่มีเซสชั่น</div></Box>}
       {[...data.sessions].reverse().map(s => {
         const r = ranked(s.entries);
@@ -1125,7 +1126,7 @@ function SessionsView({ data, onEdit, onDelete, initialOpen=null }) {
               </div>
               <div className="flex items-center gap-2">
                 <div className="text-right hidden sm:block">
-                  <div className="text-emerald-400 text-sm font-semibold">🥇 <PlayerName player={r[0]?.player||''} nicknames={data.nicknames}/></div>
+                  <div className="text-emerald-400 text-sm font-semibold">{themedLabel("🥇")} <PlayerName player={r[0]?.player||''} nicknames={data.nicknames}/></div>
                   <div className="text-emerald-300 text-xs font-mono">+{fmt(r[0]?.profitBaht)} ฿</div>
                 </div>
                 <span className="text-zinc-500">{isOpen?"▲":"▼"}</span>
@@ -1134,8 +1135,8 @@ function SessionsView({ data, onEdit, onDelete, initialOpen=null }) {
             {isOpen && (
               <div className="border-t border-zinc-800 px-4 pb-4">
                 <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                  <span className="bg-amber-900/30 border border-amber-700/40 text-amber-300 px-3 py-1 rounded-full font-mono">🎰 {fmt(s.rate.chips)} ชิป = {fmt(s.rate.baht)} ฿</span>
-                  <span className="bg-purple-900/30 border border-purple-700/40 text-purple-300 px-3 py-1 rounded-full font-mono">📦 {fmt(s.fee)} ฿/คน</span>
+                  <span className="bg-amber-900/30 border border-amber-700/40 text-amber-300 px-3 py-1 rounded-full font-mono">{themedLabel("🎰")} {fmt(s.rate.chips)} ชิป = {fmt(s.rate.baht)} ฿</span>
+                  <span className="bg-purple-900/30 border border-purple-700/40 text-purple-300 px-3 py-1 rounded-full font-mono">{themedLabel("📦")} {fmt(s.fee)} ฿/คน</span>
                 </div>
                 <div className="overflow-x-auto mt-3">
                   <table className="w-full text-sm">
@@ -1169,7 +1170,7 @@ function SessionsView({ data, onEdit, onDelete, initialOpen=null }) {
                                 <span className="font-medium text-white"><PlayerName player={e.player} nicknames={data.nicknames}/></span>
                                 <button onClick={() => setOpenStats(prev => { const n = new Set(prev); n.has(statKey) ? n.delete(statKey) : n.add(statKey); return n; })}
                                   className={"text-[10px] px-1.5 py-0.5 rounded border transition-colors " + (statOpen ? "border-amber-500/50 text-amber-400 bg-amber-500/10" : hasStats ? "border-emerald-500/30 text-emerald-400 bg-emerald-500/10" : "border-zinc-700/30 text-zinc-600 hover:text-zinc-400")}>
-                                  {statOpen ? "▲ Stats" : hasStats ? "✦ Stats" : "Stats"}
+                                  {themedLabel(statOpen ? "▲ Stats" : hasStats ? "✦ Stats" : "Stats")}
                                 </button>
                               </div>
                             </td>
@@ -1185,14 +1186,14 @@ function SessionsView({ data, onEdit, onDelete, initialOpen=null }) {
                                 <div className="flex items-center gap-1.5 flex-wrap px-8 py-2" style={{background:"rgba(255,255,255,0.02)"}}>
                                   {BLUFF_FIELDS.map(f => (
                                     <div key={f[0]} className="flex flex-col items-center gap-1 rounded-md border border-zinc-700/20 px-2 py-1.5" style={{background:"rgba(255,255,255,0.04)"}}>
-                                      <span className={"text-[11px] whitespace-nowrap " + f[2]}>{f[1]} {f[3]}</span>
+                                      <span className={"text-[11px] whitespace-nowrap " + f[2]}>{themedLabel(f[1])} {f[3]}</span>
                                       <span className={"font-mono font-bold text-sm " + ((e[f[0]]||0) > 0 ? f[2] : "text-zinc-600")}>{(e[f[0]]||0) > 0 ? e[f[0]] : "-"}</span>
                                     </div>
                                   ))}
                                   <div className="w-px h-8 flex-shrink-0" style={{background:"rgba(255,255,255,0.1)"}}/>
                                   {SET_FIELDS.map(f => (
                                     <div key={f[0]} className="flex flex-col items-center gap-1 rounded-md border border-zinc-700/20 px-2 py-1.5" style={{background:"rgba(255,255,255,0.04)"}}>
-                                      <span className={"text-[11px] whitespace-nowrap " + f[2]}>{f[1]} {f[3]}</span>
+                                      <span className={"text-[11px] whitespace-nowrap " + f[2]}>{themedLabel(f[1])} {f[3]}</span>
                                       <span className={"font-mono font-bold text-sm " + ((e[f[0]]||0) > 0 ? f[2] : "text-zinc-600")}>{(e[f[0]]||0) > 0 ? e[f[0]] : "-"}</span>
                                     </div>
                                   ))}
@@ -1205,11 +1206,11 @@ function SessionsView({ data, onEdit, onDelete, initialOpen=null }) {
                     })}</tbody>
                   </table>
                 </div>
-                {s.note && <p className="mt-3 text-zinc-500 text-sm rounded-lg px-3 py-2" style={{background:"rgba(255,255,255,0.06)"}}>📝 {s.note}</p>}
+                {s.note && <p className="mt-3 text-zinc-500 text-sm rounded-lg px-3 py-2" style={{background:"rgba(255,255,255,0.06)"}}>{themedLabel("📝")} {s.note}</p>}
                 {(onEdit || onDelete) && (
                   <div className="flex gap-2 mt-4 justify-end">
-                    {onEdit   && <button onClick={()=>onEdit(s)} className="px-4 py-1.5 rounded-lg  hover:bg-zinc-600 text-white text-sm">✏️ แก้ไข</button>}
-                    {onDelete && <button onClick={()=>onDelete(s.internalId)} className="px-4 py-1.5 rounded-lg bg-red-900/40 hover:bg-red-800/50 text-red-400 text-sm">🗑️ ลบ</button>}
+                    {onEdit   && <button onClick={()=>onEdit(s)} className="px-4 py-1.5 rounded-lg  hover:bg-zinc-600 text-white text-sm">{themedLabel("✏️")} แก้ไข</button>}
+                    {onDelete && <button onClick={()=>onDelete(s.internalId)} className="px-4 py-1.5 rounded-lg bg-red-900/40 hover:bg-red-800/50 text-red-400 text-sm">{themedLabel("🗑️")} ลบ</button>}
                   </div>
                 )}
               </div>
@@ -1294,7 +1295,7 @@ function SessionForm({ data, editSession, onSave, onCancel, saving, isAdmin, all
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between gap-2">
-        <h2 className="text-xl font-bold text-white">{editSession?"✏️ แก้ไขเซสชั่น":"➕ บันทึกเซสชั่นใหม่"}</h2>
+        <h2 className="text-xl font-bold text-white">{themedLabel(editSession?"✏️ แก้ไขเซสชั่น":"➕ บันทึกเซสชั่นใหม่")}</h2>
         <div className="flex items-center gap-2 flex-shrink-0">
           {isAdmin && !editSession && (
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{background:"rgba(255,255,255,0.08)"}}>
@@ -1304,20 +1305,20 @@ function SessionForm({ data, editSession, onSave, onCancel, saving, isAdmin, all
               </button>
             </div>
           )}
-          {onCancel && <button onClick={onCancel} className="text-zinc-500 hover:text-white text-sm">ยกเลิก ✕</button>}
+          {onCancel && <button onClick={onCancel} className="text-zinc-500 hover:text-white text-sm">ยกเลิก {themedLabel("✕")}</button>}
         </div>
       </div>
 
       {/* Date + Note */}
       <div className="flex gap-2 items-start">
         <div className="flex-shrink-0">
-          <label className="block text-zinc-400 text-xs mb-1">📅 วันที่เล่น</label>
+          <label className="block text-zinc-400 text-xs mb-1">{themedLabel("📅")} วันที่เล่น</label>
           <input type="date" value={date} onChange={e=>setDate(e.target.value)}
             className="border border-zinc-700/40 rounded-lg px-2 py-2 text-white text-sm focus:border-amber-500 focus:outline-none" style={{background:"rgba(255,255,255,0.06)", width:"150px"}}/>
           {errs.date && <p className="text-red-400 text-xs mt-1">{errs.date}</p>}
         </div>
         <div className="flex-1 min-w-0">
-          <label className="block text-zinc-400 text-xs mb-1">📝 หมายเหตุ</label>
+          <label className="block text-zinc-400 text-xs mb-1">{themedLabel("📝")} หมายเหตุ</label>
           <input type="text" value={note} onChange={e=>setNote(e.target.value)} placeholder="เช่น บ้านแนน..."
             className="w-full border border-zinc-700/40 rounded-lg px-3 py-2 text-white text-sm placeholder-zinc-600 focus:border-amber-500 focus:outline-none" style={{background:"rgba(255,255,255,0.06)"}}/>
         </div>
@@ -1328,7 +1329,7 @@ function SessionForm({ data, editSession, onSave, onCancel, saving, isAdmin, all
         <div className="bg-gradient-to-r from-sky-900/30 to-zinc-900/10 border border-sky-700/40 rounded-2xl p-4">
           <div className="flex flex-col sm:flex-row sm:items-center gap-4">
             <div className="flex-1">
-              <div className="text-sky-400 text-xs font-semibold mb-1">📌 คำนวณจากวันที่</div>
+              <div className="text-sky-400 text-xs font-semibold mb-1">{themedLabel("📌")} คำนวณจากวันที่</div>
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-white font-bold text-lg">ปี {year}</span>
                 <span className="bg-sky-500/20 border border-sky-500/40 text-sky-300 px-3 py-0.5 rounded-full font-mono text-sm font-bold">ซีซั่น {season}</span>
@@ -1337,7 +1338,7 @@ function SessionForm({ data, editSession, onSave, onCancel, saving, isAdmin, all
               <div className="text-zinc-600 text-xs mt-1">{sameSes.length>0?"ซีซั่นนี้มี "+sameSes.length+" เซสแล้ว":"เซสแรกของซีซั่นนี้!"}</div>
             </div>
             <div className="sm:w-36">
-              <div className="text-amber-400 text-xs font-semibold mb-1">🎯 เซสชั่นที่</div>
+              <div className="text-amber-400 text-xs font-semibold mb-1">{themedLabel("🎯")} เซสชั่นที่</div>
               <div className="flex items-center gap-1">
                 <button onClick={()=>setSesNo(n=>Math.max(1,n-1))} className="w-8 h-9 rounded-lg  hover:bg-zinc-600 text-white font-bold text-lg flex-shrink-0">−</button>
                 <input type="number" min="1" value={sesNo || ""} onChange={e=>setSesNo(Number(e.target.value)||1)}
@@ -1349,17 +1350,17 @@ function SessionForm({ data, editSession, onSave, onCancel, saving, isAdmin, all
             </div>
           </div>
           <div className="mt-3 rounded-xl px-3 py-2 text-center">
-            <span className="text-amber-300 font-bold font-mono text-sm">📋 ปี {year} · ซีซั่น {season} · เซสชั่นที่ {sesNo}</span>
+            <span className="text-amber-300 font-bold font-mono text-sm">{themedLabel("📋")} ปี {year} · ซีซั่น {season} · เซสชั่นที่ {sesNo}</span>
           </div>
         </div>
       )}
 
       {/* Rate + Fee */}
       <Box className="space-y-3">
-        <div className="text-zinc-300 font-semibold text-sm">⚙️ ตั้งค่าเซสชั่นนี้</div>
+        <div className="text-zinc-300 font-semibold text-sm">{themedLabel("⚙️")} ตั้งค่าเซสชั่นนี้</div>
         <div className="grid grid-cols-1 gap-3">
           <div className="rounded-lg p-2.5" style={{background:"rgba(255,255,255,0.05)"}}>
-            <div className="text-amber-400 text-xs font-semibold mb-2">🎰 อัตราแลกชิป</div>
+            <div className="text-amber-400 text-xs font-semibold mb-2">{themedLabel("🎰")} อัตราแลกชิป</div>
             <div className="flex items-center gap-2">
               <div className="flex-1"><label className="text-zinc-500 text-xs">ชิป</label><NInput value={rate.chips} onChange={v=>setRate(r=>({...r,chips:v}))}/></div>
               <span className="text-zinc-500 pt-5">=</span>
@@ -1369,7 +1370,7 @@ function SessionForm({ data, editSession, onSave, onCancel, saving, isAdmin, all
             {errs.rate && <p className="text-red-400 text-xs mt-1">{errs.rate}</p>}
           </div>
           <div className="rounded-lg p-2.5" style={{background:"rgba(255,255,255,0.05)"}}>
-            <div className="text-purple-400 text-xs font-semibold mb-2">📦 ค่าส่วนกลาง/คน</div>
+            <div className="text-purple-400 text-xs font-semibold mb-2">{themedLabel("📦")} ค่าส่วนกลาง/คน</div>
             <NInput value={fee} onChange={setFee}/>
             <div className="text-zinc-500 text-xs font-mono mt-1">{active} คน × {fmt(fee)} = <span className="text-purple-300">{fmt(active*fee)} ฿</span></div>
           </div>
@@ -1378,7 +1379,7 @@ function SessionForm({ data, editSession, onSave, onCancel, saving, isAdmin, all
 
       {/* Quick Fill */}
       <div className="bg-gradient-to-r from-amber-900/30 to-zinc-900/20 border border-amber-600/40 rounded-2xl p-4">
-        <div className="text-amber-300 text-sm font-bold mb-1">⚡ ซื้อชิปเหมือนกันทุกคน</div>
+        <div className="text-amber-300 text-sm font-bold mb-1">{themedLabel("⚡")} ซื้อชิปเหมือนกันทุกคน</div>
         <div className="text-zinc-600 text-xs mb-3">กรอกครั้งเดียว ใส่ทุกคนพร้อมกัน</div>
         <div className="flex items-end gap-2">
           <div className="flex-1">
@@ -1388,7 +1389,7 @@ function SessionForm({ data, editSession, onSave, onCancel, saving, isAdmin, all
           </div>
           <div className="flex flex-col gap-1.5">
             <button onClick={applyQF} className={"px-4 py-2.5 rounded-xl font-bold text-sm transition-all "+(qok?"bg-emerald-500 text-white":"bg-amber-500 hover:bg-amber-400 text-black")}>
-              {qok ? "✅ ใส่แล้ว!" : "ใส่ทุกคน"}
+              {themedLabel(qok ? "✅ ใส่แล้ว!" : "ใส่ทุกคน")}
             </button>
             <button onClick={()=>setRows(rows.map(r=>({...r,buy:0})))} className="px-4 py-1.5 rounded-xl text-zinc-500 hover:text-white text-xs border border-zinc-700 transition-colors">ล้างค่า</button>
           </div>
@@ -1400,7 +1401,7 @@ function SessionForm({ data, editSession, onSave, onCancel, saving, isAdmin, all
         <span className="text-zinc-500 text-sm">กรอกเป็น:</span>
         <div className="flex rounded-lg p-0.5" style={{background:"rgba(255,255,255,0.08)"}}>
           {[["chips","🎰 ชิป"],["baht","💵 บาท"]].map(([m,label]) => (
-            <button key={m} onClick={()=>setMode(m)} className={"px-4 py-1.5 rounded-md text-sm font-medium transition-colors "+(mode===m?"bg-amber-500 text-black":"text-zinc-400 hover:text-white")}>{label}</button>
+            <button key={m} onClick={()=>setMode(m)} className={"px-4 py-1.5 rounded-md text-sm font-medium transition-colors "+(mode===m?"bg-amber-500 text-black":"text-zinc-400 hover:text-white")}>{themedLabel(label)}</button>
           ))}
         </div>
       </div>
@@ -1408,7 +1409,7 @@ function SessionForm({ data, editSession, onSave, onCancel, saving, isAdmin, all
       {/* Balance */}
       <div className={"rounded-xl px-4 py-3 border "+(bal?"bg-emerald-900/20 border-emerald-700/40":"bg-red-900/20 border-red-700/40")}>
         <div className="flex items-center justify-between gap-4">
-          <span className={"text-sm font-medium flex-shrink-0 "+(bal?"text-emerald-400":"text-red-400")}>{bal?"✅ ยอดสมดุล":"⚠️ ยอดไม่สมดุล"}</span>
+          <span className={"text-sm font-medium flex-shrink-0 "+(bal?"text-emerald-400":"text-red-400")}>{themedLabel(bal?"✅ ยอดสมดุล":"⚠️ ยอดไม่สมดุล")}</span>
           <div className="text-xs font-mono text-right space-y-0.5">
             <div className="text-zinc-400">ซื้อ <span className="text-white">{fmt(totBuy)}</span> ชิป</div>
             <div className="text-zinc-400">แลก <span className="text-white">{fmt(totSell)}</span> ชิป</div>
@@ -1478,12 +1479,12 @@ function SessionForm({ data, editSession, onSave, onCancel, saving, isAdmin, all
                       <span className={"w-2 h-2 rounded-full flex-shrink-0 "+(pb>0?"bg-emerald-400":pb<0?"bg-red-400":"")}/>
                       <span className="text-white font-medium text-sm truncate"><PlayerName player={r.player} nicknames={data.nicknames}/></span>
                       <button onClick={() => setRows(prev => prev.filter(x => x.player !== r.player))}
-                        className="ml-auto text-zinc-600 hover:text-red-400 text-xs transition-colors flex-shrink-0">✕</button>
+                        className="ml-auto text-zinc-600 hover:text-red-400 text-xs transition-colors flex-shrink-0">{themedLabel("✕")}</button>
                     </div>
                     <button
                       onClick={() => setRows(prev => prev.map((x,j) => j===i ? {...x, _statsOpen: !x._statsOpen} : x))}
                       className={"text-[10px] px-1.5 py-0.5 rounded border transition-colors w-fit " + (r._statsOpen ? "border-amber-500/50 text-amber-400 bg-amber-500/10" : hasStats ? "border-emerald-500/30 text-emerald-400 bg-emerald-500/10" : "border-zinc-700/30 text-zinc-600 hover:text-zinc-400")}>
-                      {r._statsOpen ? "▲ Stats" : (hasStats ? "✦ Stats" : "Stats")}
+                      {themedLabel(r._statsOpen ? "▲ Stats" : (hasStats ? "✦ Stats" : "Stats"))}
                     </button>
                   </div>
                   {/* col 2: ซื้อ */}
@@ -1516,7 +1517,7 @@ function SessionForm({ data, editSession, onSave, onCancel, saving, isAdmin, all
                       const [field, emoji, color, label] = f;
                       return (
                         <div key={field} className="flex flex-col items-center gap-1 flex-shrink-0 rounded-md border border-zinc-700/20 px-2 py-1.5" style={{background:"rgba(255,255,255,0.04)"}}>
-                          <span className={"text-[11px] whitespace-nowrap " + color}>{emoji} {label}</span>
+                          <span className={"text-[11px] whitespace-nowrap " + color}>{themedLabel(emoji)} {themedLabel(label)}</span>
                           <div className="flex items-center gap-0.5">
                             <button onClick={() => { const n=[...rows]; n[i]={...n[i],[field]:Math.max(0,(n[i][field]||0)-1)}; setRows(n); }}
                               className="w-5 h-5 rounded text-zinc-400 hover:text-white text-xs flex items-center justify-center border border-zinc-700/30"
@@ -1573,7 +1574,7 @@ function PotView({ data, onAddTx, onDeleteTx, saving, allowPublicPotEdit, setAll
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between gap-2">
-        <div><h2 className="text-xl font-bold text-white">💰 กองกลาง</h2><p className="text-zinc-500 text-sm">รายรับ-รายจ่ายเงินส่วนกลาง</p></div>
+        <div><h2 className="text-xl font-bold text-white">{themedLabel("💰")} กองกลาง</h2><p className="text-zinc-500 text-sm">รายรับ-รายจ่ายเงินส่วนกลาง</p></div>
         <div className="flex items-center gap-2">
           {isAdmin && (
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{background:"rgba(255,255,255,0.08)"}}>
@@ -1595,8 +1596,8 @@ function PotView({ data, onAddTx, onDeleteTx, saving, allowPublicPotEdit, setAll
         <Box className="space-y-3">
           <div className="text-zinc-300 font-semibold text-sm">เพิ่มรายการ</div>
           <div className="flex rounded-lg p-0.5" style={{background:"rgba(255,255,255,0.08)"}}>
-            <button onClick={()=>setType("income")}  className={"flex-1 py-2 rounded-md text-sm font-medium transition-colors "+(type==="income"?"bg-emerald-600 text-white":"text-zinc-400 hover:text-white")}>➕ รายรับ</button>
-            <button onClick={()=>setType("expense")} className={"flex-1 py-2 rounded-md text-sm font-medium transition-colors "+(type==="expense"?"bg-red-600 text-white":"text-zinc-400 hover:text-white")}>➖ รายจ่าย</button>
+            <button onClick={()=>setType("income")}  className={"flex-1 py-2 rounded-md text-sm font-medium transition-colors "+(type==="income"?"bg-emerald-600 text-white":"text-zinc-400 hover:text-white")}>{themedLabel("➕")} รายรับ</button>
+            <button onClick={()=>setType("expense")} className={"flex-1 py-2 rounded-md text-sm font-medium transition-colors "+(type==="expense"?"bg-red-600 text-white":"text-zinc-400 hover:text-white")}>{themedLabel("➖")} รายจ่าย</button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div><label className="text-zinc-500 text-xs">วันที่</label><input type="date" value={dt} onChange={e=>setDt(e.target.value)} className="w-full border border-zinc-600/60 rounded-lg px-3 py-2 text-white text-sm focus:border-amber-500 focus:outline-none" style={{background:"rgba(255,255,255,0.06)"}}/></div>
@@ -1613,12 +1614,12 @@ function PotView({ data, onAddTx, onDeleteTx, saving, allowPublicPotEdit, setAll
         {[...pot.transactions].reverse().map(tx => (
           <div key={tx.id} className="flex items-center justify-between border border-zinc-700/25 rounded-xl px-4 py-3" style={{background:"rgba(15,10,3,0.40)",backdropFilter:"blur(6px)"}}>
             <div className="flex items-center gap-3">
-              <span className={"text-lg "+(tx.type==="income"?"text-emerald-400":"text-red-400")}>{tx.type==="income"?"➕":"➖"}</span>
+              <span className={"text-lg "+(tx.type==="income"?"text-emerald-400":"text-red-400")}>{themedLabel(tx.type==="income"?"➕":"➖")}</span>
               <div><div className="text-white text-sm font-medium">{tx.note}</div><div className="text-zinc-600 text-xs">{String(tx.date||"").slice(0,10)}</div></div>
             </div>
             <div className="flex items-center gap-3">
               <span className={"font-mono font-semibold text-sm "+(tx.type==="income"?"text-emerald-400":"text-red-400")}>{tx.type==="income"?"+":"-"}{fmt(tx.amount)} ฿</span>
-              {onDeleteTx && <button onClick={()=>del(tx.id)} className="text-zinc-700 hover:text-red-400 text-xs">🗑</button>}
+              {onDeleteTx && <button onClick={()=>del(tx.id)} className="text-zinc-700 hover:text-red-400 text-xs">{themedLabel("🗑")}</button>}
             </div>
           </div>
         ))}
@@ -1654,9 +1655,9 @@ function SettingsView({ data, onUpdate, saving }) {
 
   return (
     <div className="space-y-5">
-      <h2 className="text-xl font-bold text-white">⚙️ ตั้งค่า</h2>
+      <h2 className="text-xl font-bold text-white">{themedLabel("⚙️")} ตั้งค่า</h2>
       <Box className="space-y-3">
-        <div className="text-amber-400 font-semibold text-sm">🎰 อัตราแลกชิป (ค่าเริ่มต้น)</div>
+        <div className="text-amber-400 font-semibold text-sm">{themedLabel("🎰")} อัตราแลกชิป (ค่าเริ่มต้น)</div>
         <div className="flex items-center gap-3">
           <div className="flex-1"><label className="text-zinc-500 text-xs">ชิป</label><NInput value={rate.chips} onChange={v=>setRate(r=>({...r,chips:v}))}/></div>
           <span className="text-zinc-400 mt-4 font-bold">=</span>
@@ -1665,12 +1666,12 @@ function SettingsView({ data, onUpdate, saving }) {
         <div className="bg-amber-900/20 border border-amber-700/30 rounded-xl px-4 py-2 text-amber-300 text-sm font-mono">{fmt(rate.chips)} ชิป = {fmt(rate.baht)} ฿ · 1 ชิป ≈ {rate.chips>0?(rate.baht/rate.chips).toFixed(4):0} ฿</div>
       </Box>
       <Box className="space-y-3">
-        <div className="text-purple-400 font-semibold text-sm">📦 ค่าส่วนกลางต่อคน (ค่าเริ่มต้น)</div>
+        <div className="text-purple-400 font-semibold text-sm">{themedLabel("📦")} ค่าส่วนกลางต่อคน (ค่าเริ่มต้น)</div>
         <NInput value={fee} onChange={setFee}/>
         <div className="bg-purple-900/20 border border-purple-700/30 rounded-xl px-4 py-2 text-purple-300 text-sm font-mono">ทุกคนจ่าย {fmt(fee)} ฿/เซสชั่น</div>
       </Box>
       <Box className="space-y-3">
-        <div className="text-zinc-300 font-semibold text-sm">👥 ผู้เล่น</div>
+        <div className="text-zinc-300 font-semibold text-sm">{themedLabel("👥")} ผู้เล่น</div>
         <div className="flex gap-2">
           <input value={newName} onChange={e=>setNewName(e.target.value)} onKeyDown={e=>e.key==="Enter"&&addPlayer()} placeholder="ชื่อผู้เล่นใหม่..."
             className="flex-1 border border-zinc-600/60 rounded-xl px-4 py-2.5 text-white placeholder-zinc-600 focus:border-amber-500 focus:outline-none" style={{background:"rgba(255,255,255,0.06)"}}/>
@@ -1702,7 +1703,7 @@ function SettingsView({ data, onUpdate, saving }) {
                     ใน
                   </button>
                 </div>
-                <button onClick={()=>rmPlayer(p)} className="text-zinc-600 hover:text-red-400 text-xs flex-shrink-0">✕</button>
+                <button onClick={()=>rmPlayer(p)} className="text-zinc-600 hover:text-red-400 text-xs flex-shrink-0">{themedLabel("✕")}</button>
               </div>
               <input
                 value={avatars[p] || ""}
@@ -1715,7 +1716,7 @@ function SettingsView({ data, onUpdate, saving }) {
         </div>
       </Box>
       <Box className="space-y-2">
-        <div className="text-zinc-400 font-semibold text-sm">📅 ช่วงซีซั่น</div>
+        <div className="text-zinc-400 font-semibold text-sm">{themedLabel("📅")} ช่วงซีซั่น</div>
         {[1,2,3,4].map(s => (
           <div key={s} className="flex items-center gap-3 text-sm">
             <span className="bg-sky-500/20 border border-sky-500/30 text-sky-300 px-2 py-0.5 rounded-full text-xs w-16 text-center">ซีซั่น {s}</span>
@@ -1724,7 +1725,7 @@ function SettingsView({ data, onUpdate, saving }) {
         ))}
       </Box>
       <Box className="space-y-3">
-        <div className="text-red-400 font-semibold text-sm">🔐 Admin Password</div>
+        <div className="text-red-400 font-semibold text-sm">{themedLabel("🔐")} Admin Password</div>
         <div className="relative">
           <input
             type={showPw ? "text" : "password"}
@@ -1741,7 +1742,7 @@ function SettingsView({ data, onUpdate, saving }) {
         <div className="text-zinc-600 text-xs">ใช้ password นี้สำหรับกด Login ในแอป</div>
       </Box>
       <button onClick={save} className={"w-full py-3 rounded-xl font-bold text-base transition-all "+(saved?"bg-emerald-500 text-white":"bg-amber-500 hover:bg-amber-400 text-black")}>
-        {saved?"✅ บันทึกแล้ว!":"💾 บันทึกการตั้งค่า"}
+        {themedLabel(saved?"✅ บันทึกแล้ว!":"💾 บันทึกการตั้งค่า")}
       </button>
     </div>
   );
@@ -1785,7 +1786,7 @@ function StreetOutCard({ street, desc, mult, outsNeeded, isOk, validHands, allHa
           {/* fail hands - faded */}
           {failHands.map((h, i) => (
             <div key={i} className="flex items-center gap-2 px-1 py-1 opacity-30">
-              <span className="w-6 text-center text-xs">{"♠♥♦♣"[i%4]}</span>
+              <span className="w-6 text-center text-xs">{themedLabel("♠♥♦♣"[i%4])}</span>
               <span className="flex-1 text-xs text-zinc-500">{h.name}</span>
               <span className="w-8 text-right text-xs font-mono text-red-500">{h.out}</span>
             </div>
@@ -1795,7 +1796,7 @@ function StreetOutCard({ street, desc, mult, outsNeeded, isOk, validHands, allHa
             <div className="relative my-1.5">
               <div className={"border-t border-dashed " + (isOk ? "border-emerald-600/50" : "border-red-600/50")}/>
               <span className={"absolute right-0 -top-2.5 text-[9px] px-1 " + (isOk ? "text-emerald-500" : "text-red-500")}
-                style={{background:"rgba(0,0,0,0.5)"}}>≥ {outsNeeded} out ✓</span>
+                style={{background:"rgba(0,0,0,0.5)"}}>≥ {outsNeeded} out {themedLabel("✓")}</span>
             </div>
           )}
           {/* valid hands - highlighted */}
@@ -1803,7 +1804,7 @@ function StreetOutCard({ street, desc, mult, outsNeeded, isOk, validHands, allHa
             ? <div className="text-center text-zinc-600 text-xs py-2">ต้องการ out มากเกินไป</div>
             : validHands.map((h, i) => (
               <div key={i} className={"flex items-center gap-2 px-1 py-1.5 rounded-lg " + (isOk ? "text-emerald-300" : "text-red-300")}>
-                <span className="w-6 text-center text-sm">{"♠♥♦♣"[i%4]}</span>
+                <span className="w-6 text-center text-sm">{themedLabel("♠♥♦♣"[i%4])}</span>
                 <span className="flex-1 text-xs font-medium">{h.name}</span>
                 <span className={"w-8 text-right text-xs font-mono font-bold " + (isOk ? "text-emerald-400" : "text-red-400")}>{h.out}</span>
               </div>
@@ -1888,7 +1889,7 @@ function StreakView({ allowPublicStreak, setAllowPublicStreak, isAdmin, saving }
     <div className="space-y-2">
       <div className="flex items-start justify-between gap-2">
         <div>
-          <h2 className="text-lg font-bold text-white">🎯 Streak</h2>
+          <h2 className="text-lg font-bold text-white">{themedLabel("🎯")} Streak</h2>
           <p className="text-zinc-500 text-[10px] mt-0.5 leading-tight">
             กด “เล่นมือนี้” ทุกครั้งที่ลง แล้วกด Hit เมื่อติด · นับว่าแต่ละมือยังไม่ติดมากี่ครั้งแล้ว
           </p>
@@ -1905,7 +1906,7 @@ function StreakView({ allowPublicStreak, setAllowPublicStreak, isAdmin, saving }
           <button onClick={resetAll}
             className="px-2.5 py-1 rounded-lg text-[10px] text-zinc-500 hover:text-red-400 border border-zinc-700/30 transition-colors whitespace-nowrap flex-shrink-0"
             style={{background:"rgba(255,255,255,0.04)"}}>
-            🔄 Reset
+            {themedLabel("🔄")} Reset
           </button>
         </div>
       </div>
@@ -1919,7 +1920,7 @@ function StreakView({ allowPublicStreak, setAllowPublicStreak, isAdmin, saving }
           {/* หัวการ์ด */}
           <div className="flex items-center justify-between gap-1.5 mb-2">
             <div className="text-xs font-semibold text-amber-400 flex items-center gap-1 min-w-0">
-              <span className="text-[12px] flex-shrink-0">{g.icon}</span>
+              <span className="text-[12px] flex-shrink-0">{themedLabel(g.icon)}</span>
               <span className="truncate">{g.name}</span>
             </div>
             <button onClick={() => played(g.key)}
@@ -1950,14 +1951,14 @@ function StreakView({ allowPublicStreak, setAllowPublicStreak, isAdmin, saving }
                   <button onClick={() => hit(g.key, st)}
                     className="w-full text-[9px] font-bold text-emerald-400 border border-emerald-500/30 py-1.5 rounded-md hover:bg-emerald-500/15 transition-colors"
                     style={{background:"rgba(5,30,15,0.4)"}}>
-                    ✅ Hit
+                    {themedLabel("✅")} Hit
                   </button>
                   <div className="w-full h-[2px] rounded-full overflow-hidden" style={{background:"rgba(255,255,255,0.06)"}}>
                     <div className="h-full rounded-full transition-all" style={{width: pct + "%", background: barColor(pct)}}/>
                   </div>
                   <button onClick={() => att > 0 && setOpenHist(openHist === id ? null : id)}
                     className={"text-[8px] transition-colors leading-tight " + (att > 0 ? "text-zinc-500 hover:text-zinc-300 cursor-pointer" : "text-zinc-700 cursor-default")}>
-                    {att > 0 ? `📋 ${att}× · เฉลี่ย ${avgStr}` : "📋 No data"}
+                    {themedLabel(att > 0 ? `📋 ${att}× · เฉลี่ย ${avgStr}` : "📋 No data")}
                   </button>
                 </div>
               );
@@ -1999,7 +2000,7 @@ function StreakView({ allowPublicStreak, setAllowPublicStreak, isAdmin, saving }
                 })}
                 <button onClick={() => clearHistory(id)}
                   className="w-full text-[9px] text-zinc-600 hover:text-red-400 py-1 transition-colors border-t border-white/5">
-                  🗑 ล้างประวัติ {STAGE_LABEL[st]}
+                  {themedLabel("🗑")} ล้างประวัติ {STAGE_LABEL[st]}
                 </button>
               </div>
             );
@@ -2059,7 +2060,7 @@ function CalcView({ allowPublicCalc, setAllowPublicCalc, isAdmin, saving }) {
     <div className="space-y-5">
       <div className="flex items-center justify-between gap-2">
         <div>
-          <h2 className="text-xl font-bold text-white">🧮 Pot Odds Calculator</h2>
+          <h2 className="text-xl font-bold text-white">{themedLabel("🧮")} Pot Odds Calculator</h2>
           <p className="text-zinc-500 text-sm mt-0.5">คำนวณ % equity ที่ต้องการเพื่อ call คุ้ม</p>
         </div>
         {isAdmin && (
@@ -2076,7 +2077,7 @@ function CalcView({ allowPublicCalc, setAllowPublicCalc, isAdmin, saving }) {
       <Box className="space-y-4">
         {/* Pot */}
         <div>
-          <label className="block text-zinc-400 text-sm font-semibold mb-2">💰 Pot ปัจจุบัน</label>
+          <label className="block text-zinc-400 text-sm font-semibold mb-2">{themedLabel("💰")} Pot ปัจจุบัน</label>
           <div className="flex items-center gap-2">
             <button onClick={() => setPot(v => Math.max(0, v - 5))}
               className="w-10 h-10 rounded-xl border border-zinc-700/30 text-zinc-300 text-lg font-bold hover:text-white hover:border-amber-500/40 transition-colors flex-shrink-0 flex items-center justify-center"
@@ -2102,7 +2103,7 @@ function CalcView({ allowPublicCalc, setAllowPublicCalc, isAdmin, saving }) {
 
         {/* Call + Hand dropdown */}
         <div>
-          <label className="block text-zinc-400 text-sm font-semibold mb-2">📞 Call Amount + 🃏 Hand ที่ถือ</label>
+          <label className="block text-zinc-400 text-sm font-semibold mb-2">{themedLabel("📞")} Call Amount + 🃏 Hand ที่ถือ</label>
           <div className="flex items-center gap-2">
             <button onClick={() => setCall(v => Math.max(0, v - 5))}
               className="w-10 h-10 rounded-xl border border-zinc-700/30 text-zinc-300 text-lg font-bold hover:text-white hover:border-amber-500/40 transition-colors flex-shrink-0 flex items-center justify-center"
@@ -2156,7 +2157,7 @@ function CalcView({ allowPublicCalc, setAllowPublicCalc, isAdmin, saving }) {
                 </div>
                 {pot > 0 && (
                   <div className={"mt-1 pt-1 border-t border-white/5 font-semibold " + (handOk ? "text-emerald-400" : "text-red-400")}>
-                    {handOk ? "✅ Pot ถึงแล้ว - call คุ้ม" : "❌ Pot ยังไม่ถึง - ควร fold"}
+                    {themedLabel(handOk ? "✅ Pot ถึงแล้ว - call คุ้ม" : "❌ Pot ยังไม่ถึง - ควร fold")}
                   </div>
                 )}
               </div>
@@ -2168,7 +2169,7 @@ function CalcView({ allowPublicCalc, setAllowPublicCalc, isAdmin, saving }) {
       {/* Formula display */}
       {total > 0 && (
         <Box>
-          <div className="text-zinc-400 text-xs font-semibold mb-3">📐 สูตรคำนวณ</div>
+          <div className="text-zinc-400 text-xs font-semibold mb-3">{themedLabel("📐")} สูตรคำนวณ</div>
           <div className="text-center py-2">
             <div className="text-zinc-400 text-sm font-mono">
               ({call.toLocaleString()} ÷ ({pot.toLocaleString()} + {call.toLocaleString()})) × 100
@@ -2295,7 +2296,7 @@ function CalcView({ allowPublicCalc, setAllowPublicCalc, isAdmin, saving }) {
       <button onClick={reset}
         className="w-full py-2.5 rounded-xl text-sm text-zinc-500 hover:text-white border border-zinc-700/30 transition-colors"
         style={{background:"rgba(255,255,255,0.04)"}}>
-        🔄 รีเซ็ต
+        {themedLabel("🔄")} รีเซ็ต
       </button>
     </div>
   );
@@ -2345,9 +2346,9 @@ function SkillView({ data }) {
     <div className="vip-skill space-y-5">
       <div className="vip-skill-hero">
         <div className="text-amber-300 text-xs font-bold tracking-[.24em] mb-2">LEGENDARY SECRETS · SKILL RANKING</div>
-        <h2 className="text-2xl sm:text-3xl font-black text-white">🎭 Skill · เจ้าแห่งการบลัฟ</h2>
+        <h2 className="text-2xl sm:text-3xl font-black text-white">{themedLabel("🎭")} Skill · เจ้าแห่งการบลัฟ</h2>
         <p className="text-zinc-500 text-sm mt-0.5">สถิติ Bluff แต่ละผู้เล่น</p>
-        <p className="text-zinc-600 text-xs mt-1">Score = 🎭 บลัฟผ่าน <span className="text-emerald-500">+1</span> · ❌ บลัฟไม่ผ่าน <span className="text-red-500">-1</span> · 🔍 จับบลัฟได้ <span className="text-emerald-500">+1</span> · 😵 โดนบลัฟ <span className="text-red-500">-1</span></p>
+        <p className="text-zinc-600 text-xs mt-1">Score = {themedLabel("🎭")} บลัฟผ่าน <span className="text-emerald-500">+1</span> · {themedLabel("❌")} บลัฟไม่ผ่าน <span className="text-red-500">-1</span> · {themedLabel("🔍")} จับบลัฟได้ <span className="text-emerald-500">+1</span> · {themedLabel("😵")} โดนบลัฟ <span className="text-red-500">-1</span></p>
       </div>
 
       {/* Filter */}
@@ -2357,14 +2358,14 @@ function SkillView({ data }) {
             className={"px-3 py-1.5 rounded-full text-xs font-medium border transition-colors flex-shrink-0 " + (
               filter===key ? "bg-amber-500/15 text-amber-400 border-amber-500/40"
                            : "bg-transparent text-zinc-500 border-zinc-700 hover:text-zinc-300")}>
-            {label}
+            {themedLabel(label)}
           </button>
         ))}
       </div>
 
       {!hasData ? (
         <div className="border border-zinc-700/25 rounded-2xl p-8 text-center" style={{background:"rgba(255,255,255,0.06)"}}>
-          <div className="text-4xl mb-3">🎭</div>
+          <div className="text-4xl mb-3">{themedLabel("🎭")}</div>
           <div className="text-zinc-500 text-sm">ยังไม่มีข้อมูล Bluff</div>
           <div className="text-zinc-700 text-xs mt-1">กรอกข้อมูล Bluff ตอนบันทึกเซสชั่น</div>
         </div>
@@ -2381,25 +2382,25 @@ function SkillView({ data }) {
                 <div key={p.name} className={"vip-skill-card rounded-2xl border p-4 " + GRAD[i]}
                   style={{background:BG[i]}}>
                   <div className="flex items-center gap-2 mb-3"><span className="text-[10px] text-amber-200/70 tracking-widest ml-auto order-last">RANK 0{i+1}</span>
-                    <span className="text-2xl">{MEDAL[i]}</span>
+                    <span className="text-2xl">{themedLabel(MEDAL[i])}</span>
                     <div className="text-white font-bold text-lg">{p.name}</div>
                   </div>
                   <div className="grid grid-cols-4 gap-2 text-center">
                     <div>
                       <div className="text-emerald-400 font-black text-xl font-mono">{p.bluffWin}</div>
-                      <div className="text-zinc-400 text-[10px]">🎭 บลัฟผ่าน</div>
+                      <div className="text-zinc-400 text-[10px]">{themedLabel("🎭")} บลัฟผ่าน</div>
                     </div>
                     <div>
                       <div className="text-red-400 font-black text-xl font-mono">{p.bluffLose}</div>
-                      <div className="text-zinc-600 text-[10px]">❌ บลัฟไม่ผ่าน</div>
+                      <div className="text-zinc-600 text-[10px]">{themedLabel("❌")} บลัฟไม่ผ่าน</div>
                     </div>
                     <div>
                       <div className="text-amber-400 font-black text-xl font-mono">{p.catchBluff}</div>
-                      <div className="text-zinc-600 text-[10px]">🔍 จับบลัฟได้</div>
+                      <div className="text-zinc-600 text-[10px]">{themedLabel("🔍")} จับบลัฟได้</div>
                     </div>
                     <div>
                       <div className="text-purple-400 font-black text-xl font-mono">{p.gotBluffed}</div>
-                      <div className="text-zinc-600 text-[10px]">😵 โดนบลัฟ</div>
+                      <div className="text-zinc-600 text-[10px]">{themedLabel("😵")} โดนบลัฟ</div>
                     </div>
                   </div>
                   <div className="mt-4 pt-3 border-t border-amber-200/15 flex justify-between items-center">
@@ -2419,10 +2420,10 @@ function SkillView({ data }) {
                   <tr className="border-b border-zinc-800 text-zinc-500 text-xs">
                     <th className="px-3 py-2.5 text-left">#</th>
                     <th className="px-3 py-2.5 text-left">ผู้เล่น</th>
-                    <th className="px-2 py-2.5 text-center">🎭 บลัฟผ่าน</th>
-                    <th className="px-2 py-2.5 text-center">❌ บลัฟไม่ผ่าน</th>
-                    <th className="px-2 py-2.5 text-center">🔍 จับบลัฟได้</th>
-                    <th className="px-2 py-2.5 text-center">😵 โดนบลัฟ</th>
+                    <th className="px-2 py-2.5 text-center">{themedLabel("🎭")} บลัฟผ่าน</th>
+                    <th className="px-2 py-2.5 text-center">{themedLabel("❌")} บลัฟไม่ผ่าน</th>
+                    <th className="px-2 py-2.5 text-center">{themedLabel("🔍")} จับบลัฟได้</th>
+                    <th className="px-2 py-2.5 text-center">{themedLabel("😵")} โดนบลัฟ</th>
                     <th className="px-2 py-2.5 text-center">Score</th>
                   </tr>
                 </thead>
@@ -2498,9 +2499,9 @@ function LuckView({ data }) {
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-xl font-bold text-white">🍀 Luck</h2>
+        <h2 className="text-xl font-bold text-white">{themedLabel("🍀")} Luck</h2>
         <p className="text-zinc-500 text-sm mt-0.5">สถิติไพ่พิเศษแต่ละผู้เล่น</p>
-        <p className="text-zinc-600 text-xs mt-1">Score = 🃏 4 Card <span className="text-emerald-500">+1</span> · ♠️ Straight Flush <span className="text-emerald-500">+2</span> · 👑 Royal Straight Flush <span className="text-emerald-500">+4</span></p>
+        <p className="text-zinc-600 text-xs mt-1">Score = 🃏 4 Card <span className="text-emerald-500">+1</span> · {themedLabel("♠️")} Straight Flush <span className="text-emerald-500">+2</span> · {themedLabel("👑")} Royal Straight Flush <span className="text-emerald-500">+4</span></p>
       </div>
 
       {/* Filter */}
@@ -2510,14 +2511,14 @@ function LuckView({ data }) {
             className={"px-3 py-1.5 rounded-full text-xs font-medium border transition-colors flex-shrink-0 " + (
               filter===key ? "bg-amber-500/15 text-amber-400 border-amber-500/40"
                            : "bg-transparent text-zinc-500 border-zinc-700 hover:text-zinc-300")}>
-            {label}
+            {themedLabel(label)}
           </button>
         ))}
       </div>
 
       {!hasData ? (
         <div className="border border-zinc-700/25 rounded-2xl p-8 text-center" style={{background:"rgba(255,255,255,0.06)"}}>
-          <div className="text-4xl mb-3">🍀</div>
+          <div className="text-4xl mb-3">{themedLabel("🍀")}</div>
           <div className="text-zinc-500 text-sm">ยังไม่มีข้อมูล Luck</div>
           <div className="text-zinc-700 text-xs mt-1">กรอกข้อมูลไพ่พิเศษตอนบันทึกเซสชั่น</div>
         </div>
@@ -2532,7 +2533,7 @@ function LuckView({ data }) {
               return (
                 <div key={p.name} className={"rounded-2xl border p-4 " + GRAD[i]} style={{background:BG[i]}}>
                   <div className="flex items-center gap-2 mb-3">
-                    <span className="text-2xl">{MEDAL[i]}</span>
+                    <span className="text-2xl">{themedLabel(MEDAL[i])}</span>
                     <div className="text-white font-bold text-lg">{p.name}</div>
                   </div>
                   <div className="grid grid-cols-3 gap-2 text-center">
@@ -2542,11 +2543,11 @@ function LuckView({ data }) {
                     </div>
                     <div>
                       <div className="text-violet-400 font-black text-xl font-mono">{p.straightFlush}</div>
-                      <div className="text-zinc-600 text-[10px]">♠️ Str. Flush</div>
+                      <div className="text-zinc-600 text-[10px]">{themedLabel("♠️")} Str. Flush</div>
                     </div>
                     <div>
                       <div className="text-amber-400 font-black text-xl font-mono">{p.royalStraightFlush}</div>
-                      <div className="text-zinc-600 text-[10px]">👑 Royal</div>
+                      <div className="text-zinc-600 text-[10px]">{themedLabel("👑")} Royal</div>
                     </div>
                   </div>
                   <div className="mt-3 pt-2 border-t border-white/5 text-center">
@@ -2567,8 +2568,8 @@ function LuckView({ data }) {
                     <th className="px-3 py-2.5 text-left">#</th>
                     <th className="px-3 py-2.5 text-left">ผู้เล่น</th>
                     <th className="px-2 py-2.5 text-center">🃏 4 Card</th>
-                    <th className="px-2 py-2.5 text-center">♠️ Straight Flush</th>
-                    <th className="px-2 py-2.5 text-center">👑 Royal Straight Flush</th>
+                    <th className="px-2 py-2.5 text-center">{themedLabel("♠️")} Straight Flush</th>
+                    <th className="px-2 py-2.5 text-center">{themedLabel("👑")} Royal Straight Flush</th>
                     <th className="px-2 py-2.5 text-center">Score</th>
                   </tr>
                 </thead>
@@ -2637,8 +2638,8 @@ function LoginView({ data, onLogin, onCancel }) {
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-white">🔐 Admin Login</h2>
-        <button onClick={onCancel} className="text-zinc-500 hover:text-white text-sm">ยกเลิก ✕</button>
+        <h2 className="text-xl font-bold text-white">{themedLabel("🔐")} Admin Login</h2>
+        <button onClick={onCancel} className="text-zinc-500 hover:text-white text-sm">ยกเลิก {themedLabel("✕")}</button>
       </div>
       <Box className="space-y-4">
         <div>
@@ -2868,7 +2869,7 @@ export default function App() {
 
   if (error) return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-6" style={{backgroundImage:`url(${BG_SRC})`,backgroundSize:"cover",backgroundPosition:"center"}}>
-      <div className="text-4xl">⚠️</div>
+      <div className="text-4xl">{themedLabel("⚠️")}</div>
       <div className="text-red-400 text-center text-sm">{error}</div>
       <div className="text-zinc-600 text-xs text-center">ตรวจสอบว่า Apps Script Deploy ถูกต้องแล้วหรือยัง</div>
       <button onClick={() => { setLoading(true); refresh().finally(() => setLoading(false)); }}
@@ -2936,80 +2937,24 @@ export default function App() {
       <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.05)',zIndex:0,pointerEvents:'none'}}/>
       <div style={{position:'relative',zIndex:1,minHeight:'100vh'}}>
       {/* -- DESKTOP header (sm ขึ้นไป) -- */}
-      <header className="lpc-header hidden sm:block sticky top-0 z-40">
+      <header className="lpc-header sticky top-0 z-40">
         <div className="lpc-header-inner">
           <img src={LOGO_SRC} alt="Legendary Secrets Poker Club" className="lpc-logo"/>
           <nav className="lpc-primary-nav" aria-label="เมนูหลัก">
-            {TABS.filter(t => ["dashboard","leaderboard","profiles","race","skill","luck","calc","streak"].includes(t.id)).map(t => (
+            {TABS.map(t => (
               <button key={t.id} onClick={() => { setTab(t.id); if (t.id !== "add") setEditSes(null); }} aria-current={tab===t.id?'page':undefined} className={"lpc-nav-button "+(tab===t.id?'lpc-nav-active':'')}>
-                <img src={`/vip-icons/${t.id}.png`} alt=""/>
+                <ThemeIcon name={t.id}/>
                 <span>{t.id==='dashboard'?'Dashboard':t.label}</span>
               </button>
             ))}
           </nav>
           <div className="lpc-nav-tools">
-            <details className="lpc-more"><summary aria-label="เมนูเพิ่มเติม" title="เซสชั่น บันทึก กองกลาง และตั้งค่า"><span aria-hidden="true">⚙</span></summary><div className="lpc-more-menu">
-              {TABS.filter(t => !["dashboard","leaderboard","profiles","race","skill","luck","calc","streak"].includes(t.id)).map(t => <button key={t.id} onClick={e => { setTab(t.id); if(t.id!=="add")setEditSes(null);e.currentTarget.closest('details').removeAttribute('open'); }}><span>{t.icon}</span>{t.label}</button>)}
-              <div className="lpc-more-balance">กองกลาง {fmt(potBal)} ฿</div>
-            </div></details>
             {isAdmin ? <button className="lpc-account" aria-label="Logout" title="ออกจากระบบ" onClick={() => { localStorage.removeItem("lspc_admin"); setIsAdmin(false); setTab("dashboard"); }}><img src="/vip-icons/avatar.png" alt=""/></button> : <button className="lpc-account" aria-label="Login" title="เข้าสู่ระบบ" onClick={() => setTab("login")}><img src="/vip-icons/avatar.png" alt=""/></button>}
           </div>
         </div>
       </header>
 
-      {/* -- MOBILE header (< sm) -- */}
-      <div className="sm:hidden sticky top-0 z-40" style={{background:"rgba(8,5,1,0.85)",backdropFilter:"blur(16px)"}}>
-        {/* Top bar */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800/60">
-          {/* Hamburger ซ้าย */}
-          <button onClick={() => setMenuOpen(o => !o)}
-            className="w-9 h-9 rounded-xl border border-zinc-700/30 flex flex-col items-center justify-center gap-1.5 flex-shrink-0" style={{background:"rgba(255,255,255,0.08)"}}>
-            <span className={"block w-4 h-0.5 bg-zinc-300 transition-all duration-200 " + (menuOpen ? "rotate-45 translate-y-1.5" : "")}/>
-            <span className={"block w-4 h-0.5 bg-zinc-300 transition-all duration-200 " + (menuOpen ? "opacity-0" : "")}/>
-            <span className={"block w-4 h-0.5 bg-zinc-300 transition-all duration-200 " + (menuOpen ? "-rotate-45 -translate-y-1.5" : "")}/>
-          </button>
-          {/* Logo + ชื่อ กลาง */}
-          <div className="flex items-center gap-2">
-            <img src={LOGO_SRC} alt="logo" className="h-9 w-9 rounded-lg object-cover"/>
-            <div className="leading-tight">
-              <div className="text-amber-400 font-bold text-xs tracking-widest">LEGENDARY</div>
-              <div className="text-zinc-400 text-[10px] tracking-widest">SECRETS POKER</div>
-            </div>
-          </div>
-          {/* กองกลาง ขวา */}
-          <button onClick={() => { setTab("pot"); setMenuOpen(false); }}
-            className={"text-sm font-mono font-bold px-3 py-1.5 rounded-xl border transition-colors " + (potBal >= 0 ? "text-amber-400 border-amber-500/30 bg-amber-500/10" : "text-red-400 border-red-500/30 bg-red-500/10")}>
-            💰 {fmt(potBal)} ฿
-          </button>
-        </div>
-        {/* Dropdown - อยู่ใน flow ไม่ทับ content */}
-        {menuOpen && (
-          <div className="border-b border-amber-900/30" style={{background:"rgba(20,12,2,0.92)",backdropFilter:"blur(20px)"}}>
-            <div className="py-1">
-              {TABS.map(t => (
-                <button key={t.id} onClick={() => { setTab(t.id); setMenuOpen(false); if (t.id !== "add") setEditSes(null); }}
-                  className={"w-full flex items-center gap-3 px-5 py-3 text-sm font-medium transition-colors " + (tab === t.id ? "text-amber-400 bg-amber-500/10" : "text-zinc-300 hover:text-amber-300 hover:bg-white/5")}>
-                  <span className="lpc-mobile-icon">{["dashboard","leaderboard","profiles","race","skill","luck","calc","streak"].includes(t.id) ? <img src={`/vip-icons/${t.id}.png`} alt=""/> : t.icon}</span>
-                  <span>{t.label}</span>
-                  {tab === t.id && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-amber-400 flex-shrink-0"/>}
-                </button>
-              ))}
-              <div className="mx-4 my-1 border-t border-amber-900/30"/>
-              {isAdmin
-                ? <button onClick={() => { localStorage.removeItem("lspc_admin"); setIsAdmin(false); setTab("dashboard"); setMenuOpen(false); }}
-                    className="w-full flex items-center gap-3 px-5 py-3 text-sm text-zinc-500 hover:text-white hover:bg-white/5 transition-colors">
-                    <span className="text-base">🔓</span><span>Logout</span>
-                  </button>
-                : <button onClick={() => { setTab("login"); setMenuOpen(false); }}
-                    className="w-full flex items-center gap-3 px-5 py-3 text-sm text-zinc-500 hover:text-amber-400 hover:bg-white/5 transition-colors">
-                    <span className="text-base">🔐</span><span>Admin Login</span>
-                  </button>
-              }
-            </div>
-          </div>
-        )}
-      </div>
-      <main className="max-w-3xl mx-auto px-4 py-6" style={{position:"relative",zIndex:1}}>
+      <main className={"lpc-page lpc-page-"+tab+" max-w-3xl mx-auto px-4 py-6"} style={{position:"relative",zIndex:1}}>
         {tab === "dashboard"   && <DashboardView data={data}
           onGoLeader={name => { setProfileSel(name); setTab("profiles"); }}
           onGoLatestSes={id => { setOpenSesId(id); setTab("sessions"); }}
