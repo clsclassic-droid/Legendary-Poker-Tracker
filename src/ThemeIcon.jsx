@@ -1,7 +1,7 @@
 import React from 'react';
 
 // Presentation-only icons. Values, handlers and stored data stay with their views.
-const artwork = {dashboard:'dashboard',leaderboard:'leaderboard',profiles:'profiles',race:'race',skill:'skill',luck:'luck',calc:'calc',streak:'streak',avatar:'avatar'};
+const artwork = {dashboard:'dashboard',leaderboard:'leaderboard',profiles:'profiles',race:'race',skill:'skill',luck:'luck',calc:'calc',streak:'streak',avatar:'avatar',sessions:'sessions',add:'add',pot:'pot',settings:'settings'};
 const paths = {
   spade:'M12 2C9 6 3 9 3 14c0 5 6 5 9 1-1 4-2 6-3 7h6c-1-1-2-3-3-7 3 4 9 4 9-1 0-5-6-8-9-12z',
   diamond:'M12 2l8 10-8 10-8-10z',
@@ -33,6 +33,7 @@ const paths = {
   medal:'M5 2l5 8 M19 2l-5 8 M16 2l-4 6-4-6 M19 16a7 7 0 1 1-14 0 7 7 0 0 1 14 0',
 };
 export function ThemeIcon({name, label, rank}) {
+  if (name === 'medal' && [1,2,3].includes(rank)) return <img className="theme-icon theme-icon-art" src={'/vip-icons/medal-'+rank+'.png'} alt={label||('อันดับ '+rank)}/>;
   if (artwork[name]) return <img className="theme-icon theme-icon-art" src={'/vip-icons/'+artwork[name]+'.png'} alt={label||''}/>;
   return <svg className={'theme-icon theme-icon-'+name} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" role={label?'img':undefined} aria-label={label} aria-hidden={label?undefined:true}><path d={paths[name]||paths.chip}/>{rank&&<text x="12" y="19" textAnchor="middle" fontSize="8" stroke="none" fill="currentColor">{rank}</text>}</svg>;
 }
