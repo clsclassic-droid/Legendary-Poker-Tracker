@@ -8,7 +8,7 @@ import { useState, useEffect, useMemo, Fragment } from "react";
 // -----------------------------------------------------------------
 const API_URL = process.env.REACT_APP_APPS_SCRIPT_URL || "https://script.google.com/macros/s/AKfycbxfxhH1jGwsIJMUBHypzz5VZrKpnfDL2pgJePObM-JvXIp5CjAWaIH_4g1fJQXYjS03bA/exec";
 const LOGO_SRC = "https://raw.githubusercontent.com/clsclassic-droid/Legendary-Poker-Tracker/main/src/f512d9a54b54e5e327ac49c65c60695a.jpeg";
-const BG_SRC   = "https://github.com/clsclassic-droid/Legendary-Poker-Tracker/blob/main/sidebar-bg.jpg?raw=true";
+const BG_SRC   = "/sidebar-bg.webp";
 
 // -----------------------------------------------------------------
 // AVATAR HELPERS
@@ -2885,9 +2885,16 @@ export default function App() {
   }
 
   if (loading) return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-3" style={{backgroundImage:`url(${BG_SRC})`,backgroundSize:"cover",backgroundPosition:"center"}}>
-      <Spinner/>
-      <div className="text-amber-400 text-sm">กำลังโหลดข้อมูลจาก Google Sheets...</div>
+    <div className="lpc-loading-shell" aria-busy="true">
+      <header className="lpc-loading-header">LEGENDARY SECRETS · POKER CLUB</header>
+      <main className="lpc-loading-main">
+        <h1>THE LEGENDARY CLUB</h1>
+        <div className="lpc-loading-status" role="status"><Spinner/><span>กำลังโหลดข้อมูลล่าสุด...</span></div>
+        <div className="lpc-loading-cards" aria-hidden="true">
+          {[0,1,2,3].map(i => <div className="lpc-loading-placeholder" key={i}><span/><span/></div>)}
+        </div>
+        <div className="lpc-loading-chart lpc-loading-placeholder" aria-hidden="true"><span/><span/></div>
+      </main>
     </div>
   );
 
